@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@prisma/client": "^7.4.0",
+    "@radix-ui/react-slot": "^1.2.4",
     "@vercel/blob": "^2.2.0",
     "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.563.0",
@@ -22,6 +24,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {
