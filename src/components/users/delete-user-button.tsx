@@ -47,7 +47,7 @@ export function DeleteUserButton({ userId, userName }: DeleteUserButtonProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive/90 hover:bg-destructive/10">
+        <Button variant="soft-destructive" size="icon" className="h-8 w-8">
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>

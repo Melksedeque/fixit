@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Plus, Edit2, Mail, Phone } from "lucide-react"
+import { Plus, Edit2, Mail, Phone, Eye } from "lucide-react"
 import { DeleteUserButton } from "@/components/users/delete-user-button"
 import { UserForm } from "@/components/users/user-form"
 import {
@@ -23,6 +23,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Role } from "@prisma/client"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 interface User {
   id: string
@@ -63,6 +64,17 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
       .toUpperCase()
   }
 
+  const formatPhone = (phone: string) => {
+    const cleaned = phone.replace(/\D/g, "")
+    if (cleaned.length === 11) {
+      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
+    }
+    if (cleaned.length === 10) {
+      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3")
+    }
+    return phone
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -100,7 +112,11 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id}>
+              <TableRow 
+                key={user.id} 
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => router.push(`/dashboard/users/${user.id}`)}
+              >
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
@@ -113,35 +129,49 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                 <TableCell>
                   <a
                     href={`mailto:${user.email}`}
-                    className="flex items-center gap-2 hover:underline hover:text-primary"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-2 hover:underline hover:text-primary w-fit"
                   >
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     {user.email}
                   </a>
                 </TableCell>
                 <TableCell>
-                  {user.whatsapp ? (
-                    <a
-                      href={`https://wa.me/55${user.whatsapp.replace(/\D/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 hover:underline hover:text-green-600"
-                    >
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      {user.whatsapp}
-                    </a>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </TableCell>
+              {user.whatsapp ? (
+                <a
+                  href={`https://wa.me/55${user.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2 hover:underline hover:text-green-600 w-fit"
+                >
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  {formatPhone(user.whatsapp)}
+                </a>
+              ) : (
+                <span className="text-muted-foreground">-</span>
+              )}
+            </TableCell>
                 <TableCell>{user.role}</TableCell>
                 {isAdmin && (
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                       <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingUser(user)}
+                        variant="soft-success"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => router.push(`/dashboard/users/${user.id}`)}
+                      >
+                         <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="soft-edit"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEditingUser(user)
+                        }}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
