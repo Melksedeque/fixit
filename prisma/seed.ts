@@ -1,7 +1,14 @@
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient, Role } from "@prisma/client"
 import bcrypt from "bcryptjs"
+import "dotenv/config"
 
-const prisma = new PrismaClient()
+const connectionString = process.env.DATABASE_URL
+
+const pool = new Pool({ connectionString })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   const email = "freelancer@melksedeque.com.br"
