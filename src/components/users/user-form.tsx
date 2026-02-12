@@ -34,9 +34,11 @@ interface UserFormProps {
     email: string
     role: Role
   }
+  onSuccess?: () => void
+  onCancel?: () => void
 }
 
-export function UserForm({ initialData }: UserFormProps) {
+export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
   const router = useRouter()
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -72,7 +74,11 @@ export function UserForm({ initialData }: UserFormProps) {
             toast.error(result.error)
         } else {
             toast.success("Usuário atualizado com sucesso!")
-            router.push("/dashboard/users")
+            if (onSuccess) {
+              onSuccess()
+            } else {
+              router.push("/dashboard/users")
+            }
         }
       } else {
         const result: any = await createUser(null, formData)
@@ -80,7 +86,11 @@ export function UserForm({ initialData }: UserFormProps) {
             toast.error(result.error)
         } else {
             toast.success("Usuário criado com sucesso!")
-            router.push("/dashboard/users")
+            if (onSuccess) {
+              onSuccess()
+            } else {
+              router.push("/dashboard/users")
+            }
         }
       }
     } catch {
@@ -151,7 +161,7 @@ export function UserForm({ initialData }: UserFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.back()}
+          onClick={() => onCancel ? onCancel() : router.back()}
           disabled={isSubmitting}
         >
           Cancelar

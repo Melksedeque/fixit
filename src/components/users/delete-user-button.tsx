@@ -16,6 +16,7 @@ import { Trash2 } from "lucide-react"
 import { deleteUser } from "@/app/dashboard/users/actions"
 import { toast } from "sonner"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 interface DeleteUserButtonProps {
   userId: string
@@ -23,16 +24,18 @@ interface DeleteUserButtonProps {
 }
 
 export function DeleteUserButton({ userId, userName }: DeleteUserButtonProps) {
+  const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      const result = await deleteUser(userId)
+      const result: any = await deleteUser(userId)
       if (result?.error) {
         toast.error(result.error)
       } else {
         toast.success(`Usuário ${userName} excluído com sucesso.`)
+        router.refresh()
       }
     } catch {
       toast.error("Erro ao excluir usuário.")

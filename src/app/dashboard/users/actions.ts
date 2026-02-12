@@ -25,7 +25,7 @@ export async function createUser(prevState: any, formData: FormData) {
   const rawData = {
     name: formData.get("name"),
     email: formData.get("email"),
-    password: formData.get("password"),
+    password: formData.get("password") || undefined,
     role: formData.get("role"),
   }
 
@@ -78,7 +78,7 @@ export async function updateUser(id: string, prevState: any, formData: FormData)
   const rawData = {
     name: formData.get("name"),
     email: formData.get("email"),
-    password: formData.get("password"),
+    password: formData.get("password") || undefined,
     role: formData.get("role"),
   }
 
