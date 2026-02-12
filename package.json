@@ -10,6 +10,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^7.4.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@vercel/blob": "^2.2.0",
@@ -23,8 +24,10 @@
     "prisma": "^6.19.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-hook-form": "^7.71.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
+    "vanilla-masker": "^1.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

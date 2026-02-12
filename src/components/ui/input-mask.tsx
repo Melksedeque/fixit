@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import { Input, InputProps } from "@/components/ui/input"
 import VMasker from "vanilla-masker"
