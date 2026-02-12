@@ -49,6 +49,7 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
   const router = useRouter()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(initialData?.avatar || null)
+  const [removeAvatar, setRemoveAvatar] = useState(false)
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -74,6 +75,7 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
     if (file) {
       setFile(file)
       setPreview(URL.createObjectURL(file))
+      setRemoveAvatar(false)
     }
   }, [])
 
@@ -105,6 +107,9 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
     }
     if (file) {
       formData.append("avatar", file)
+    }
+    if (removeAvatar) {
+      formData.append("removeAvatar", "true")
     }
 
     try {
@@ -177,6 +182,7 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
                e.stopPropagation()
                setFile(null)
                setPreview(null)
+               setRemoveAvatar(true)
              }}
            >
              <X className="mr-2 h-4 w-4" /> Remover foto
