@@ -4,13 +4,12 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { signIn } from "next-auth/react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { LogIn, ArrowRight } from "lucide-react"
 import { checkEmail } from "@/app/login/actions"
-import { JCCharacter, JCState } from "@/components/ui/tecnico/jc-character"
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -25,16 +24,11 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   
-  // JC Character State
-  const [jcState, setJcState] = useState<JCState>("idle")
-  const [lastActivity, setLastActivity] = useState(Date.now())
-
   const {
     register,
     handleSubmit,
     trigger,
     getValues,
-    watch,
     setFocus,
     formState: { errors },
   } = useForm<LoginFormValues>({
@@ -42,76 +36,29 @@ export function LoginForm() {
     mode: "onChange"
   })
 
-  // Watch fields for JC interaction
-  const emailValue = watch("email")
-  const passwordValue = watch("password")
-
-  // Idle timer for "pointing" state
-  useEffect(() => {
-    const handleActivity = () => setLastActivity(Date.now())
-    window.addEventListener("mousemove", handleActivity)
-    window.addEventListener("keydown", handleActivity)
-
-    const interval = setInterval(() => {
-      const isIdle = Date.now() - lastActivity > 7000
-      if (isIdle && jcState !== "pointing" && !loading) {
-        setJcState("pointing")
-      }
-    }, 1000)
-
-    return () => {
-      window.removeEventListener("mousemove", handleActivity)
-      window.removeEventListener("keydown", handleActivity)
-      clearInterval(interval)
-    }
-  }, [lastActivity, jcState, loading])
-
-  // Reset JC to following when active (unless specific states)
-  useEffect(() => {
-    if (jcState === "pointing") {
-      setJcState("following")
-    }
-  }, [lastActivity])
-
-  // Email typing effect
-  useEffect(() => {
-    if (step === "email" && emailValue) {
-      // Small delay to simulate "following typing"
-      setJcState("following") 
-    }
-  }, [emailValue, step])
-
   const handleNextStep = async () => {
     const isValid = await trigger("email")
     if (!isValid) {
-      setJcState("facepalm")
       return
     }
 
     setLoading(true)
     setError(null)
-    setJcState("following")
 
     try {
       const email = getValues("email")
       const result = await checkEmail(email)
 
       if (result.exists) {
-        setJcState("happy")
-        setTimeout(() => {
-            setStep("password")
-            setLoading(false)
-            setJcState("hiding") // Prepare for password entry
-            // Need to wait for render to focus password
-            setTimeout(() => setFocus("password"), 100)
-        }, 800)
+        setStep("password")
+        setLoading(false)
+        // Need to wait for render to focus password
+        setTimeout(() => setFocus("password"), 100)
       } else {
-        setJcState("facepalm")
         setError("E-mail não encontrado.")
         setLoading(false)
       }
     } catch (err) {
-      setJcState("facepalm")
       setError("Erro ao verificar e-mail.")
       setLoading(false)
     }
@@ -129,15 +76,12 @@ export function LoginForm() {
       })
 
       if (result?.error) {
-        setJcState("facepalm")
         setError("Senha incorreta.")
       } else {
-        setJcState("happy")
         router.push("/dashboard")
         router.refresh()
       }
     } catch (err) {
-      setJcState("facepalm")
       setError("Ocorreu um erro ao tentar fazer login.")
     } finally {
       setLoading(false)
@@ -146,12 +90,7 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-sm relative">
-        {/* JC Character positioned above */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-            <JCCharacter state={jcState} />
-        </div>
-
-        <div className="w-full bg-white rounded-lg shadow-lg p-6 pt-10 mt-10 relative z-20">
+        <div className="w-full bg-white rounded-lg shadow-lg p-6 relative z-20">
             <div className="space-y-2 text-center mb-6">
                 <h1 className="text-2xl font-bold tracking-tight text-primary">Acessar Fixit</h1>
                 <p className="text-sm text-muted-foreground">
@@ -161,14 +100,13 @@ export function LoginForm() {
             
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 {step === "email" && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 animate-in fade-in slide-in-from-left-8 duration-300">
                         <div className="space-y-1">
                             <Input
                                 label="E-mail"
                                 type="email"
                                 {...register("email")}
                                 disabled={loading}
-                                onFocus={() => setJcState("following")}
                                 onKeyDown={(e) => {
                                     if(e.key === 'Enter') {
                                         e.preventDefault()
@@ -203,7 +141,6 @@ export function LoginForm() {
                                 type="password"
                                 {...register("password")}
                                 disabled={loading}
-                                onFocus={() => setJcState("hiding")}
                                 autoFocus
                             />
                             {errors.password && (
@@ -224,7 +161,6 @@ export function LoginForm() {
                                 className="w-1/3"
                                 onClick={() => {
                                     setStep("email")
-                                    setJcState("following")
                                     setError(null)
                                 }}
                                 disabled={loading}
