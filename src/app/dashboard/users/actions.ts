@@ -173,9 +173,12 @@ export async function updateUser(id: string, prevState: ActionState | null, form
 
   const file = formData.get("avatar") as File | null
   const avatarUrl = await saveFile(file)
+  const removeAvatar = formData.get("removeAvatar") === "true"
   
   if (avatarUrl) {
     dataToUpdate.avatar = avatarUrl
+  } else if (removeAvatar) {
+    dataToUpdate.avatar = null
   }
 
   try {
