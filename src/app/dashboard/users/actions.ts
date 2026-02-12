@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma"
 import { Role } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import { z } from "zod"
 
 const userSchema = z.object({
@@ -65,7 +64,7 @@ export async function createUser(prevState: any, formData: FormData) {
   }
 
   revalidatePath("/dashboard/users")
-  redirect("/dashboard/users")
+  return { success: true }
 }
 
 export async function updateUser(id: string, prevState: any, formData: FormData) {
@@ -119,7 +118,7 @@ export async function updateUser(id: string, prevState: any, formData: FormData)
 
   revalidatePath("/dashboard/users")
   revalidatePath(`/dashboard/users/${id}`)
-  redirect("/dashboard/users")
+  return { success: true }
 }
 
 export async function deleteUser(id: string) {
