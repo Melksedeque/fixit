@@ -8,6 +8,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Logo } from "@/components/ui/logo"
 import { LogIn, ArrowRight } from "lucide-react"
 import { checkEmail } from "@/app/login/actions"
 
@@ -92,7 +93,10 @@ export function LoginForm() {
     <div className="w-full max-w-sm relative">
         <div className="w-full bg-white rounded-lg shadow-lg p-6 relative z-20">
             <div className="space-y-2 text-center mb-6">
-                <h1 className="text-2xl font-bold tracking-tight text-primary">Acessar Fixit</h1>
+                <div className="flex justify-center mb-4">
+                    <Logo width={180} />
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-primary sr-only">Acessar Fixit</h1>
                 <p className="text-sm text-muted-foreground">
                 {step === "email" ? "Qual é o seu e-mail?" : "Agora, sua senha secreta"}
                 </p>

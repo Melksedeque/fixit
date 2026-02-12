@@ -55,6 +55,8 @@
 }
 
 @theme inline {
+  --font-baloo: var(--font-baloo), cursive, sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
