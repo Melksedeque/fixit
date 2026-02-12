@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Save, Trash2, ArrowRight, CheckCircle, AlertTriangle } from "lucide-react"
+import { InputMask } from "@/components/ui/input-mask"
+import { Save, Trash2, ArrowRight, CheckCircle, AlertTriangle, Edit } from "lucide-react"
 
 export default function DesignSystemPage() {
   return (
@@ -16,6 +17,7 @@ export default function DesignSystemPage() {
           <Button variant="link">Link</Button>
           <Button variant="success">Success</Button>
           <Button variant="warning">Warning</Button>
+          <Button variant="edit">Edit</Button>
         </div>
         
         <h3 className="text-xl font-semibold mt-8">Com Ícones</h3>
@@ -35,6 +37,9 @@ export default function DesignSystemPage() {
           <Button variant="warning">
             <AlertTriangle className="mr-2 h-4 w-4" /> Atenção
           </Button>
+          <Button variant="edit">
+            <Edit className="mr-2 h-4 w-4" /> Editar
+          </Button>
         </div>
       </section>
 
@@ -44,8 +49,19 @@ export default function DesignSystemPage() {
           <Input label="Nome Completo" type="text" />
           <Input label="E-mail" type="email" />
           <Input label="Senha" type="password" />
-          <Input label="Telefone" type="tel" />
           <Input placeholder="Sem Label (Default)" />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-bold">Inputs com Máscara</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InputMask mask="cpf" label="CPF" placeholder="000.000.000-00" />
+          <InputMask mask="cnpj" label="CNPJ" placeholder="00.000.000/0000-00" />
+          <InputMask mask="phone" label="Telefone" placeholder="(00) 00000-0000" />
+          <InputMask mask="cep" label="CEP" placeholder="00000-000" />
+          <InputMask mask="money" label="Valor" placeholder="R$ 0,00" />
+          <InputMask mask="date" label="Data" placeholder="00/00/0000" />
         </div>
       </section>
     </div>
