@@ -31,10 +31,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
         classNames: {
           toast: cn(
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-            "group-data-[type=success]:bg-green-50 group-data-[type=success]:text-green-900 group-data-[type=success]:border-green-200",
-            "group-data-[type=error]:bg-red-50 group-data-[type=error]:text-red-900 group-data-[type=error]:border-red-200",
-            "group-data-[type=info]:bg-blue-50 group-data-[type=info]:text-blue-900 group-data-[type=info]:border-blue-200",
-            "group-data-[type=warning]:bg-orange-50 group-data-[type=warning]:text-orange-900 group-data-[type=warning]:border-orange-200"
+            "data-[type=success]:bg-green-50 data-[type=success]:text-green-900 data-[type=success]:border-green-200",
+            "data-[type=error]:bg-red-50 data-[type=error]:text-red-900 data-[type=error]:border-red-200",
+            "data-[type=info]:bg-blue-50 data-[type=info]:text-blue-900 data-[type=info]:border-blue-200",
+            "data-[type=warning]:bg-orange-50 data-[type=warning]:text-orange-900 data-[type=warning]:border-orange-200"
           ),
           description: cn(
             "group-[.toast]:text-muted-foreground",
