@@ -58,7 +58,7 @@ export function LoginForm() {
         setError("E-mail não encontrado.")
         setLoading(false)
       }
-    } catch (err) {
+    } catch {
       setError("Erro ao verificar e-mail.")
       setLoading(false)
     }
@@ -81,7 +81,7 @@ export function LoginForm() {
         router.push("/dashboard")
         router.refresh()
       }
-    } catch (err) {
+    } catch {
       setError("Ocorreu um erro ao tentar fazer login.")
     } finally {
       setLoading(false)

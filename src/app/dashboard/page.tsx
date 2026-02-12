@@ -1,52 +1,93 @@
-import { auth } from "@/lib/auth/config"
-import { redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { LogOut } from "lucide-react"
-import { signOut } from "@/lib/auth/config" // We need to export signOut from config or import from next-auth/react in client component
-
-// For server component logout, we usually use a Server Action
-async function logoutAction() {
-  "use server"
-  await signOut()
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Ticket, Users, Clock, CheckCircle } from "lucide-react"
 
 export default async function DashboardPage() {
-  const session = await auth()
-
-  if (!session) {
-    redirect("/login")
-  }
-
+  
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <span>Olá, {session.user?.name || session.user?.email}</span>
-          <form action={logoutAction}>
-            <Button variant="outline" size="sm">
-              <LogOut className="mr-2 h-4 w-4" /> Sair
-            </Button>
-          </form>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="font-semibold text-gray-500">Total de Chamados</h3>
-          <p className="text-3xl font-bold">0</p>
-        </div>
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="font-semibold text-gray-500">Em Aberto</h3>
-          <p className="text-3xl font-bold">0</p>
-        </div>
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="font-semibold text-gray-500">Em Andamento</h3>
-          <p className="text-3xl font-bold">0</p>
-        </div>
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="font-semibold text-gray-500">Concluídos</h3>
-          <p className="text-3xl font-bold">0</p>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total de Chamados
+            </CardTitle>
+            <Ticket className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">
+              +0% em relação ao mês passado
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Em Aberto
+            </CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">
+              Aguardando atendimento
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Concluídos
+            </CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">
+              +0% em relação ao mês passado
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Usuários Ativos
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">
+              +0 novos usuários
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Visão Geral</CardTitle>
+          </CardHeader>
+          <CardContent className="pl-2">
+            <div className="h-[200px] flex items-center justify-center text-muted-foreground">
+                Gráfico de chamados (em breve)
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Chamados Recentes</CardTitle>
+          </CardHeader>
+          <CardContent>
+             <div className="h-[200px] flex items-center justify-center text-muted-foreground">
+                Lista de chamados recentes (em breve)
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
