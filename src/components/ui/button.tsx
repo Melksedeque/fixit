@@ -21,6 +21,10 @@ const buttonVariants = cva(
         success: "bg-green-600 text-white hover:bg-green-700",
         warning: "bg-orange-500 text-white hover:bg-orange-600",
         edit: "bg-sky-500 text-white hover:bg-sky-600",
+        "soft-success": "bg-green-100 text-green-800 border border-green-200 hover:bg-green-600 hover:text-white shadow-none",
+        "soft-warning": "bg-orange-100 text-orange-800 border border-orange-200 hover:bg-orange-600 hover:text-white shadow-none",
+        "soft-edit": "bg-sky-100 text-sky-800 border border-sky-200 hover:bg-sky-600 hover:text-white shadow-none",
+        "soft-destructive": "bg-red-100 text-red-800 border border-red-200 hover:bg-red-600 hover:text-white shadow-none",
       },
       size: {
         default: "h-10 px-4 py-2",
