@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Plus, Edit2 } from "lucide-react"
+import { Plus, Edit2, Mail, Phone } from "lucide-react"
 import { DeleteUserButton } from "@/components/users/delete-user-button"
 import { UserForm } from "@/components/users/user-form"
 import {
@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Role } from "@prisma/client"
 import { useRouter } from "next/navigation"
 
@@ -28,6 +29,8 @@ interface User {
   name: string
   email: string
   role: Role
+  whatsapp: string | null
+  avatar: string | null
   createdAt: Date
 }
 
@@ -49,6 +52,15 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
     setIsCreateOpen(false)
     setEditingUser(null)
     router.refresh()
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase()
   }
 
   return (
@@ -81,6 +93,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>E-mail</TableHead>
+              <TableHead>WhatsApp</TableHead>
               <TableHead>Função</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
@@ -88,28 +101,61 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={user.avatar || undefined} alt={user.name} />
+                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">{user.name}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <a
+                    href={`mailto:${user.email}`}
+                    className="flex items-center gap-2 hover:underline hover:text-primary"
+                  >
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    {user.email}
+                  </a>
+                </TableCell>
+                <TableCell>
+                  {user.whatsapp ? (
+                    <a
+                      href={`https://wa.me/55${user.whatsapp.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 hover:underline hover:text-green-600"
+                    >
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      {user.whatsapp}
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
                 <TableCell>{user.role}</TableCell>
                 {isAdmin && (
-                  <TableCell className="text-right flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingUser(user)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    {user.id !== currentUser.id && (
-                      <DeleteUserButton userId={user.id} userName={user.name} />
-                    )}
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingUser(user)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      {user.id !== currentUser.id && (
+                        <DeleteUserButton userId={user.id} userName={user.name} />
+                      )}
+                    </div>
                   </TableCell>
                 )}
               </TableRow>
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={isAdmin ? 4 : 3} className="text-center h-24 text-muted-foreground">
+                <TableCell colSpan={isAdmin ? 5 : 4} className="text-center h-24 text-muted-foreground">
                   Nenhum usuário encontrado.
                 </TableCell>
               </TableRow>

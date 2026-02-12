@@ -2,19 +2,47 @@
 
 import { auth } from "@/lib/auth/config"
 import { prisma } from "@/lib/prisma"
-import { Role } from "@prisma/client"
+import { Prisma, Role } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import fs from "fs"
+import path from "path"
+import { randomUUID } from "crypto"
 
 const userSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
   email: z.string().email("E-mail inválido"),
   password: z.string().optional(),
   role: z.nativeEnum(Role),
+  whatsapp: z.string().optional(),
 })
 
-export async function createUser(prevState: any, formData: FormData) {
+type ActionState = {
+  error?: string
+  success?: boolean
+}
+
+async function saveFile(file: File | null): Promise<string | undefined> {
+  if (!file || !(file instanceof File) || file.size === 0) return undefined
+
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const uploadDir = path.join(process.cwd(), "public/uploads/users")
+  
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true })
+  }
+
+  const extension = file.name.split(".").pop()
+  const fileName = `${randomUUID()}.${extension}`
+  const filePath = path.join(uploadDir, fileName)
+
+  fs.writeFileSync(filePath, buffer)
+
+  return `/uploads/users/${fileName}`
+}
+
+export async function createUser(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
   const session = await auth()
   
   if (session?.user?.role !== "ADMIN") {
@@ -26,6 +54,7 @@ export async function createUser(prevState: any, formData: FormData) {
     email: formData.get("email"),
     password: formData.get("password") || undefined,
     role: formData.get("role"),
+    whatsapp: formData.get("whatsapp") || undefined,
   }
 
   const validatedFields = userSchema.safeParse(rawData)
@@ -34,7 +63,7 @@ export async function createUser(prevState: any, formData: FormData) {
     return { error: "Dados inválidos. Verifique os campos." }
   }
 
-  const { name, email, password, role } = validatedFields.data
+  const { name, email, password, role, whatsapp } = validatedFields.data
 
   if (!password || password.length < 6) {
       return { error: "A senha deve ter no mínimo 6 caracteres." }
@@ -49,6 +78,9 @@ export async function createUser(prevState: any, formData: FormData) {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10)
+  
+  const file = formData.get("avatar") as File | null
+  const avatarUrl = await saveFile(file)
 
   try {
     await prisma.user.create({
@@ -57,9 +89,11 @@ export async function createUser(prevState: any, formData: FormData) {
         email,
         password: hashedPassword,
         role,
+        whatsapp,
+        avatar: avatarUrl,
       },
     })
-  } catch (error) {
+  } catch {
     return { error: "Erro ao criar usuário." }
   }
 
@@ -67,7 +101,7 @@ export async function createUser(prevState: any, formData: FormData) {
   return { success: true }
 }
 
-export async function updateUser(id: string, prevState: any, formData: FormData) {
+export async function updateUser(id: string, prevState: ActionState | null, formData: FormData): Promise<ActionState> {
   const session = await auth()
   
   if (session?.user?.role !== "ADMIN") {
@@ -79,6 +113,7 @@ export async function updateUser(id: string, prevState: any, formData: FormData)
     email: formData.get("email"),
     password: formData.get("password") || undefined,
     role: formData.get("role"),
+    whatsapp: formData.get("whatsapp") || undefined,
   }
 
   const validatedFields = userSchema.safeParse(rawData)
@@ -87,7 +122,7 @@ export async function updateUser(id: string, prevState: any, formData: FormData)
     return { error: "Dados inválidos. Verifique os campos." }
   }
 
-  const { name, email, password, role } = validatedFields.data
+  const { name, email, password, role, whatsapp } = validatedFields.data
 
   const existingUser = await prisma.user.findUnique({
     where: { email },
@@ -97,14 +132,22 @@ export async function updateUser(id: string, prevState: any, formData: FormData)
     return { error: "Este e-mail já está em uso por outro usuário." }
   }
 
-  const dataToUpdate: any = {
+  const dataToUpdate: Prisma.UserUpdateInput = {
     name,
     email,
     role,
+    whatsapp,
   }
 
   if (password && password.length >= 6) {
     dataToUpdate.password = await bcrypt.hash(password, 10)
+  }
+
+  const file = formData.get("avatar") as File | null
+  const avatarUrl = await saveFile(file)
+  
+  if (avatarUrl) {
+    dataToUpdate.avatar = avatarUrl
   }
 
   try {
@@ -112,7 +155,7 @@ export async function updateUser(id: string, prevState: any, formData: FormData)
       where: { id },
       data: dataToUpdate,
     })
-  } catch (error) {
+  } catch {
     return { error: "Erro ao atualizar usuário." }
   }
 
@@ -138,7 +181,7 @@ export async function deleteUser(id: string) {
     })
     revalidatePath("/dashboard/users")
     return { success: true }
-  } catch (error) {
+  } catch {
     return { error: "Erro ao excluir usuário." }
   }
 }
