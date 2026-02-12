@@ -9,6 +9,7 @@ import { z } from "zod"
 import fs from "fs"
 import path from "path"
 import { randomUUID } from "crypto"
+import { put } from "@vercel/blob"
 
 const userSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -26,20 +27,46 @@ type ActionState = {
 async function saveFile(file: File | null): Promise<string | undefined> {
   if (!file || !(file instanceof File) || file.size === 0) return undefined
 
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const uploadDir = path.join(process.cwd(), "public/uploads/users")
-  
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true })
+  // Tenta usar Vercel Blob se o token estiver configurado
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      console.log("Iniciando upload para Vercel Blob...")
+      const filename = `${randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`
+      const blob = await put(filename, file, {
+        access: 'public',
+      })
+      console.log("Upload para Vercel Blob concluído:", blob.url)
+      return blob.url
+    } catch (error) {
+      console.error("Erro ao fazer upload para o Vercel Blob:", error)
+      console.log("Tentando fallback para armazenamento local...")
+      // Não lança erro, deixa cair no fallback abaixo
+    }
+  } else {
+    console.log("Token do Vercel Blob não encontrado. Usando armazenamento local.")
   }
 
-  const extension = file.name.split(".").pop()
-  const fileName = `${randomUUID()}.${extension}`
-  const filePath = path.join(uploadDir, fileName)
+  // Fallback para sistema de arquivos local
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const uploadDir = path.join(process.cwd(), "public/uploads/users")
+    
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true })
+    }
 
-  fs.writeFileSync(filePath, buffer)
+    const extension = file.name.split(".").pop()
+    const fileName = `${randomUUID()}.${extension}`
+    const filePath = path.join(uploadDir, fileName)
 
-  return `/uploads/users/${fileName}`
+    fs.writeFileSync(filePath, buffer)
+    console.log("Arquivo salvo localmente:", filePath)
+
+    return `/uploads/users/${fileName}`
+  } catch (error) {
+    console.error("Erro ao salvar arquivo localmente:", error)
+    return undefined
+  }
 }
 
 export async function createUser(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
@@ -93,8 +120,9 @@ export async function createUser(prevState: ActionState | null, formData: FormDa
         avatar: avatarUrl,
       },
     })
-  } catch {
-    return { error: "Erro ao criar usuário." }
+  } catch (error) {
+    console.error("Erro ao criar usuário:", error)
+    return { error: error instanceof Error ? error.message : "Erro ao criar usuário." }
   }
 
   revalidatePath("/dashboard/users")
@@ -155,8 +183,9 @@ export async function updateUser(id: string, prevState: ActionState | null, form
       where: { id },
       data: dataToUpdate,
     })
-  } catch {
-    return { error: "Erro ao atualizar usuário." }
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error)
+    return { error: error instanceof Error ? error.message : "Erro ao atualizar usuário." }
   }
 
   revalidatePath("/dashboard/users")
