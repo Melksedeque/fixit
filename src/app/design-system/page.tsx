@@ -5,7 +5,7 @@ import { Save, Trash2, ArrowRight, CheckCircle, AlertTriangle, Edit } from "luci
 
 export default function DesignSystemPage() {
   return (
-    <div className="p-8 space-y-12 max-w-4xl mx-auto">
+    <div className="p-8 space-y-12 max-w-5xl mx-auto">
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">Botões</h2>
         <div className="flex flex-wrap gap-4 items-center">

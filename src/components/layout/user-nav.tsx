@@ -16,6 +16,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Cog, LogOut, Settings, Settings2, User2 } from "lucide-react"
 import { User } from "next-auth"
 import { signOut } from "next-auth/react"
 
@@ -41,8 +42,8 @@ export function UserNav({ user }: UserNavProps) {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
+      <DropdownMenuContent className="bg-white w-56 p-0" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal p-3">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
@@ -52,19 +53,19 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem className="rounded-none cursor-pointer p-3 hover:bg-primary/20">
+            <User2 className="mr-2 h-4 w-4" />
             Perfil
-            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem className="rounded-none cursor-pointer p-3 hover:bg-primary/20">
+            <Settings2 className="mr-2 h-4 w-4" />
             Configurações
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>
-          Sair
-          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+        <DropdownMenuItem className="rounded-none cursor-pointer p-3 bg-red-50 text-red-800 hover:bg-red-600 hover:text-white" onClick={() => signOut()}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sair
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -39,11 +39,13 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
 
   return (
-    <div className={cn("pb-12 h-screen border-r bg-background", className)}>
+    <div className={cn("pb-12 h-screen border-r bg-background relative", className)}>
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
             <div className="mb-8 px-4 flex items-center h-16">
-                 <Logo width={120} />
+                <Link href="/dashboard">
+                    <Logo className="w-full" />
+                </Link>
             </div>
           <div className="space-y-1">
             {navItems.map((item) => (
