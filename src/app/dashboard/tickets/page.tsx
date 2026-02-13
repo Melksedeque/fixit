@@ -1,16 +1,16 @@
 import { auth } from "@/lib/auth/config"
 import { prisma } from "@/lib/prisma"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { Eye, Filter, Plus } from "lucide-react"
+import { Filter, Plus } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
+import { TicketsView } from "@/app/dashboard/tickets/tickets-view"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "DONE" | "CANCELLED"
@@ -18,36 +18,6 @@ type SearchParams = {
   q?: string
   page?: string
   assignedTo?: "me" | "any"
-}
-
-function getStatusLabel(status: string) {
-  switch (status) {
-    case "OPEN": return "Aberto"
-    case "IN_PROGRESS": return "Em Andamento"
-    case "DONE": return "Concluído"
-    case "CANCELLED": return "Cancelado"
-    default: return status
-  }
-}
-
-function getStatusVariant(status: string) {
-  switch (status) {
-    case "OPEN": return "soft-warning"
-    case "IN_PROGRESS": return "soft-info"
-    case "DONE": return "soft-success"
-    case "CANCELLED": return "soft-destructive"
-    default: return "secondary"
-  }
-}
-
-function getPriorityVariant(priority: string) {
-  switch (priority) {
-    case "LOW": return "soft-success"
-    case "MEDIUM": return "soft-info"
-    case "HIGH": return "soft-warning"
-    case "CRITICAL": return "soft-destructive"
-    default: return "secondary"
-  }
 }
 
 export default async function TicketsPage({
@@ -129,6 +99,7 @@ export default async function TicketsPage({
           <CardDescription>Refine os resultados por status, prioridade e responsável</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="max-w-5xl mx-auto">
           <form action="/dashboard/tickets" className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <Input name="q" placeholder="Buscar por título ou descrição" defaultValue={params.q || ""} aria-label="Buscar" />
             <Select name="status" defaultValue={params.status || undefined}>
@@ -164,6 +135,7 @@ export default async function TicketsPage({
             </Select>
             <Button type="submit" variant="soft-edit">Aplicar</Button>
           </form>
+          </div>
         </CardContent>
       </Card>
 
@@ -202,76 +174,7 @@ export default async function TicketsPage({
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Chamados</CardTitle>
-          <CardDescription>Resultados paginados e ordenados por atualização</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {tickets.length === 0 ? (
-            <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-              Nenhum chamado encontrado.
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table aria-label="Tabela de Chamados">
-                <TableHeader className="sticky top-0 bg-white">
-                  <TableRow>
-                    <TableHead>Nº</TableHead>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tickets.map((t) => (
-                    <TableRow key={t.id} className="hover:bg-muted/50">
-                      <TableCell className="font-mono text-xs">{t.id.slice(0, 6)}</TableCell>
-                      <TableCell className="font-medium">{t.title}</TableCell>
-                      <TableCell className="text-muted-foreground">{t.customer?.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{t.assignedTo?.name || "-"}</TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(String(t.status))}>
-                          {getStatusLabel(String(t.status))}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getPriorityVariant(String(t.priority))}>
-                          {String(t.priority)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="soft-edit" size="icon" asChild aria-label="Ver detalhes">
-                          <Link href={`/dashboard/tickets/${t.id}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">
-              Página {page} de {pageCount}
-            </div>
-            <div className="flex gap-2">
-              <Button asChild variant="outline" disabled={page <= 1} aria-label="Página anterior">
-                <Link href={`/dashboard/tickets?${new URLSearchParams({ ...params, page: String(page - 1) }).toString()}`}>Anterior</Link>
-              </Button>
-              <Button asChild variant="outline" disabled={page >= pageCount} aria-label="Próxima página">
-                <Link href={`/dashboard/tickets?${new URLSearchParams({ ...params, page: String(page + 1) }).toString()}`}>Próxima</Link>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <TicketsView tickets={tickets} page={page} pageCount={pageCount} params={params} />
 
       <Separator />
 

@@ -39,27 +39,29 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
 
   return (
-    <div className={cn("pb-12 h-screen border-r bg-background relative", className)}>
+    <div className={cn("pb-12 h-screen border-r border-blue-900/50 bg-secondary relative", className)}>
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
             <div className="mb-8 px-4 flex items-center h-16">
                 <Link href="/dashboard">
-                    <Logo className="w-full" />
+                    <Logo className="w-full brightness-0 invert" />
                 </Link>
             </div>
           <div className="space-y-1">
             {navItems.map((item) => (
               <Button
                 key={item.href}
-                variant={pathname === item.href ? "secondary" : "ghost"}
+                variant="ghost"
                 className={cn(
-                  "w-full justify-start",
-                  pathname === item.href && "bg-secondary"
+                  "w-full justify-start transition-colors",
+                  pathname === item.href 
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-sm" 
+                    : "text-blue-100 hover:bg-blue-900/50 hover:text-white"
                 )}
                 asChild
               >
                 <Link href={item.href}>
-                  <item.icon className="mr-2 h-4 w-4" />
+                  <item.icon className={cn("mr-2 h-4 w-4", pathname === item.href ? "text-[#0b1121]" : "text-blue-200")} />
                   {item.title}
                 </Link>
               </Button>
@@ -68,7 +70,7 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </div>
       <div className="absolute bottom-4 w-full px-6">
-          <Button variant="outline" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => signOut()}>
+          <Button variant="ghost" className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20" onClick={() => signOut()}>
             <LogOut className="mr-2 h-4 w-4" />
             Sair
           </Button>
@@ -84,15 +86,15 @@ export function MobileSidebar() {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground">
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Toggle Menu</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0">
-                <SheetHeader className="px-6 py-4 border-b">
+            <SheetContent side="left" className="p-0 bg-secondary border-blue-900/50 text-white">
+                <SheetHeader className="px-6 py-4 border-b border-blue-900/50">
                     <SheetTitle>
-                        <Logo width={100} />
+                        <Logo width={100} className="brightness-0 invert" />
                     </SheetTitle>
                 </SheetHeader>
                 <div className="px-3 py-4">
@@ -100,16 +102,18 @@ export function MobileSidebar() {
                         {navItems.map((item) => (
                         <Button
                             key={item.href}
-                            variant={pathname === item.href ? "secondary" : "ghost"}
+                            variant="ghost"
                             className={cn(
-                            "w-full justify-start",
-                            pathname === item.href && "bg-secondary"
+                            "w-full justify-start transition-colors",
+                            pathname === item.href 
+                                ? "bg-[#48c9b0] text-[#0b1121] hover:bg-[#48c9b0]/90 font-medium" 
+                                : "text-blue-100 hover:bg-[#11223b] hover:text-white"
                             )}
                             asChild
                             onClick={() => setOpen(false)}
                         >
                             <Link href={item.href}>
-                            <item.icon className="mr-2 h-4 w-4" />
+                            <item.icon className={cn("mr-2 h-4 w-4", pathname === item.href ? "text-[#0b1121]" : "text-blue-200")} />
                             {item.title}
                             </Link>
                         </Button>
@@ -117,7 +121,7 @@ export function MobileSidebar() {
                     </div>
                 </div>
                  <div className="absolute bottom-4 w-full px-6">
-                    <Button variant="outline" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => signOut()}>
+                    <Button variant="ghost" className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20" onClick={() => signOut()}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Sair
                     </Button>

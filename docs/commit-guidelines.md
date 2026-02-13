@@ -18,7 +18,7 @@ Exemplos:
 
 ## ✍️ Padrão de Commit
 
-Formato obrigatório: `Type(Scope): Descrição em português do Brasil`
+Formato obrigatório: `Type(Scope): Descrição em português`
 
 
 ### Tipos permitidos
@@ -35,7 +35,7 @@ Formato obrigatório: `Type(Scope): Descrição em português do Brasil`
 - `type` sempre em inglês com a primeira letra maiúscula, mas se for sigla, fica em maiúscula
 - `scope` curto, técnico, em kebab-case com a primeira letra de cada palavra em maiúscula
 - descrição:
-  - em português do Brasil
+  - em português
   - no imperativo
   - clara e objetiva
   - primeira letra e nomes de funções em maiúscula

@@ -90,9 +90,9 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-sm relative">
-        <div className="w-full bg-white rounded-lg shadow-lg p-6 relative z-20">
+        <div className="w-full bg-card border border-border rounded-lg shadow-lg p-6 relative z-20">
             <div className="space-y-2 text-center mb-6">
-                <h1 className="text-2xl font-bold tracking-tight text-primary">Acessar Sistema</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Acessar Sistema</h1>
                 <p className="text-sm text-muted-foreground">
                 {step === "email" ? "Qual é o seu e-mail?" : "Agora, sua senha secreta"}
                 </p>

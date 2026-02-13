@@ -24,5 +24,4 @@ Passos claros para validação.
 - [ ] Commits seguem Conventional Commits
 - [ ] Testes executados (quando aplicável)
 - [ ] Sem credenciais/versionamento indevido
-- [ ] Commit em português
 - [ ] Documentação atualizada (se necessário)

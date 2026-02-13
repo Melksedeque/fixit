@@ -1,20 +1,25 @@
 import { Logo } from "@/components/ui/logo";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F2F4] text-primary">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
       <main className="flex flex-col items-center gap-8 text-center p-8 max-w-2xl">
         <h1>
-          <Logo width={300} />
+          <Logo width={300} className="brightness-0 invert" />
         </h1>
-        <p className="text-xl">
+        <p className="text-xl text-muted-foreground">
           Sistema de chamados focado em comunicação rápida e gestão ágil.
         </p>
         <div className="flex gap-4 mt-8">
-          <button className="cursor-pointer px-6 py-3 rounded-lg bg-[#48C9B0] text-[#1B365D] font-bold hover:opacity-90 hover:scale-110 hover:shadow-lg shadow-emerald-100 transition duration-300">
-            <Link href="/login">Acessar Sistema</Link>
-          </button>
+          <Button asChild size="lg" className="font-bold text-lg h-12 px-8">
+            <Link href="/login">
+              Acessar Sistema
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </Button>
         </div>
       </main>
     </div>

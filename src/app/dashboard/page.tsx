@@ -5,7 +5,7 @@ export default async function DashboardPage() {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between space-y-2">
+      <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -68,17 +68,17 @@ export default async function DashboardPage() {
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className="md:col-span-2 lg:col-span-4">
           <CardHeader>
             <CardTitle>Visão Geral</CardTitle>
           </CardHeader>
-          <CardContent className="pl-2">
+          <CardContent>
             <div className="h-[200px] flex items-center justify-center text-muted-foreground">
                 Gráfico de chamados (em breve)
             </div>
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+        <Card className="md:col-span-2 lg:col-span-3">
           <CardHeader>
             <CardTitle>Chamados Recentes</CardTitle>
           </CardHeader>

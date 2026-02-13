@@ -101,7 +101,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
 
       <div className="rounded-md border bg-white">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 bg-white">
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>E-mail</TableHead>
@@ -114,7 +114,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
             {users.map((user) => (
               <TableRow 
                 key={user.id} 
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                className="cursor-pointer hover:bg-muted/50 transition-colors odd:bg-muted/30"
                 onClick={() => router.push(`/dashboard/users/${user.id}`)}
               >
                 <TableCell>
@@ -130,6 +130,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                   <a
                     href={`mailto:${user.email}`}
                     onClick={(e) => e.stopPropagation()}
+                    aria-label={`Enviar e-mail para ${user.email}`}
                     className="flex items-center gap-2 hover:underline hover:text-primary w-fit"
                   >
                     <Mail className="h-4 w-4 text-muted-foreground" />
@@ -143,6 +144,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
+                  aria-label={`Abrir WhatsApp para ${formatPhone(user.whatsapp)}`}
                   className="flex items-center gap-2 hover:underline hover:text-green-600 w-fit"
                 >
                   <Phone className="h-4 w-4 text-muted-foreground" />
