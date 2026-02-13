@@ -36,10 +36,10 @@ export function TicketList({ tickets, page, pageCount, params }: TicketListProps
 
   return (
     <>
-      <div className="rounded-md border border-[#1e293b] overflow-hidden">
+      <div className="rounded-md border border-border bg-[var(--card-surface)] overflow-hidden">
         <Table aria-label="Tabela de Chamados">
-          <TableHeader className="bg-[#152238]">
-            <TableRow className="hover:bg-[#152238] border-[#1e293b]">
+          <TableHeader className="bg-[var(--card-surface)]">
+            <TableRow className="hover:bg-[var(--card-surface)] border-border">
               <TableHead className="text-muted-foreground">Nº</TableHead>
               <TableHead className="text-muted-foreground">Título</TableHead>
               <TableHead className="text-muted-foreground">Cliente</TableHead>
@@ -51,7 +51,7 @@ export function TicketList({ tickets, page, pageCount, params }: TicketListProps
           </TableHeader>
           <TableBody>
             {tickets.map((t) => (
-              <TableRow key={t.id} className="hover:bg-[#1e293b]/50 border-[#1e293b]">
+              <TableRow key={t.id} className="hover:bg-muted/50 border-border">
                 <TableCell className="font-mono text-xs text-muted-foreground">{t.id.slice(0, 6)}</TableCell>
                 <TableCell className="font-medium text-foreground">{t.title}</TableCell>
                 <TableCell className="text-muted-foreground">{t.customer?.name}</TableCell>
