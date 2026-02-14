@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { createTicket } from "@/app/dashboard/tickets/actions"
+import { createTicket } from "@/app/tickets/actions"
 import Link from "next/link"
 
 export default async function NewTicketPage() {
@@ -54,7 +54,7 @@ export default async function NewTicketPage() {
             <div className="flex gap-2">
               <Button type="submit" variant="soft-success">Criar Chamado</Button>
               <Button type="button" variant="ghost" asChild>
-                <Link href="/dashboard/tickets">Cancelar</Link>
+                <Link href="/tickets">Cancelar</Link>
               </Button>
             </div>
           </form>

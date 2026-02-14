@@ -99,9 +99,9 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
         )}
       </div>
 
-      <div className="rounded-md border border-border bg-[var(--card-surface)] overflow-hidden">
+      <div className="rounded-md border border-border bg-(--card-surface) overflow-hidden">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-[var(--card-surface)]/95 backdrop-blur supports-backdrop-filter:bg-[var(--card-surface)]/80">
+          <TableHeader className="sticky top-0 z-10 bg-(--card-surface)/95 backdrop-blur supports-backdrop-filter:bg-(--card-surface)/80">
             <TableRow className="border-border">
               <TableHead className="px-5">Nome</TableHead>
               <TableHead className="px-5">E-mail</TableHead>
@@ -115,7 +115,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
               <TableRow 
                 key={user.id} 
                 className="cursor-pointer hover:bg-muted/40 transition-colors duration-200 ease-out odd:bg-muted/30"
-                onClick={() => router.push(`/dashboard/users/${user.id}`)}
+                onClick={() => router.push(`/users/${user.id}`)}
               >
                 <TableCell className="p-5">
                   <div className="flex items-center gap-3">
@@ -156,7 +156,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
             </TableCell>
                 <TableCell className="p-5">
                   {user.role === "ADMIN" ? (
-                    <Badge variant="soft-success" className="shadow-[var(--shadow-glow-brand-soft)]">ADMIN</Badge>
+                    <Badge variant="soft-success" className="shadow-(--shadow-glow-brand-soft)">ADMIN</Badge>
                   ) : (
                     <Badge variant="soft-info">USER</Badge>
                   )}
@@ -168,7 +168,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                         variant="soft-success"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => router.push(`/dashboard/users/${user.id}`)}
+                        onClick={() => router.push(`/users/${user.id}`)}
                       >
                          <Eye className="h-4 w-4" />
                       </Button>

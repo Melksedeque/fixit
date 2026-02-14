@@ -50,7 +50,7 @@ export function TicketKanban({ tickets }: TicketKanbanProps) {
                 </div>
               ) : (
                 columnTickets.map((ticket) => (
-                  <Link key={ticket.id} href={`/dashboard/tickets/${ticket.id}`} className="block">
+                  <Link key={ticket.id} href={`/tickets/${ticket.id}`} className="block">
                     <Card className="hover:border-primary/50 transition-colors cursor-pointer bg-card border-border shadow-sm">
                       <CardContent className="p-3 space-y-3">
                         <div className="flex justify-between items-start gap-2">

@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { addComment, updateStatus, deleteTicket, updateTicket } from "@/app/dashboard/tickets/actions"
+import { addComment, updateStatus, deleteTicket, updateTicket } from "@/app/tickets/actions"
+import Link from "next/link"
 
 export default async function TicketDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: { mp?: string } }) {
   const session = await auth()
@@ -27,7 +28,7 @@ export default async function TicketDetailPage({ params, searchParams }: { param
   })
 
   if (!ticket) {
-    redirect("/dashboard/tickets")
+    redirect("/tickets")
   }
 
   const mp = Number(searchParams?.mp || "1")
@@ -71,7 +72,7 @@ export default async function TicketDetailPage({ params, searchParams }: { param
             <Badge variant="secondary" className="ml-2">{ticket.status}</Badge>
           </div>
           <div className="text-muted-foreground">Descrição:</div>
-          <div className="rounded-md border border-border bg-[var(--card-surface)] p-3">
+          <div className="rounded-md border border-border bg-(--card-surface) p-3">
             {ticket.description}
           </div>
           <form action={async (formData) => { await updateTicket(ticket.id, formData) }} className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
@@ -113,7 +114,7 @@ export default async function TicketDetailPage({ params, searchParams }: { param
           </form>
           <div className="mt-6 space-y-3">
             {messages.map((m) => (
-              <div key={m.id} className="rounded-md border border-border bg-[var(--card-surface)] p-3">
+              <div key={m.id} className="rounded-md border border-border bg-(--card-surface) p-3">
                 <div className="text-xs text-muted-foreground">{m.user?.name} • {new Date(m.createdAt).toLocaleString()}</div>
                 <div className="text-foreground">{m.content}</div>
               </div>
@@ -128,10 +129,10 @@ export default async function TicketDetailPage({ params, searchParams }: { param
             </div>
             <div className="flex gap-2">
               <Button asChild variant="outline" disabled={mp <= 1} aria-label="Página anterior">
-                <a href={`/dashboard/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp - 1) }).toString()}`}>Anterior</a>
+                <Link href={`/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp - 1) }).toString()}`}>Anterior</Link>
               </Button>
               <Button asChild variant="outline" disabled={mp >= msgPageCount} aria-label="Próxima página">
-                <a href={`/dashboard/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp + 1) }).toString()}`}>Próxima</a>
+                <Link href={`/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp + 1) }).toString()}`}>Próxima</Link>
               </Button>
             </div>
           </div>

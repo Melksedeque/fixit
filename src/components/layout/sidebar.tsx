@@ -18,12 +18,12 @@ const navItems = [
   },
   {
     title: "Chamados",
-    href: "/dashboard/tickets",
+    href: "/tickets",
     icon: Ticket,
   },
   {
     title: "Usuários",
-    href: "/dashboard/users",
+    href: "/users",
     icon: Users,
   },
   {

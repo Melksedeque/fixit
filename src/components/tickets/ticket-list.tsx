@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { deleteTicket } from "@/app/dashboard/tickets/actions"
+import { deleteTicket } from "@/app/tickets/actions"
 
 interface Ticket {
   id: string
@@ -80,12 +80,12 @@ export function TicketList({ tickets, page, pageCount, params }: TicketListProps
                 </TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" asChild aria-label="Ver detalhes" className="text-muted-foreground hover:text-foreground">
-                    <Link href={`/dashboard/tickets/${t.id}`}>
+                    <Link href={`/tickets/${t.id}`}>
                       <Eye className="h-4 w-4" />
                     </Link>
                   </Button>
                   <Button variant="ghost" size="icon" asChild aria-label="Editar chamado" className="text-muted-foreground hover:text-foreground">
-                    <Link href={`/dashboard/tickets/${t.id}`}>
+                    <Link href={`/tickets/${t.id}`}>
                       <Pencil className="h-4 w-4" />
                     </Link>
                   </Button>
@@ -125,10 +125,10 @@ export function TicketList({ tickets, page, pageCount, params }: TicketListProps
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline" disabled={page <= 1} aria-label="Página anterior" className="border-border bg-transparent text-foreground hover:bg-muted">
-            <Link href={`/dashboard/tickets?${new URLSearchParams({ ...params, page: String(page - 1) }).toString()}`}>Anterior</Link>
+            <Link href={`/tickets?${new URLSearchParams({ ...params, page: String(page - 1) }).toString()}`}>Anterior</Link>
           </Button>
           <Button asChild variant="outline" disabled={page >= pageCount} aria-label="Próxima página" className="border-border bg-transparent text-foreground hover:bg-muted">
-            <Link href={`/dashboard/tickets?${new URLSearchParams({ ...params, page: String(page + 1) }).toString()}`}>Próxima</Link>
+            <Link href={`/tickets?${new URLSearchParams({ ...params, page: String(page + 1) }).toString()}`}>Próxima</Link>
           </Button>
         </div>
       </div>

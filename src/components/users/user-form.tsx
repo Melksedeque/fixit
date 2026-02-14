@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { createUser, updateUser } from "@/app/dashboard/users/actions"
+import { createUser, updateUser } from "@/app/users/actions"
 import { useDropzone } from "react-dropzone"
 import { useCallback, useState } from "react"
 import VMasker from "vanilla-masker"
@@ -121,7 +121,7 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
             if (onSuccess) {
               onSuccess()
             } else {
-              router.push("/dashboard/users")
+              router.push("/users")
             }
         }
       } else {
@@ -133,7 +133,7 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
             if (onSuccess) {
               onSuccess()
             } else {
-              router.push("/dashboard/users")
+              router.push("/users")
             }
         }
       }

@@ -1,4 +1,3 @@
-
 import { auth } from "@/lib/auth/config"
 import { prisma } from "@/lib/prisma"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -6,17 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { 
-  Mail, 
-  Phone, 
-  Calendar, 
-  Shield, 
-  CheckCircle2, 
-  Clock, 
-  AlertCircle, 
-  FileText,
-  ArrowLeft
-} from "lucide-react"
+import { Mail, Phone, Calendar, Shield, CheckCircle2, Clock, AlertCircle, FileText, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { format } from "date-fns"
@@ -27,7 +16,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
   const { id } = await params
 
   if (session?.user?.role !== "ADMIN") {
-    redirect("/dashboard")
+    redirect("/users")
   }
 
   const user = await prisma.user.findUnique({
@@ -46,13 +35,8 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
     notFound()
   }
 
-  // Determine context based on role
   const isTechOrAdmin = user.role === "ADMIN" || user.role === "TECH"
-  
-  // Fetch tickets stats
-  const whereCondition = isTechOrAdmin 
-    ? { assignedToId: user.id }
-    : { customerId: user.id }
+  const whereCondition = isTechOrAdmin ? { assignedToId: user.id } : { customerId: user.id }
 
   const tickets = await prisma.ticket.findMany({
     where: whereCondition,
@@ -71,60 +55,33 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
   const stats = await prisma.ticket.groupBy({
     by: ['status'],
     where: whereCondition,
-    _count: {
-      status: true
-    }
+    _count: { status: true }
   })
 
-  // Calculate average execution time for completed tickets
   const executionStats = await prisma.ticket.aggregate({
-    _avg: {
-      executionTime: true
-    },
-    where: {
-      ...whereCondition,
-      status: "DONE"
-    }
+    _avg: { executionTime: true },
+    where: { ...whereCondition, status: "DONE" }
   })
 
   const avgExecutionTime = executionStats._avg.executionTime || 0
   const avgHours = Math.floor(avgExecutionTime / 60)
   const avgMinutes = Math.round(avgExecutionTime % 60)
-  const avgTimeDisplay = avgHours > 0 
-    ? `${avgHours}h ${avgMinutes}m` 
-    : `${avgMinutes}m`
+  const avgTimeDisplay = avgHours > 0 ? `${avgHours}h ${avgMinutes}m` : `${avgMinutes}m`
 
-  // Calculate totals
   const totalTickets = isTechOrAdmin ? user._count.ticketsAssigned : user._count.ticketsCreated
   const openTickets = stats.find(s => s.status === "OPEN")?._count.status || 0
   const inProgressTickets = stats.find(s => s.status === "IN_PROGRESS")?._count.status || 0
   const doneTickets = stats.find(s => s.status === "DONE")?._count.status || 0
+  const completionRate = totalTickets ? Math.round((doneTickets / totalTickets) * 100) : 0
 
-  // Calculate generic completion rate or other metric
-  const completionRate = totalTickets > 0 
-    ? Math.round((doneTickets / totalTickets) * 100) 
-    : 0
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase()
-  }
-
+  const getInitials = (name: string) =>
+    name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
   const formatPhone = (phone: string) => {
     const cleaned = phone.replace(/\D/g, "")
-    if (cleaned.length === 11) {
-      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
-    }
-    if (cleaned.length === 10) {
-      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3")
-    }
+    if (cleaned.length === 11) return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
+    if (cleaned.length === 10) return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3")
     return phone
   }
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "OPEN": return "Aberto"
@@ -134,7 +91,6 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
       default: return status
     }
   }
-
   const getStatusVariant = (status: string) => {
     switch (status) {
       case "OPEN": return "soft-warning"
@@ -148,7 +104,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/users">
+        <Link href="/users">
             <Button variant="outline" size="icon">
                 <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -157,7 +113,6 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Coluna Esquerda: Dados do Usuário (md:col-span-4 lg:col-span-3) */}
         <div className="md:col-span-4 lg:col-span-3 space-y-6">
           <Card>
             <CardHeader className="flex flex-col items-center text-center pb-2">
@@ -184,7 +139,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
                   <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Phone className="h-4 w-4" /> WhatsApp
                   </p>
-                  <a 
+                  <a
                     href={`https://wa.me/55${user.whatsapp.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -209,10 +164,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
           </Card>
         </div>
 
-        {/* Coluna Direita: Dashboard (md:col-span-8 lg:col-span-9) */}
         <div className="md:col-span-8 lg:col-span-9 space-y-6">
-          
-          {/* Cards de Estatísticas */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -221,9 +173,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalTickets}</div>
-                <p className="text-xs text-muted-foreground">
-                  Chamados
-                </p>
+                <p className="text-xs text-muted-foreground">Chamados</p>
               </CardContent>
             </Card>
 
@@ -234,9 +184,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{doneTickets}</div>
-                <p className="text-xs text-muted-foreground">
-                  {completionRate}% taxa
-                </p>
+                <p className="text-xs text-muted-foreground">{completionRate}% taxa</p>
               </CardContent>
             </Card>
 
@@ -247,9 +195,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{inProgressTickets}</div>
-                <p className="text-xs text-muted-foreground">
-                  Ativos
-                </p>
+                <p className="text-xs text-muted-foreground">Ativos</p>
               </CardContent>
             </Card>
 
@@ -260,9 +206,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{openTickets}</div>
-                <p className="text-xs text-muted-foreground">
-                  Aguardando
-                </p>
+                <p className="text-xs text-muted-foreground">Aguardando</p>
               </CardContent>
             </Card>
 
@@ -273,14 +217,11 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{avgTimeDisplay}</div>
-                <p className="text-xs text-muted-foreground">
-                  Execução
-                </p>
+                <p className="text-xs text-muted-foreground">Execução</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Lista de Chamados Recentes */}
           <Card>
             <CardHeader>
               <CardTitle>Chamados Recentes</CardTitle>
@@ -292,24 +233,17 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
               {tickets.length > 0 ? (
                 <div className="space-y-4">
                   {tickets.map((ticket) => (
-                    <div
-                      key={ticket.id}
-                      className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
-                    >
+                    <div key={ticket.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                       <div className="space-y-1">
                         <p className="font-medium">{ticket.title}</p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Badge variant={getStatusVariant(ticket.status)}>
-                            {getStatusLabel(ticket.status)}
-                          </Badge>
+                          <Badge variant={getStatusVariant(ticket.status)}>{getStatusLabel(ticket.status)}</Badge>
                           <span>•</span>
                           <span>{format(ticket.updatedAt, "dd/MM/yyyy HH:mm")}</span>
                         </div>
                       </div>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/tickets/${ticket.id}`}>
-                          Ver Detalhes
-                        </Link>
+                        <Link href={`/tickets/${ticket.id}`}>Ver Detalhes</Link>
                       </Button>
                     </div>
                   ))}

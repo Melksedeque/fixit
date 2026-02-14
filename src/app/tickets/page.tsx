@@ -10,7 +10,7 @@ import { Filter, Plus } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
-import { TicketsView } from "@/app/dashboard/tickets/tickets-view"
+import { TicketsView } from "@/app/tickets/tickets-view"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "DONE" | "CANCELLED"
@@ -85,7 +85,7 @@ export default async function TicketsPage({
           <Badge variant="secondary" aria-label={`Total de chamados: ${totalCount}`}>{totalCount}</Badge>
         </div>
         <Button variant="soft-edit" asChild>
-          <Link href="/dashboard/tickets/new">
+          <Link href="/tickets/new">
             <Plus className="h-4 w-4 mr-2" /> Novo Chamado
           </Link>
         </Button>
@@ -101,7 +101,7 @@ export default async function TicketsPage({
         </CardHeader>
         <CardContent>
           <div className="max-w-5xl mx-auto">
-          <form action="/dashboard/tickets" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <form action="/tickets" className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <Input name="q" placeholder="Buscar por título ou descrição" defaultValue={params.q || ""} aria-label="Buscar" />
             <Select name="status" defaultValue={params.status || undefined}>
               <SelectTrigger aria-label="Status">

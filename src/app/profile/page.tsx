@@ -229,7 +229,7 @@ export default async function ProfilePage() {
                         </div>
                       </div>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/tickets/${ticket.id}`}>
+                        <Link href={`/tickets/${ticket.id}`}>
                           <Eye className="h-4 w-4" /> Ver
                         </Link>
                       </Button>
