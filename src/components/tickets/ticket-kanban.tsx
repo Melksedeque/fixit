@@ -1,11 +1,10 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getStatusLabel, getStatusVariant, getPriorityVariant } from "./utils"
+import { getPriorityVariant } from "./utils"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
 
 interface Ticket {
   id: string

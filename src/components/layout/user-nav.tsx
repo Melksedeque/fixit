@@ -13,10 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Cog, LogOut, Settings, Settings2, User2 } from "lucide-react"
+import { LogOut, Settings2, User2 } from "lucide-react"
 import { User } from "next-auth"
 import { signOut } from "next-auth/react"
 

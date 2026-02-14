@@ -35,7 +35,7 @@ export default async function TicketsPage({
   const take = 10
   const skip = (page - 1) * take
 
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   if (params.status) where.status = params.status
   if (params.priority) where.priority = params.priority
   if (params.q) {
@@ -44,7 +44,8 @@ export default async function TicketsPage({
       { description: { contains: params.q, mode: "insensitive" } },
     ]
   }
-  if (params.assignedTo === "me") {
+  const assignedPref = params.assignedTo ?? "me"
+  if (assignedPref === "me") {
     where.assignedToId = session.user.id
   }
 
@@ -124,7 +125,7 @@ export default async function TicketsPage({
                 <SelectItem value="CRITICAL">Crítica</SelectItem>
               </SelectContent>
             </Select>
-            <Select name="assignedTo" defaultValue={params.assignedTo || undefined}>
+            <Select name="assignedTo" defaultValue={assignedPref}>
               <SelectTrigger aria-label="Responsável">
                 <SelectValue placeholder="Responsável" />
               </SelectTrigger>

@@ -66,7 +66,6 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = form
 
@@ -232,7 +231,6 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
                 placeholder="(99) 99999-9999"
                 {...register("whatsapp")}
                 onChange={handleWhatsappChange}
-                value={watch("whatsapp") || ""}
                 disabled={isSubmitting}
             />
              {errors.whatsapp && (
@@ -244,7 +242,7 @@ export function UserForm({ initialData, onSuccess, onCancel }: UserFormProps) {
           <Select
             disabled={isSubmitting}
             onValueChange={(value) => setValue("role", value as Role)}
-            value={watch("role")}
+            defaultValue={initialData?.role || Role.USER}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma função" />

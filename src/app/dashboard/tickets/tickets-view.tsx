@@ -7,11 +7,22 @@ import { TicketList } from "@/components/tickets/ticket-list"
 import { TicketKanban } from "@/components/tickets/ticket-kanban"
 import { Separator } from "@/components/ui/separator"
 
+type TicketRow = {
+  id: string
+  title: string
+  status: string
+  priority: string
+  customer?: { name: string | null } | null
+  assignedTo?: { name: string | null, avatar: string | null } | null
+  deliveryDate: Date | null
+  updatedAt: Date
+}
+
 interface TicketsViewProps {
-  tickets: any[]
+  tickets: TicketRow[]
   page: number
   pageCount: number
-  params: any
+  params: Record<string, string | undefined>
 }
 
 export function TicketsView({ tickets, page, pageCount, params }: TicketsViewProps) {

@@ -10,7 +10,7 @@ interface LogoProps {
 export function Logo({ className, width = 150, height = 40 }: LogoProps) {
   return (
     <Image
-      src="/logo_fixit_horizontal.png"
+      src="/logo_fixit_horizontal_branco.png"
       alt="Fixit Logo"
       width={width}
       height={height}

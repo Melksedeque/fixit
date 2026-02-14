@@ -99,7 +99,6 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
   const openTickets = stats.find(s => s.status === "OPEN")?._count.status || 0
   const inProgressTickets = stats.find(s => s.status === "IN_PROGRESS")?._count.status || 0
   const doneTickets = stats.find(s => s.status === "DONE")?._count.status || 0
-  const cancelledTickets = stats.find(s => s.status === "CANCELLED")?._count.status || 0
 
   // Calculate generic completion rate or other metric
   const completionRate = totalTickets > 0 

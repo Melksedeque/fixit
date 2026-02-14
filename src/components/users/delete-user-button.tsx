@@ -30,7 +30,7 @@ export function DeleteUserButton({ userId, userName }: DeleteUserButtonProps) {
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      const result: any = await deleteUser(userId)
+      const result: { success?: boolean; error?: string } = await deleteUser(userId)
       if (result?.error) {
         toast.error(result.error)
       } else {

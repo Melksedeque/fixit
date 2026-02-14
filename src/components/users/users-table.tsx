@@ -24,7 +24,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Role } from "@prisma/client"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 
 interface User {
   id: string

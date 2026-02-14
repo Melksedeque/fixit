@@ -3,9 +3,21 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Eye } from "lucide-react"
+import { Eye, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { getStatusLabel, getStatusVariant, getPriorityVariant } from "./utils"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { deleteTicket } from "@/app/dashboard/tickets/actions"
 
 interface Ticket {
   id: string
@@ -72,6 +84,34 @@ export function TicketList({ tickets, page, pageCount, params }: TicketListProps
                       <Eye className="h-4 w-4" />
                     </Link>
                   </Button>
+                  <Button variant="ghost" size="icon" asChild aria-label="Editar chamado" className="text-muted-foreground hover:text-foreground">
+                    <Link href={`/dashboard/tickets/${t.id}`}>
+                      <Pencil className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" aria-label="Excluir chamado" className="text-muted-foreground hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir Chamado</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <form action={async () => { await deleteTicket(t.id) }}>
+                          <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Excluir
+                          </AlertDialogAction>
+                        </form>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}
