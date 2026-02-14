@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Mail, Phone, Eye } from "lucide-react"
 import { DeleteUserButton } from "@/components/users/delete-user-button"
 import { UserForm } from "@/components/users/user-form"
@@ -99,25 +100,25 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
         )}
       </div>
 
-      <div className="rounded-md border bg-white">
+      <div className="rounded-md border border-border bg-[var(--card-surface)] overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>E-mail</TableHead>
-              <TableHead>WhatsApp</TableHead>
-              <TableHead>Função</TableHead>
-              {isAdmin && <TableHead className="text-right">Ações</TableHead>}
+          <TableHeader className="sticky top-0 z-10 bg-[var(--card-surface)]/95 backdrop-blur supports-backdrop-filter:bg-[var(--card-surface)]/80">
+            <TableRow className="border-border">
+              <TableHead className="px-5">Nome</TableHead>
+              <TableHead className="px-5">E-mail</TableHead>
+              <TableHead className="px-5">WhatsApp</TableHead>
+              <TableHead className="px-5">Função</TableHead>
+              {isAdmin && <TableHead className="text-right px-5">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((user) => (
               <TableRow 
                 key={user.id} 
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                className="cursor-pointer hover:bg-muted/40 transition-colors duration-200 ease-out odd:bg-muted/30"
                 onClick={() => router.push(`/dashboard/users/${user.id}`)}
               >
-                <TableCell>
+                <TableCell className="p-5">
                   <div className="flex items-center gap-3">
                     <Avatar>
                       <AvatarImage src={user.avatar || undefined} alt={user.name} />
@@ -126,23 +127,25 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                     <span className="font-medium">{user.name}</span>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="p-5">
                   <a
                     href={`mailto:${user.email}`}
                     onClick={(e) => e.stopPropagation()}
+                    aria-label={`Enviar e-mail para ${user.email}`}
                     className="flex items-center gap-2 hover:underline hover:text-primary w-fit"
                   >
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     {user.email}
                   </a>
                 </TableCell>
-                <TableCell>
+                <TableCell className="p-5">
               {user.whatsapp ? (
                 <a
                   href={`https://wa.me/55${user.whatsapp.replace(/\D/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
+                  aria-label={`Abrir WhatsApp para ${formatPhone(user.whatsapp)}`}
                   className="flex items-center gap-2 hover:underline hover:text-green-600 w-fit"
                 >
                   <Phone className="h-4 w-4 text-muted-foreground" />
@@ -152,9 +155,15 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                 <span className="text-muted-foreground">-</span>
               )}
             </TableCell>
-                <TableCell>{user.role}</TableCell>
+                <TableCell className="p-5">
+                  {user.role === "ADMIN" ? (
+                    <Badge variant="soft-success" className="shadow-[var(--shadow-glow-brand-soft)]">ADMIN</Badge>
+                  ) : (
+                    <Badge variant="soft-info">USER</Badge>
+                  )}
+                </TableCell>
                 {isAdmin && (
-                  <TableCell className="text-right">
+                  <TableCell className="text-right p-5">
                     <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                       <Button
                         variant="soft-success"

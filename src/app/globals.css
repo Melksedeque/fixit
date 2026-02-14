@@ -5,53 +5,119 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #1B365D;
-  
-  --primary: #1B365D;
-  --primary-foreground: #ffffff;
-  
-  --secondary: #48C9B0;
+  --background: #0b1221;
+  --background-strong: #09101b;
+  --foreground: #f1f5f9;
+
+  --card: #152238;
+  --card-surface: #17243a;
+  --card-foreground: #f1f5f9;
+
+  --popover: #152238;
+  --popover-foreground: #f1f5f9;
+
+  --primary: #48c9b0;
+  --primary-foreground: #020617;
+
+  --secondary: #1b365d;
   --secondary-foreground: #ffffff;
-  
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  
+
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  --accent: #1e293b;
+  --accent-foreground: #48c9b0;
+
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #1B365D;
-  
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #48c9b0;
+
   --radius: 0.5rem;
+  
+  /* Custom Brand Colors */
+  --brand-blue: #1b365d;
+  --brand-green: #48c9b0;
+
+  /* Sidebar Identity */
+  --sidebar-bg: #132442;
+  --sidebar-border: rgba(27,54,93,0.40);
+
+  /* Gradients / Atmosphere */
+  --bg-gradient-azul: linear-gradient(160deg, rgba(27,54,93,0.25) 0%, rgba(14,26,46,0.35) 45%, rgba(9,16,27,0.6) 100%);
+  --bg-gradient-radial: radial-gradient(1200px 600px at 10% 0%, rgba(27,54,93,0.22), transparent 60%);
+
+  /* Elevation / Shadows */
+  --shadow-e2-main: 0 8px 24px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.04);
+  --shadow-e3-main: 0 16px 48px rgba(0,0,0,0.40), 0 2px 0 rgba(255,255,255,0.05);
+  --inner-soft: inset 0 1px 0 rgba(255,255,255,0.03);
+  --header-shadow-bottom: 0 6px 16px rgba(0,0,0,0.35);
+  --shadow-glow-brand-soft: 0 0 0 6px rgba(72,201,176,0.14);
+
+  /* Motion Tokens */
+  --motion-duration-fast: 120ms;
+  --motion-duration-normal: 200ms;
+  --motion-duration-slow: 320ms;
+  --motion-duration-layout: 420ms;
+  --motion-ease-out-soft: cubic-bezier(0.25, 0.75, 0.35, 1);
+  --motion-ease-in-out-ui: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-spring-soft: cubic-bezier(0.2, 0.7, 0, 1);
 }
 
 .dark {
-  --background: #020817;
-  --foreground: #f8fafc;
-  
-  --primary: #1B365D;
-  --primary-foreground: #ffffff;
-  
-  --secondary: #48C9B0;
+  --background: #0b1221;
+  --background-strong: #09101b;
+  --foreground: #f1f5f9;
+
+  --card: #152238;
+  --card-surface: #17243a;
+  --card-foreground: #f1f5f9;
+
+  --popover: #152238;
+  --popover-foreground: #f1f5f9;
+
+  --primary: #48c9b0;
+  --primary-foreground: #020617;
+
+  --secondary: #1b365d;
   --secondary-foreground: #ffffff;
-  
+
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  
+
   --accent: #1e293b;
-  --accent-foreground: #f8fafc;
-  
+  --accent-foreground: #48c9b0;
+
   --destructive: #7f1d1d;
   --destructive-foreground: #f8fafc;
-  
+
   --border: #1e293b;
   --input: #1e293b;
-  --ring: #1B365D;
+  --ring: #48c9b0;
+
+  /* Gradients / Atmosphere (dark) */
+  --bg-gradient-azul: linear-gradient(160deg, rgba(27,54,93,0.25) 0%, rgba(14,26,46,0.35) 45%, rgba(9,16,27,0.6) 100%);
+  --bg-gradient-radial: radial-gradient(1200px 600px at 10% 0%, rgba(27,54,93,0.22), transparent 60%);
+  --sidebar-bg: #132442;
+  --sidebar-border: rgba(27,54,93,0.40);
+
+  /* Elevation / Shadows (dark) */
+  --shadow-e2-main: 0 8px 24px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.04);
+  --shadow-e3-main: 0 16px 48px rgba(0,0,0,0.40), 0 2px 0 rgba(255,255,255,0.05);
+  --inner-soft: inset 0 1px 0 rgba(255,255,255,0.03);
+  --header-shadow-bottom: 0 6px 16px rgba(0,0,0,0.35);
+  --shadow-glow-brand-soft: 0 0 0 6px rgba(72,201,176,0.14);
+
+  /* Motion Tokens (dark) */
+  --motion-duration-fast: 120ms;
+  --motion-duration-normal: 200ms;
+  --motion-duration-slow: 320ms;
+  --motion-duration-layout: 420ms;
+  --motion-ease-out-soft: cubic-bezier(0.25, 0.75, 0.35, 1);
+  --motion-ease-in-out-ui: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-spring-soft: cubic-bezier(0.2, 0.7, 0, 1);
 }
 
 @theme inline {
@@ -85,7 +151,9 @@
 }
 
 body {
-  background: var(--background);
+  background: var(--background-strong);
+  background-image: var(--bg-gradient-azul), var(--bg-gradient-radial);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
 }

@@ -136,13 +136,13 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
-      case "OPEN": return "bg-yellow-100 text-yellow-800"
-      case "IN_PROGRESS": return "bg-blue-100 text-blue-800"
-      case "DONE": return "bg-green-100 text-green-800"
-      case "CANCELLED": return "bg-red-100 text-red-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "OPEN": return "soft-warning"
+      case "IN_PROGRESS": return "soft-info"
+      case "DONE": return "soft-success"
+      case "CANCELLED": return "soft-destructive"
+      default: return "secondary"
     }
   }
 
@@ -300,7 +300,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
                       <div className="space-y-1">
                         <p className="font-medium">{ticket.title}</p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Badge variant="secondary" className={getStatusColor(ticket.status)}>
+                          <Badge variant={getStatusVariant(ticket.status)}>
                             {getStatusLabel(ticket.status)}
                           </Badge>
                           <span>•</span>
