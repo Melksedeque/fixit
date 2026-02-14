@@ -22,7 +22,7 @@ interface TicketListProps {
   tickets: Ticket[]
   page: number
   pageCount: number
-  params: any
+  params: Record<string, string | undefined>
 }
 
 export function TicketList({ tickets, page, pageCount, params }: TicketListProps) {
@@ -36,10 +36,10 @@ export function TicketList({ tickets, page, pageCount, params }: TicketListProps
 
   return (
     <>
-      <div className="rounded-md border border-border bg-[var(--card-surface)] overflow-hidden">
+      <div className="rounded-md border border-border bg-(--card-surface) overflow-hidden">
         <Table aria-label="Tabela de Chamados">
-          <TableHeader className="bg-[var(--card-surface)]">
-            <TableRow className="hover:bg-[var(--card-surface)] border-border">
+          <TableHeader className="bg-[(--card-surface)">
+            <TableRow className="hover:bg-[(--card-surface) border-border">
               <TableHead className="text-muted-foreground">Nº</TableHead>
               <TableHead className="text-muted-foreground">Título</TableHead>
               <TableHead className="text-muted-foreground">Cliente</TableHead>

@@ -7,7 +7,7 @@ export async function Header() {
   const user = session?.user
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/70 backdrop-blur-md supports-backdrop-filter:bg-background/60 shadow-[var(--shadow-e2-main)]">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/70 backdrop-blur-md supports-backdrop-filter:bg-background/60 shadow-(--shadow-e2-main)">
       <div className="flex h-16 items-center px-4 md:px-8">
         <MobileSidebar />
         <div className="hidden md:flex">
