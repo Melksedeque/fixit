@@ -2,9 +2,9 @@
  
  import { auth } from "@/lib/auth/config"
  import { prisma } from "@/lib/prisma"
- import { revalidatePath } from "next/cache"
+import { revalidatePath } from "next/cache"
  import { z } from "zod"
- import { TicketPriority, TicketStatus } from "@prisma/client"
+import { TicketPriority, TicketStatus } from "@prisma/client"
  
  const TicketCreateSchema = z.object({
    title: z.string().min(3),
@@ -75,9 +75,9 @@
    revalidatePath(`/tickets/${ticketId}`)
  }
  
- const TicketStatusSchema = z.object({
-   status: z.enum(["OPEN", "IN_PROGRESS", "DONE", "CANCELLED"]),
- })
+const TicketStatusSchema = z.object({
+  status: z.enum(["OPEN", "IN_PROGRESS", "WAITING", "DONE", "CLOSED", "CANCELLED"]),
+})
  
  export async function updateStatus(ticketId: string, formData: FormData) {
    const session = await auth()
@@ -90,10 +90,33 @@
      throw new Error(parsed.error.issues.map(i => i.message).join(", "))
    }
  
-   await prisma.ticket.update({
-     where: { id: ticketId },
-     data: { status: parsed.data.status as TicketStatus },
-   })
+  const nextStatus = parsed.data.status as TicketStatus
+  const now = new Date()
+  const existing = await prisma.ticket.findUnique({ where: { id: ticketId }, select: { status: true, createdAt: true, deliveryDate: true } })
+  if (!existing) throw new Error("Ticket not found")
+
+  const updateData: Record<string, unknown> = { status: nextStatus }
+  if (nextStatus === "DONE") {
+    updateData.deliveryDate = now
+  }
+  if (nextStatus === "CLOSED") {
+    updateData.closedAt = now
+    const start = existing.deliveryDate ?? existing.createdAt
+    const minutes = Math.max(0, Math.round((now.getTime() - start.getTime()) / 60000))
+    updateData.executionTime = minutes
+  }
+
+  await prisma.ticket.update({ where: { id: ticketId }, data: updateData })
+
+  await prisma.ticketHistory.create({
+    data: {
+      ticketId,
+      actionType: "STATUS_CHANGE",
+      oldValue: existing.status,
+      newValue: nextStatus,
+      userId: session.user.id!,
+    }
+  })
  
    revalidatePath(`/tickets/${ticketId}`)
    revalidatePath("/tickets")
@@ -130,17 +153,47 @@
      throw new Error(parsed.error.issues.map(i => i.message).join(", "))
    }
  
-   const data = parsed.data
-   await prisma.ticket.update({
-     where: { id: ticketId },
-     data: {
-       ...(data.title ? { title: data.title } : {}),
-       ...(data.description ? { description: data.description } : {}),
-       ...(data.priority ? { priority: data.priority as TicketPriority } : {}),
-       ...(data.hasOwnProperty("assignedToId") ? { assignedToId: data.assignedToId || null } : {}),
-       ...(data.hasOwnProperty("deadlineForecast") ? { deadlineForecast: data.deadlineForecast || null } : {}),
-     },
-   })
+  const data = parsed.data
+  const prev = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { priority: true, assignedToId: true }
+  })
+  if (!prev) throw new Error("Ticket not found")
+
+  await prisma.ticket.update({
+    where: { id: ticketId },
+    data: {
+      ...(data.title ? { title: data.title } : {}),
+      ...(data.description ? { description: data.description } : {}),
+      ...(data.priority ? { priority: data.priority as TicketPriority } : {}),
+      ...(data.hasOwnProperty("assignedToId") ? { assignedToId: data.assignedToId || null } : {}),
+      ...(data.hasOwnProperty("deadlineForecast") ? { deadlineForecast: data.deadlineForecast || null } : {}),
+    },
+  })
+
+  if (data.priority && data.priority !== prev.priority) {
+    await prisma.ticketHistory.create({
+      data: {
+        ticketId,
+        actionType: "PRIORITY_CHANGE",
+        oldValue: prev.priority,
+        newValue: data.priority,
+        userId: session.user.id!,
+      }
+    })
+  }
+
+  if (data.hasOwnProperty("assignedToId") && data.assignedToId !== prev.assignedToId) {
+    await prisma.ticketHistory.create({
+      data: {
+        ticketId,
+        actionType: "ASSIGNMENT",
+        oldValue: prev.assignedToId ?? null,
+        newValue: data.assignedToId ?? null,
+        userId: session.user.id!,
+      }
+    })
+  }
  
    revalidatePath("/tickets")
    revalidatePath(`/tickets/${ticketId}`)
