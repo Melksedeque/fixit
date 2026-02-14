@@ -17,6 +17,8 @@ enum TicketStatus {
   IN_PROGRESS
   DONE
   CANCELLED
+  WAITING
+  CLOSED
 }
 
 enum TicketPriority {
@@ -47,6 +49,7 @@ model User {
   ticketsCreated  Ticket[]  @relation("TicketCustomer")
   ticketsAssigned Ticket[]  @relation("TicketTech")
   messages        Message[]
+  ticketHistories TicketHistory[]
 
   @@map("users")
 }
@@ -61,6 +64,9 @@ model Ticket {
   deadlineForecast DateTime?
   deliveryDate     DateTime?
   executionTime    Int?      // Minutes
+  closedAt         DateTime?
+  category         String?
+  slaHours         Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -72,10 +78,30 @@ model Ticket {
   assignedTo   User?   @relation("TicketTech", fields: [assignedToId], references: [id])
 
   messages Message[]
+  histories TicketHistory[]
 
   @@map("tickets")
 }
 
+enum TicketHistoryActionType {
+  STATUS_CHANGE
+  ASSIGNMENT
+  PRIORITY_CHANGE
+}
+
+model TicketHistory {
+  id         String                  @id @default(cuid())
+  ticketId   String
+  ticket     Ticket                  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actionType TicketHistoryActionType
+  oldValue   String?
+  newValue   String?
+  userId     String
+  user       User                    @relation(fields: [userId], references: [id])
+  createdAt  DateTime                @default(now())
+
+  @@map("ticket_history")
+}
 model Message {
   id      String      @id @default(cuid())
   content String
