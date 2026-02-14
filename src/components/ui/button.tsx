@@ -9,23 +9,23 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 active:shadow-[var(--shadow-glow-brand-soft)]",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[var(--shadow-e2-main)] active:shadow-[var(--shadow-glow-brand-soft)]",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-[var(--shadow-e2-main)]",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-border bg-background hover:bg-accent hover:text-accent-foreground hover:shadow-[var(--shadow-e2-main)]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-[var(--shadow-e2-main)]",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        success: "bg-green-600 text-white hover:bg-green-700",
-        warning: "bg-orange-500 text-white hover:bg-orange-600",
-        edit: "bg-sky-500 text-white hover:bg-sky-600",
-        soft: "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:text-primary shadow-none",
-        "soft-success": "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:text-primary shadow-none",
-        "soft-warning": "bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 hover:text-orange-300 shadow-none",
-        "soft-edit": "bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 hover:text-blue-300 shadow-none",
-        "soft-destructive": "bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:text-red-300 shadow-none",
+        success: "bg-green-600 text-white hover:bg-green-700 hover:shadow-[var(--shadow-e2-main)] active:shadow-[var(--shadow-glow-brand-soft)]",
+        warning: "bg-orange-500 text-white hover:bg-orange-600 hover:shadow-[var(--shadow-e2-main)]",
+        edit: "bg-sky-500 text-white hover:bg-sky-600 hover:shadow-[var(--shadow-e2-main)]",
+        soft: "bg-primary/10 text-primary border border-primary/15 hover:bg-primary/20 hover:text-primary shadow-none",
+        "soft-success": "bg-green-500/10 text-green-400 border border-green-500/15 hover:bg-green-500/20 hover:text-green-300 shadow-none",
+        "soft-warning": "bg-orange-500/10 text-orange-400 border border-orange-500/15 hover:bg-orange-500/20 hover:text-orange-300 shadow-none",
+        "soft-edit": "bg-blue-500/10 text-blue-400 border border-blue-500/15 hover:bg-blue-500/20 hover:text-blue-300 shadow-none",
+        "soft-destructive": "bg-red-500/10 text-red-400 border border-red-500/15 hover:bg-red-500/20 hover:text-red-300 shadow-none",
       },
       size: {
         default: "h-10 px-4 py-2",

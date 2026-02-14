@@ -42,7 +42,7 @@ export function UserNav({ user }: UserNavProps) {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-white w-56 p-0" align="end" forceMount>
+      <DropdownMenuContent className="z-[60] w-56 p-0 rounded-md border border-[#ffffff1a] bg-[var(--card-surface)] text-foreground shadow-[var(--shadow-e2-main)] data-[state=open]:shadow-[var(--shadow-e3-main)] backdrop-blur supports-backdrop-filter:bg-[var(--card-surface)]/90" align="end" forceMount>
         <DropdownMenuLabel className="font-normal p-3">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name}</p>
@@ -53,18 +53,24 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem className="rounded-none cursor-pointer p-3 hover:bg-primary/20">
-            <User2 className="mr-2 h-4 w-4" />
+          <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 hover:bg-muted/40">
+            <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
+              <User2 className="h-4 w-4 text-primary" />
+            </span>
             Perfil
           </DropdownMenuItem>
-          <DropdownMenuItem className="rounded-none cursor-pointer p-3 hover:bg-primary/20">
-            <Settings2 className="mr-2 h-4 w-4" />
+          <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 hover:bg-muted/40">
+            <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
+              <Settings2 className="h-4 w-4 text-primary" />
+            </span>
             Configurações
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="rounded-none cursor-pointer p-3 bg-red-50 text-red-800 hover:bg-red-600 hover:text-white" onClick={() => signOut()}>
-            <LogOut className="mr-2 h-4 w-4" />
+        <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={() => signOut()}>
+            <span className="inline-flex items-center justify-center rounded-md bg-red-500/10 border border-red-500/20 p-1 mr-2">
+              <LogOut className="h-4 w-4" />
+            </span>
             Sair
         </DropdownMenuItem>
       </DropdownMenuContent>
