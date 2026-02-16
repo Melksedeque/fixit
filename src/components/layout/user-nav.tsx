@@ -18,6 +18,7 @@ import {
 import { LogOut, Settings2, User2 } from "lucide-react"
 import { User } from "next-auth"
 import { signOut } from "next-auth/react"
+import Link from "next/link"
 
 interface UserNavProps {
   user: User
@@ -53,16 +54,20 @@ export function UserNav({ user }: UserNavProps) {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 hover:bg-muted/40">
-            <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
-              <User2 className="h-4 w-4 text-primary" />
-            </span>
-            Perfil
+            <Link href="/dashboard/profile" className="flex items-center justify-center">
+              <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
+                <User2 className="h-4 w-4 text-primary" />
+              </span>
+              Perfil
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 hover:bg-muted/40">
-            <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
-              <Settings2 className="h-4 w-4 text-primary" />
-            </span>
-            Configurações
+            <Link href="/dashboard/settings" className="flex items-center justify-center">
+              <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
+                <Settings2 className="h-4 w-4 text-primary" />
+              </span>
+              Configurações
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
