@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe } from "@/app/tickets/actions"
+import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe } from "@/app/(dashboard)/tickets/actions"
 import Link from "next/link"
 
 export default async function TicketDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: { mp?: string } }) {

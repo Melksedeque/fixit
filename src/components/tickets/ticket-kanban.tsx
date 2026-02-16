@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getPriorityVariant } from "./utils"
 import Link from "next/link"
 import { toast } from "sonner"
-import { updateStatus } from "@/app/tickets/actions"
+import { updateStatus } from "@/app/(dashboard)/tickets/actions"
 
 type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
 
@@ -46,7 +46,7 @@ const allowedTransitions: Record<TicketStatus, TicketStatus[]> = {
   CANCELLED: [],
 }
 
-import { assignTicketToMe } from "@/app/tickets/actions"
+import { assignTicketToMe } from "@/app/(dashboard)/tickets/actions"
 
 export function TicketKanban({ tickets, currentUserRole, currentUserName }: TicketKanbanProps) {
   const [boardTickets, setBoardTickets] = useState<Ticket[]>(tickets)

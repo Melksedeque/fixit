@@ -81,6 +81,11 @@ model Ticket {
   histories TicketHistory[]
 
   @@map("tickets")
+  @@index([status])
+  @@index([priority])
+  @@index([assignedToId])
+  @@index([customerId])
+  @@index([deadlineForecast])
 }
 
 enum TicketHistoryActionType {

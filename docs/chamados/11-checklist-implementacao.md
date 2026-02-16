@@ -11,7 +11,7 @@
 - [x] Ticket: manter `deliveryDate` e `executionTime`
 - [x] TicketHistory: `actionType` (STATUS_CHANGE, ASSIGNMENT, PRIORITY_CHANGE), `oldValue`, `newValue`, `userId`, `createdAt`
 - [x] Relacionamentos e back-relations (Ticket.histories, User.ticketHistories)
-- [ ] Índices úteis (status, priority, assignedToId, customerId, deadlineForecast)
+- [x] Índices úteis (status, priority, assignedToId, customerId, deadlineForecast)
 
 ## Ações de Servidor (Tickets)
 - [x] Criar/Editar: persistir `assignedToId`, `deadlineForecast`, `priority`

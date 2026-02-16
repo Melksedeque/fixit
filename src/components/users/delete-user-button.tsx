@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
-import { deleteUser } from "@/app/users/actions"
+import { deleteUser } from "@/app/(dashboard)/users/actions"
 import { toast } from "sonner"
 import { useState } from "react"
 import { useRouter } from "next/navigation"

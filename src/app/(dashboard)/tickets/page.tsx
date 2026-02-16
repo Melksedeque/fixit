@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { createTicket } from "@/app/tickets/actions"
+import { createTicket } from "@/app/(dashboard)/tickets/actions"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"

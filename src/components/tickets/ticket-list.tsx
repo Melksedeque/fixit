@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { deleteTicket } from "@/app/tickets/actions"
+import { deleteTicket } from "@/app/(dashboard)/tickets/actions"
 
 interface Ticket {
   id: string
