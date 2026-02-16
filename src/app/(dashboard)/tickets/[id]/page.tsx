@@ -8,12 +8,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe } from "@/app/(dashboard)/tickets/actions"
 import Link from "next/link"
 
-export default async function TicketDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: { mp?: string } }) {
+export default async function TicketDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams?: { mp?: string }
+}) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user) redirect("/login")
 
   const ticket = await prisma.ticket.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: {
       id: true,
       title: true,
@@ -38,7 +45,7 @@ export default async function TicketDetailPage({ params, searchParams }: { param
   const skip = (mp - 1) * take
   const [messages, totalMessages] = await Promise.all([
     prisma.message.findMany({
-      where: { ticketId: params.id },
+      where: { ticketId: id },
       orderBy: { createdAt: "desc" },
       skip,
       take,
@@ -47,7 +54,7 @@ export default async function TicketDetailPage({ params, searchParams }: { param
         user: { select: { name: true } }
       }
     }),
-    prisma.message.count({ where: { ticketId: params.id } })
+    prisma.message.count({ where: { ticketId: id } })
   ])
   const msgPageCount = Math.max(1, Math.ceil(totalMessages / take))
 

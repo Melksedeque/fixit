@@ -21,13 +21,14 @@ export async function createTicket(formData: FormData) {
   if (!userId) throw new Error("Unauthorized: missing user id")
 
   const rawAssignedTo = formData.get("assignedToId")
+   const rawDeadline = formData.get("deadlineForecast")
 
   const parsed = TicketCreateSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description"),
     priority: formData.get("priority"),
     assignedToId: !rawAssignedTo || rawAssignedTo === "none" ? null : rawAssignedTo,
-    deadlineForecast: formData.get("deadlineForecast"),
+    deadlineForecast: rawDeadline ? rawDeadline : undefined,
   })
   if (!parsed.success) {
     throw new Error(parsed.error.issues.map(i => i.message).join(", "))
@@ -167,7 +168,11 @@ export async function updateTicket(ticketId: string, formData: FormData) {
     description: formData.get("description") || undefined,
     priority: formData.get("priority") || undefined,
     assignedToId: formData.get("assignedToId") || undefined,
-    deadlineForecast: formData.get("deadlineForecast") || undefined,
+    deadlineForecast: (() => {
+      const raw = formData.get("deadlineForecast")
+      if (!raw) return undefined
+      return raw
+    })(),
   })
   if (!parsed.success) {
     throw new Error(parsed.error.issues.map(i => i.message).join(", "))

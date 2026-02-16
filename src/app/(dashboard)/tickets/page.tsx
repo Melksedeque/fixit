@@ -10,7 +10,7 @@ import { Filter, Plus } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
-import { TicketsView } from "@/app/tickets/tickets-view"
+import { TicketList } from "@/components/tickets/ticket-list"
 import { TicketKanban } from "@/components/tickets/ticket-kanban"
 import {
   Dialog,
@@ -292,7 +292,7 @@ export default async function TicketsPage({
       </div>
 
       {view === "list" ? (
-        <TicketsView tickets={tickets} page={page} pageCount={pageCount} params={params} />
+        <TicketList tickets={tickets} page={page} pageCount={pageCount} params={params} />
       ) : (
         <TicketKanban
           tickets={tickets}
