@@ -141,3 +141,4 @@ export default async function TicketDetailPage({ params, searchParams }: { param
     </div>
   )
 }
+

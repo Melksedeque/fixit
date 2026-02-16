@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Logo } from "@/components/ui/logo"
+import { AppIcon } from "@/components/ui/app-icon"
 import { useState } from "react"
 import { signOut } from "next-auth/react"
 
@@ -56,13 +57,17 @@ export function Sidebar({ className }: SidebarProps) {
   }
 
   return (
-    <div className={cn("pb-12 h-screen border-r border-(--sidebar-border) bg-(--sidebar-bg) shadow-[-8px_0_24px_rgba(0,0,0,0.35)] relative transition-[width] duration-300 ease-in-out", collapsed ? "w-[72px]" : "w-[264px]", className)}>
+    <div className={cn("pb-12 h-screen border-r border-(--sidebar-border) bg-(--sidebar-bg) shadow-[-8px_0_24px_rgba(0,0,0,0.35)] relative transition-[width] duration-300 ease-in-out", className, collapsed ? "w-[72px]" : "w-[264px]")}>
 
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
             <div className={cn("mb-8 px-4 flex items-center h-16", collapsed && "justify-center")}>
-                <Link href="/dashboard">
-                    <Logo className={cn("w-full brightness-0 invert", collapsed && "hidden")} />
+                <Link href="/dashboard" className="flex items-center justify-center">
+                    {collapsed ? (
+                      <AppIcon size={32} className="brightness-0 invert" />
+                    ) : (
+                      <Logo className="w-full brightness-0 invert" />
+                    )}
                 </Link>
                 <Button variant="ghost" size="icon" className={cn("ml-auto", collapsed && "mx-auto")} onClick={toggleCollapsed} aria-label={collapsed ? "Expandir" : "Colapsar"}>
                   <Menu className="h-5 w-5" />
