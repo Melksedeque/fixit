@@ -1,5 +1,6 @@
 "use client"
 
+import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -62,31 +63,55 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
       range.insertNode(link)
     })
   }
+ 
+  const handleLink = async () => {
+    let url: string | null = null
 
-  const insertImage = (url: string) => {
-    if (!/^https?:\/\//i.test(url)) return
-    withSelectionInEditor((range) => {
-      const img = document.createElement("img")
-      img.src = url
-      img.alt = ""
-      img.loading = "lazy"
-      img.style.maxWidth = "100%"
-      img.style.display = "block"
-      range.insertNode(img)
-    })
-  }
-
-  const handleLink = () => {
-    const url = window.prompt("URL do link")
-    if (url) {
-      insertLink(url)
+    if (typeof navigator !== "undefined" && navigator.clipboard?.readText) {
+      try {
+        const clipboardText = (await navigator.clipboard.readText())?.trim()
+        if (clipboardText && /^https?:\/\//i.test(clipboardText)) {
+          url = clipboardText
+        }
+      } catch {
+      }
     }
+
+    if (!url) {
+      url = window.prompt("URL do link") || null
+    }
+
+    if (!url) return
+
+    const trimmed = url.trim()
+    if (!trimmed) return
+
+    const finalUrl = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+    insertLink(finalUrl)
   }
 
-  const handleImage = () => {
-    const url = window.prompt("URL da imagem")
-    if (url) {
-      insertImage(url)
+  const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = event.clipboardData?.items
+    if (!items) return
+
+    const files: File[] = []
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (item.kind === "file") {
+        const file = item.getAsFile()
+        if (file && file.type.startsWith("image/")) {
+          files.push(file)
+        }
+      }
+    }
+
+    if (files.length > 0 && typeof window !== "undefined") {
+      event.preventDefault()
+      window.dispatchEvent(
+        new CustomEvent("fixit:ticket-attachments-from-paste", {
+          detail: { files },
+        }),
+      )
     }
   }
 
@@ -126,15 +151,6 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
           >
             Link
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="h-7 px-2 text-xs"
-            onClick={handleImage}
-          >
-            Imagem
-          </Button>
         </div>
         <div className="relative">
           {placeholder && !value && !focused && (
@@ -146,6 +162,7 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
             ref={editorRef}
             className="min-h-28 max-h-[320px] overflow-y-auto rounded-md bg-background px-3 py-2 text-sm focus-visible:outline-none"
             contentEditable
+            onPaste={handlePaste}
             onInput={() => {
               syncValueFromDom()
             }}

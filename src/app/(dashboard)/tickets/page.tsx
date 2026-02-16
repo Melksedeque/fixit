@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { createTicket } from "@/app/(dashboard)/tickets/actions"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
+import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
@@ -124,16 +125,7 @@ export default async function TicketsPage({
                   />
                   <div className="space-y-1">
                     <div className="text-xs font-medium text-muted-foreground">Anexos</div>
-                    <input
-                      type="file"
-                      name="attachments"
-                      multiple
-                      accept="image/*"
-                      className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-xs file:font-medium hover:file:bg-muted/80 cursor-pointer"
-                    />
-                    <p className="text-[11px] text-muted-foreground">
-                      Anexe prints e imagens que ajudem a explicar o problema.
-                    </p>
+                    <TicketAttachmentsArea name="attachments" />
                   </div>
                   <div className="space-y-1">
                     <div className="text-xs font-medium text-muted-foreground">Prioridade</div>
