@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { createTicket } from "@/app/(dashboard)/tickets/actions"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
@@ -115,43 +116,64 @@ export default async function TicketsPage({
               <CardContent className="p-0 pt-4">
                 <form action={createTicket} className="grid grid-cols-1 gap-4">
                   <Input name="title" label="Título" aria-label="Título" required />
-                  <textarea
+                  <RichTextEditor
                     name="description"
-                    placeholder="Descrição"
-                    aria-label="Descrição"
-                    required
-                    className="min-h-28 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    label="Descrição"
+                    placeholder="Descreva o problema, passos, contexto, links..."
+                    defaultValue=""
                   />
-                  <Select name="priority" defaultValue="MEDIUM">
-                    <SelectTrigger aria-label="Prioridade">
-                      <SelectValue placeholder="Prioridade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LOW">Baixa</SelectItem>
-                      <SelectItem value="MEDIUM">Média</SelectItem>
-                      <SelectItem value="HIGH">Alta</SelectItem>
-                      <SelectItem value="CRITICAL">Crítica</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select name="assignedToId">
-                    <SelectTrigger aria-label="Responsável">
-                      <SelectValue placeholder="Atribuir a" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem responsável</SelectItem>
-                      {techs.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    name="deadlineForecast"
-                    placeholder="Previsão (YYYY-MM-DD)"
-                    aria-label="Previsão"
-                    type="date"
-                  />
+                  <div className="space-y-1">
+                    <div className="text-xs font-medium text-muted-foreground">Anexos</div>
+                    <input
+                      type="file"
+                      name="attachments"
+                      multiple
+                      accept="image/*"
+                      className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-xs file:font-medium hover:file:bg-muted/80 cursor-pointer"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      Anexe prints e imagens que ajudem a explicar o problema.
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs font-medium text-muted-foreground">Prioridade</div>
+                    <Select name="priority" defaultValue="MEDIUM">
+                      <SelectTrigger aria-label="Prioridade">
+                        <SelectValue placeholder="Prioridade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="LOW">Baixa</SelectItem>
+                        <SelectItem value="MEDIUM">Média</SelectItem>
+                        <SelectItem value="HIGH">Alta</SelectItem>
+                        <SelectItem value="CRITICAL">Crítica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs font-medium text-muted-foreground">Atribuir a</div>
+                    <Select name="assignedToId">
+                      <SelectTrigger aria-label="Responsável">
+                        <SelectValue placeholder="Atribuir a" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sem responsável</SelectItem>
+                        {techs.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs font-medium text-muted-foreground">Previsão</div>
+                    <Input
+                      name="deadlineForecast"
+                      placeholder="dd/mm/aaaa"
+                      aria-label="Previsão"
+                      type="date"
+                    />
+                  </div>
                   <div className="flex gap-2 justify-end">
                     <Button type="submit" variant="soft-success">
                       <Ticket className="h-4 w-4 mr-2" />

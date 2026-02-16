@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { TicketPriority, TicketStatus } from "@prisma/client"
+import { put } from "@vercel/blob"
 
 const TicketCreateSchema = z.object({
   title: z.string().min(3),
@@ -35,7 +36,7 @@ export async function createTicket(formData: FormData) {
   }
 
   const data = parsed.data
-  await prisma.ticket.create({
+  const ticket = await prisma.ticket.create({
     data: {
       title: data.title,
       description: data.description,
@@ -44,7 +45,42 @@ export async function createTicket(formData: FormData) {
       deadlineForecast: data.deadlineForecast || null,
       customerId: userId,
     },
+    select: { id: true },
   })
+
+  const files = formData
+    .getAll("attachments")
+    .filter((f): f is File => f instanceof File && f.size > 0)
+
+  if (files.length > 0) {
+    try {
+      const uploads = await Promise.all(
+        files.map(async (file) => {
+          const safeName = file.name.replace(/[^a-zA-Z0-9.\-]/g, "_")
+          const pathname = `tickets/${ticket.id}/${Date.now()}-${safeName}`
+          const blob = await put(pathname, file, {
+            access: "public",
+            addRandomSuffix: true,
+          })
+          return blob
+        }),
+      )
+
+      if (uploads.length > 0) {
+        await prisma.message.createMany({
+          data: uploads.map((blob) => ({
+            content: blob.url,
+            type: "IMAGE",
+            fileUrl: blob.url,
+            ticketId: ticket.id,
+            userId,
+          })),
+        })
+      }
+    } catch (error) {
+      console.error("Failed to upload attachments", error)
+    }
+  }
 
   revalidatePath("/tickets")
 }
