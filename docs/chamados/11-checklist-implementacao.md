@@ -1,34 +1,36 @@
 # Checklist de Implementação — Módulo de Chamados
 
 ## Status e Fluxo
-- [ ] Adicionar statuses WAITING e CLOSED mantendo DONE/CANCELLED
-- [ ] Definir regras de transição (OPEN ↔ IN_PROGRESS ↔ WAITING, DONE → CLOSED, CANCELLED final)
-- [ ] UI: exibir badges para WAITING e CLOSED
-- [ ] Atualizar contadores/métricas para incluir WAITING e CLOSED
+- [x] Adicionar statuses WAITING e CLOSED mantendo DONE/CANCELLED
+- [x] Definir regras de transição (OPEN ↔ IN_PROGRESS ↔ WAITING, DONE → CLOSED, CANCELLED final)
+- [x] UI: exibir badges para WAITING e CLOSED
+- [x] Atualizar contadores/métricas para incluir WAITING e CLOSED
 
 ## Modelo de Dados (Prisma)
-- [ ] Ticket: manter `deadlineForecast`; adicionar `closedAt`, `category`, `slaHours`
-- [ ] Ticket: manter `deliveryDate` e `executionTime`
-- [ ] TicketHistory: `actionType` (STATUS_CHANGE, ASSIGNMENT, PRIORITY_CHANGE), `oldValue`, `newValue`, `userId`, `createdAt`
-- [ ] Relacionamentos e back-relations (Ticket.histories, User.ticketHistories)
+- [x] Ticket: manter `deadlineForecast`; adicionar `closedAt`, `category`, `slaHours`
+- [x] Ticket: manter `deliveryDate` e `executionTime`
+- [x] TicketHistory: `actionType` (STATUS_CHANGE, ASSIGNMENT, PRIORITY_CHANGE), `oldValue`, `newValue`, `userId`, `createdAt`
+- [x] Relacionamentos e back-relations (Ticket.histories, User.ticketHistories)
 - [ ] Índices úteis (status, priority, assignedToId, customerId, deadlineForecast)
 
 ## Ações de Servidor (Tickets)
-- [ ] Criar/Editar: persistir `assignedToId`, `deadlineForecast`, `priority`
-- [ ] Atualizar Status: permitir OPEN/IN_PROGRESS/WAITING/DONE/CLOSED/CANCELLED
-- [ ] Fechamento: setar `closedAt` e calcular `executionTime` (minutos)
-- [ ] Atribuição: atualizar `assignedToId`
-- [ ] Histórico: registrar STATUS_CHANGE, ASSIGNMENT, PRIORITY_CHANGE com usuário e valores
-- [ ] Revalidate: rota de lista e detalhe
+- [x] Criar/Editar: persistir `assignedToId`, `deadlineForecast`, `priority`
+- [x] Atualizar Status: permitir OPEN/IN_PROGRESS/WAITING/DONE/CLOSED/CANCELLED
+- [x] Fechamento: setar `closedAt` e calcular `executionTime` (minutos)
+- [x] Atribuição: atualizar `assignedToId`
+- [x] Histórico: registrar STATUS_CHANGE, ASSIGNMENT, PRIORITY_CHANGE com usuário e valores
+- [x] Revalidate: rota de lista e detalhe
 
 ## Kanban
-- [ ] Implementar drag-and-drop entre colunas
-- [ ] Persistir status ao soltar (server action)
-- [ ] Atualização otimista e fallback
-- [ ] Acessibilidade (teclado) e feedback visual
+- [x] Implementar drag-and-drop entre colunas
+- [x] Persistir status ao soltar (server action)
+- [x] Atualização otimista e fallback
+- [x] Acessibilidade (teclado) e feedback visual
+- [x] Borda de prioridade à esquerda (LOW/MEDIUM/HIGH/CRITICAL)
+- [x] Indicadores de SLA por prioridade (mês/semana/2 dias/urgente)
 
 ## Detalhe do Chamado
-- [ ] Painel de controle (status, prioridade, responsável, SLA)
+- [x] Painel de controle (status, prioridade, responsável)
 - [ ] Edição inline de título/descrição
 - [ ] Timeline do histórico (TicketHistory)
 - [ ] Comentários com tipos (TEXT/IMAGE/VIDEO/AUDIO) e preview
@@ -55,6 +57,12 @@
 - [ ] `category` opcional; validar nomenclaturas futuras
 
 ## Qualidade
-- [ ] Lint/Typecheck/Build OK
+- [x] Lint/Typecheck/Build OK
 - [ ] Testes de ações (status/assign/history)
 - [ ] A11y básico (foco/aria nos componentes)
+
+## Fluxo de Criação e Responsável
+- [x] Mover criação de chamado para modal na página de tickets
+- [x] Permitir criação sem responsável
+- [x] Filtro “Sem responsável” na caixa de entrada
+- [x] Botão “Assumir Chamado” (técnicos/admins)
