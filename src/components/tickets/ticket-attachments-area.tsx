@@ -48,6 +48,11 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
       const xhr = new XMLHttpRequest()
       xhr.open("POST", "/api/attachments")
 
+      const timeoutId = window.setTimeout(() => {
+        xhr.abort()
+        updateItem(id, { status: "error" })
+      }, 30000)
+
       xhr.upload.onprogress = (event) => {
         if (!event.lengthComputable) return
         const percent = Math.max(5, Math.min(99, Math.round((event.loaded / event.total) * 100)))
@@ -55,10 +60,12 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
       }
 
       xhr.onerror = () => {
+        window.clearTimeout(timeoutId)
         updateItem(id, { status: "error" })
       }
 
       xhr.onload = () => {
+        window.clearTimeout(timeoutId)
         try {
           if (xhr.status >= 200 && xhr.status < 300) {
             const payload = JSON.parse(xhr.responseText) as { url?: string }
@@ -205,6 +212,38 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
     }
   }
 
+  const handleRetry = (id: string) => {
+    setItems((prev) => {
+      const target = prev.find((item) => item.id === id)
+      if (!target) return prev
+
+      const next = prev.map((item) =>
+        item.id === id
+          ? { ...item, status: "uploading" as AttachmentStatus, progress: 5, url: undefined }
+          : item,
+      )
+
+      window.setTimeout(() => {
+        startUpload(id, target.file)
+      }, 0)
+
+      return next
+    })
+  }
+
+  useEffect(() => {
+    const hasUploading = items.some((item) => item.status === "uploading")
+    const hasError = items.some((item) => item.status === "error")
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("fixit:ticket-attachments-status", {
+          detail: { hasUploading, hasError },
+        }),
+      )
+    }
+  }, [items])
+
   return (
     <div className="space-y-2">
       <div
@@ -262,12 +301,23 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
                       style={{ width: `${item.progress}%` }}
                     />
                   </div>
-                  <div className="text-[10px] text-muted-foreground">
-                    {item.status === "error"
-                      ? "Erro ao enviar anexo"
-                      : item.status === "uploading"
-                      ? "Enviando anexo..."
-                      : "Enviado"}
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>
+                      {item.status === "error"
+                        ? "Erro ao enviar anexo"
+                        : item.status === "uploading"
+                        ? "Enviando anexo..."
+                        : "Enviado"}
+                    </span>
+                    {item.status === "error" && (
+                      <button
+                        type="button"
+                        className="ml-2 text-[10px] font-medium text-primary underline-offset-2 hover:underline"
+                        onClick={() => handleRetry(item.id)}
+                      >
+                        Tentar novamente
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

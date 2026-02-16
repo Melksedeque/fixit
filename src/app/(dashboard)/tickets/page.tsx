@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { Filter, Plus, Search, Ticket } from "lucide-react"
+import { Filter, Plus, Search } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
@@ -22,6 +22,7 @@ import {
 import { createTicket } from "@/app/(dashboard)/tickets/actions"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
+import { TicketSubmitButton } from "@/components/tickets/ticket-submit-button"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
@@ -167,10 +168,7 @@ export default async function TicketsPage({
                     />
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <Button type="submit" variant="soft-success">
-                      <Ticket className="h-4 w-4 mr-2" />
-                      Criar Chamado
-                    </Button>
+                    <TicketSubmitButton label="Criar Chamado" />
                   </div>
                 </form>
               </CardContent>
