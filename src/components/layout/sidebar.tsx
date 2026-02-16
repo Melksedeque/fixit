@@ -73,17 +73,17 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <div className={cn("pb-12 h-screen border-r border-(--sidebar-border) bg-(--sidebar-bg) shadow-[-8px_0_24px_rgba(0,0,0,0.35)] relative transition-[width] duration-300 ease-in-out", className, collapsed ? "w-[72px]" : "w-[264px]")}>
 
-      <div className="space-y-4 py-4">
+      <div className="space-y-4 py-2">
         <div className="px-3 py-0">
-            <div className={cn("mb-8 flex items-center h-16", collapsed && "justify-center")}>
-                <Link href="/dashboard" className="flex items-center justify-center">
-                    {collapsed ? (
-                      <AppIcon size={32} className="" />
-                    ) : (
-                      <Logo className="w-full px-4" />
-                    )}
-                </Link>
-            </div>
+          <div className={cn("mb-6 flex items-center h-18", collapsed && "justify-center")}>
+              <Link href="/dashboard" className="flex items-center justify-center">
+                  {collapsed ? (
+                    <AppIcon size={40} className="" />
+                  ) : (
+                    <Logo className="w-full pt-2 px-4" />
+                  )}
+              </Link>
+          </div>
           <div className="space-y-1">
             {navItems.map((item) => (
               <Button
@@ -92,7 +92,7 @@ export function Sidebar({ className }: SidebarProps) {
                 className={cn(
                   "w-full justify-start transition-[background,color,transform] duration-200 ease-out",
                   pathname === item.href 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-(--shadow-glow-brand-soft)" 
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-(--shadow-glow-brand-soft) hover:text-primary-foreground" 
                     : "text-blue-100 hover:bg-blue-900/50 hover:text-white",
                   collapsed && "justify-center px-0"
                 )}
@@ -107,10 +107,12 @@ export function Sidebar({ className }: SidebarProps) {
           </div>
         </div>
       </div>
-      <div className="absolute bottom-4 w-full px-6">
-          <Button variant="ghost" className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20" onClick={() => signOut()}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sair
+      <div className="absolute bottom-3 px-3 w-full">
+          <Button variant="soft-destructive" className={cn(
+            "mt-6 flex items-center justify-start h-10 w-full",
+            collapsed && "justify-center")} onClick={() => signOut()}>
+            <LogOut className="h-5 w-5" />
+            {!collapsed && "Sair"}
           </Button>
       </div>
     </div>
