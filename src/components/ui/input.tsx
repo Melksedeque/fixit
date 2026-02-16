@@ -4,10 +4,12 @@ import { cn } from "@/lib/utils"
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
+  startIcon?: React.ReactNode
+  endIcon?: React.ReactNode
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, id, ...props }, ref) => {
+  ({ className, type, label, id, startIcon, endIcon, ...props }, ref) => {
     const generatedId = React.useId()
     const inputId = id || generatedId
 
@@ -18,12 +20,24 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           className={cn(
             "peer flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:shadow-[var(--inner-soft)] focus-visible:shadow-[var(--inner-soft)] disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200 ease-out",
+            startIcon ? "pl-9" : "",
+            endIcon ? "pr-9" : "",
             className
           )}
           placeholder={label || "Input"}
           ref={ref}
           {...props}
         />
+        {startIcon && (
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            {startIcon}
+          </span>
+        )}
+        {endIcon && (
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            {endIcon}
+          </span>
+        )}
         {label && (
           <label
             htmlFor={inputId}

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { Filter, Plus } from "lucide-react"
+import { Filter, Plus, Search } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
@@ -175,7 +175,13 @@ export default async function TicketsPage({
         <CardContent>
           <div className="max-w-5xl mx-auto">
           <form action="/tickets" className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <Input name="q" placeholder="Buscar por título ou descrição" defaultValue={params.q || ""} aria-label="Buscar" />
+            <Input
+              name="q"
+              placeholder="Buscar por título ou descrição"
+              defaultValue={params.q || ""}
+              aria-label="Buscar"
+              startIcon={<Search className="h-4 w-4" />}
+            />
             <Select name="status" defaultValue={params.status || undefined}>
               <SelectTrigger aria-label="Status">
                 <SelectValue placeholder="Status" />
