@@ -102,10 +102,10 @@ export default async function ProfilePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-4 lg:col-span-3 space-y-6">
-          <Card>
+          <Card variant="surface">
             <CardHeader className="flex flex-col items-center text-center pb-2">
-              <Avatar className="h-32 w-32 mb-4">
-                <AvatarImage src={user.avatar || undefined} alt={user.name} />
+              <Avatar className="h-32 w-32 mb-4 border-4 border-primary p-1">
+                <AvatarImage src={user.avatar || undefined} alt={user.name} className="rounded-full" />
                 <AvatarFallback className="text-2xl">{getInitials(user.name)}</AvatarFallback>
               </Avatar>
               <CardTitle className="text-xl">{user.name}</CardTitle>

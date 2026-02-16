@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Ticket, Users, Settings, LogOut, Menu } from "lucide-react"
+import { LayoutDashboard, Ticket, Users, Settings, LogOut, PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -38,23 +38,7 @@ type SidebarProps = React.HTMLAttributes<HTMLDivElement>
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false
-    try {
-      const v = localStorage.getItem("fixit:sidebar:collapsed")
-      return v === "true"
-    } catch {
-      return false
-    }
-  })
-
-  const toggleCollapsed = () => {
-    const next = !collapsed
-    setCollapsed(next)
-    try {
-      localStorage.setItem("fixit:sidebar:collapsed", String(next))
-    } catch {}
-  }
+  const [collapsed] = useState<boolean>(false)
 
   return (
     <div className={cn("pb-12 h-screen border-r border-(--sidebar-border) bg-(--sidebar-bg) shadow-[-8px_0_24px_rgba(0,0,0,0.35)] relative transition-[width] duration-300 ease-in-out", className, collapsed ? "w-[72px]" : "w-[264px]")}>
@@ -69,9 +53,6 @@ export function Sidebar({ className }: SidebarProps) {
                       <Logo className="w-full" />
                     )}
                 </Link>
-                <Button variant="ghost" size="icon" className={cn("ml-auto", collapsed && "mx-auto")} onClick={toggleCollapsed} aria-label={collapsed ? "Expandir" : "Colapsar"}>
-                  <Menu className="h-5 w-5" />
-                </Button>
             </div>
           <div className="space-y-1">
             {navItems.map((item) => (
@@ -114,7 +95,7 @@ export function MobileSidebar() {
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground">
-                    <Menu className="h-6 w-6" />
+                    <PanelLeft className="h-6 w-6" />
                     <span className="sr-only">Toggle Menu</span>
                 </Button>
             </SheetTrigger>
