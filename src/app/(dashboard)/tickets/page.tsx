@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { Filter, Plus, Search } from "lucide-react"
+import { Filter, Plus, Search, Ticket } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
@@ -154,6 +154,7 @@ export default async function TicketsPage({
                   />
                   <div className="flex gap-2 justify-end">
                     <Button type="submit" variant="soft-success">
+                      <Ticket className="h-4 w-4 mr-2" />
                       Criar Chamado
                     </Button>
                   </div>
