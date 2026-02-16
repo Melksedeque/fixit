@@ -29,12 +29,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {startIcon && (
-          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground peer-focus:text-primary pointer-events-none transition-colors">
             {startIcon}
           </span>
         )}
         {endIcon && (
-          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground peer-focus:text-primary pointer-events-none transition-colors">
             {endIcon}
           </span>
         )}

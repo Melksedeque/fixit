@@ -174,49 +174,61 @@ export default async function TicketsPage({
         </CardHeader>
         <CardContent>
           <div className="max-w-5xl mx-auto">
-          <form action="/tickets" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <form action="/tickets" className="flex items-center justify-between gap-4">
             <Input
               name="q"
               placeholder="Buscar por título ou descrição"
               defaultValue={params.q || ""}
               aria-label="Buscar"
               startIcon={<Search className="h-4 w-4" />}
+              className="flex-1 min-w-[200px]"
             />
-            <Select name="status" defaultValue={params.status || undefined}>
-              <SelectTrigger aria-label="Status">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="OPEN">Aberto</SelectItem>
-                <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                <SelectItem value="WAITING">Em Espera</SelectItem>
-                <SelectItem value="DONE">Concluído</SelectItem>
-                <SelectItem value="CLOSED">Fechado</SelectItem>
-                <SelectItem value="CANCELLED">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select name="priority" defaultValue={params.priority || undefined}>
-              <SelectTrigger aria-label="Prioridade">
-                <SelectValue placeholder="Prioridade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="LOW">Baixa</SelectItem>
-                <SelectItem value="MEDIUM">Média</SelectItem>
-                <SelectItem value="HIGH">Alta</SelectItem>
-                <SelectItem value="CRITICAL">Crítica</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select name="assignedTo" defaultValue={assignedPref}>
-              <SelectTrigger aria-label="Responsável">
-                <SelectValue placeholder="Responsável" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="me">Atribuídos a mim</SelectItem>
-                <SelectItem value="any">Qualquer responsável</SelectItem>
-                <SelectItem value="unassigned">Sem responsável</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button type="submit" variant="soft-edit">Aplicar</Button>
+            <div className="w-[160px] shrink-0">
+              <Select name="status" defaultValue={params.status || undefined}>
+                <SelectTrigger aria-label="Status" className="w-full">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="OPEN">Aberto</SelectItem>
+                  <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                  <SelectItem value="WAITING">Em Espera</SelectItem>
+                  <SelectItem value="DONE">Concluído</SelectItem>
+                  <SelectItem value="CLOSED">Fechado</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[160px] shrink-0">
+              <Select name="priority" defaultValue={params.priority || undefined}>
+                <SelectTrigger aria-label="Prioridade" className="w-full">
+                  <SelectValue placeholder="Prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LOW">Baixa</SelectItem>
+                  <SelectItem value="MEDIUM">Média</SelectItem>
+                  <SelectItem value="HIGH">Alta</SelectItem>
+                  <SelectItem value="CRITICAL">Crítica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[180px] shrink-0">
+              <Select name="assignedTo" defaultValue={assignedPref}>
+                <SelectTrigger aria-label="Responsável" className="w-full">
+                  <SelectValue placeholder="Responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="me">Atribuídos a mim</SelectItem>
+                  <SelectItem value="any">Qualquer responsável</SelectItem>
+                  <SelectItem value="unassigned">Sem responsável</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button asChild variant="ghost">
+                <Link href="/tickets" aria-label="Limpar filtros">Limpar</Link>
+              </Button>
+              <Button type="submit" variant="soft-edit">Aplicar</Button>
+            </div>
           </form>
           </div>
         </CardContent>
