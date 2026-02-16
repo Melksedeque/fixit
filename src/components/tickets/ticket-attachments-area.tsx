@@ -325,7 +325,6 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
                 variant="ghost"
                 className="h-6 w-6 text-muted-foreground"
                 onClick={() => handleRemove(item.id)}
-                disabled={item.status === "uploading"}
                 aria-label="Remover anexo"
               >
                 <X className="h-3 w-3" />
