@@ -1,18 +1,24 @@
 "use client"
 
 import Image from "next/image"
+import { X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface TicketAttachmentsAreaProps {
   name?: string
 }
 
+type AttachmentStatus = "uploading" | "uploaded" | "error"
+
 type AttachmentItem = {
   id: string
   file: File
   previewUrl: string
   progress: number
+  status: AttachmentStatus
+  url?: string
 }
 
 const fileKey = (file: File) =>
@@ -30,39 +36,94 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
       .slice(2)}`
   }
 
-  const mergeFiles = useCallback((incoming: File[]) => {
-    if (incoming.length === 0) return
+  const updateItem = useCallback((id: string, patch: Partial<AttachmentItem>) => {
+    setItems((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)))
+  }, [])
 
-    setItems((prev) => {
-      const existingKeys = new Set(prev.map((item) => fileKey(item.file)))
-      const newItems: AttachmentItem[] = []
+  const startUpload = useCallback(
+    (id: string, file: File) => {
+      const formData = new FormData()
+      formData.append("file", file)
 
-      incoming.forEach((file) => {
-        if (existingKeys.has(fileKey(file))) return
-        const id = createIdForFile(file)
-        const previewUrl = URL.createObjectURL(file)
-        newItems.push({ id, file, previewUrl, progress: 10 })
+      const xhr = new XMLHttpRequest()
+      xhr.open("POST", "/api/attachments")
 
-        window.setTimeout(() => {
-          setItems((current) =>
-            current.map((item) => (item.id === id ? { ...item, progress: 100 } : item)),
-          )
-        }, 400)
-      })
-
-      const next = [...prev, ...newItems]
-
-      const input = inputRef.current
-      if (input) {
-        const dt = new DataTransfer()
-        next.forEach((item) => dt.items.add(item.file))
-        input.files = dt.files
+      xhr.upload.onprogress = (event) => {
+        if (!event.lengthComputable) return
+        const percent = Math.max(5, Math.min(99, Math.round((event.loaded / event.total) * 100)))
+        updateItem(id, { progress: percent, status: "uploading" })
       }
 
-      setFilesCount(next.length)
-      return next
-    })
-  }, [])
+      xhr.onerror = () => {
+        updateItem(id, { status: "error" })
+      }
+
+      xhr.onload = () => {
+        try {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const payload = JSON.parse(xhr.responseText) as { url?: string }
+            if (payload.url) {
+              updateItem(id, { url: payload.url, progress: 100, status: "uploaded" })
+            } else {
+              updateItem(id, { status: "error" })
+            }
+          } else {
+            updateItem(id, { status: "error" })
+          }
+        } catch {
+          updateItem(id, { status: "error" })
+        }
+      }
+
+      xhr.send(formData)
+    },
+    [updateItem],
+  )
+
+  const mergeFiles = useCallback(
+    (incoming: File[]) => {
+      if (incoming.length === 0) return
+
+      const uploadsToStart: { id: string; file: File }[] = []
+
+      setItems((prev) => {
+        const existingKeys = new Set(prev.map((item) => fileKey(item.file)))
+        const newItems: AttachmentItem[] = []
+
+        incoming.forEach((file) => {
+          if (existingKeys.has(fileKey(file))) return
+          const id = createIdForFile(file)
+          const previewUrl = URL.createObjectURL(file)
+          const item: AttachmentItem = {
+            id,
+            file,
+            previewUrl,
+            progress: 5,
+            status: "uploading",
+          }
+          newItems.push(item)
+          uploadsToStart.push({ id, file })
+        })
+
+        const next = [...prev, ...newItems]
+
+        const input = inputRef.current
+        if (input) {
+          const dt = new DataTransfer()
+          next.forEach((item) => dt.items.add(item.file))
+          input.files = dt.files
+        }
+
+        setFilesCount(next.length)
+        return next
+      })
+
+      uploadsToStart.forEach(({ id, file }) => {
+        startUpload(id, file)
+      })
+    },
+    [startUpload],
+  )
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -113,6 +174,37 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
     mergeFiles(files)
   }
 
+  const handleRemove = (id: string) => {
+    let target: AttachmentItem | undefined
+
+    setItems((prev) => {
+      target = prev.find((item) => item.id === id)
+      const remaining = prev.filter((item) => item.id !== id)
+
+      if (target) {
+        URL.revokeObjectURL(target.previewUrl)
+      }
+
+      const input = inputRef.current
+      if (input) {
+        const dt = new DataTransfer()
+        remaining.forEach((item) => dt.items.add(item.file))
+        input.files = dt.files
+      }
+
+      setFilesCount(remaining.length)
+      return remaining
+    })
+
+    if (target?.url) {
+      fetch("/api/attachments", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: target.url }),
+      }).catch(() => {})
+    }
+  }
+
   return (
     <div className="space-y-2">
       <div
@@ -159,6 +251,10 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
                 <div className="truncate text-[11px] font-medium text-foreground">
                   {item.file.name}
                 </div>
+                <div className="text-[10px] text-muted-foreground">
+                  {item.file.type || "imagem"} •{" "}
+                  {Math.max(1, Math.round(item.file.size / 1024))} KB
+                </div>
                 <div className="flex flex-col gap-1">
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                     <div
@@ -167,14 +263,34 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
                     />
                   </div>
                   <div className="text-[10px] text-muted-foreground">
-                    {item.progress < 100 ? "Processando anexo..." : "Pronto para envio"}
+                    {item.status === "error"
+                      ? "Erro ao enviar anexo"
+                      : item.status === "uploading"
+                      ? "Enviando anexo..."
+                      : "Enviado"}
                   </div>
                 </div>
               </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6 text-muted-foreground"
+                onClick={() => handleRemove(item.id)}
+                disabled={item.status === "uploading"}
+                aria-label="Remover anexo"
+              >
+                <X className="h-3 w-3" />
+              </Button>
             </div>
           ))}
         </div>
       )}
+      {items
+        .filter((item) => item.status === "uploaded" && item.url)
+        .map((item) => (
+          <input key={item.id} type="hidden" name="attachmentUrls" value={item.url!} />
+        ))}
     </div>
   )
 }
