@@ -45,44 +45,42 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
       const formData = new FormData()
       formData.append("file", file)
 
-      const xhr = new XMLHttpRequest()
-      xhr.open("POST", "/api/attachments")
+      try {
+        const ac = new AbortController()
+        const timer = window.setTimeout(() => ac.abort(), 30000)
 
-      const timeoutId = window.setTimeout(() => {
-        xhr.abort()
-        updateItem(id, { status: "error" })
-      }, 30000)
+        updateItem(id, { status: "uploading", progress: 10 })
+        console.debug("[attachments] upload start", { name: file.name, size: file.size })
 
-      xhr.upload.onprogress = (event) => {
-        if (!event.lengthComputable) return
-        const percent = Math.max(5, Math.min(99, Math.round((event.loaded / event.total) * 100)))
-        updateItem(id, { progress: percent, status: "uploading" })
-      }
-
-      xhr.onerror = () => {
-        window.clearTimeout(timeoutId)
-        updateItem(id, { status: "error" })
-      }
-
-      xhr.onload = () => {
-        window.clearTimeout(timeoutId)
-        try {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const payload = JSON.parse(xhr.responseText) as { url?: string }
+        fetch("/api/attachments", {
+          method: "POST",
+          body: formData,
+          signal: ac.signal,
+        })
+          .then(async (res) => {
+            window.clearTimeout(timer)
+            if (!res.ok) {
+              updateItem(id, { status: "error" })
+              console.debug("[attachments] upload failed", { name: file.name, status: res.status })
+              return
+            }
+            const payload = (await res.json()) as { url?: string }
             if (payload.url) {
               updateItem(id, { url: payload.url, progress: 100, status: "uploaded" })
+              console.debug("[attachments] upload done", { name: file.name, url: payload.url })
             } else {
               updateItem(id, { status: "error" })
+              console.debug("[attachments] upload missing url", { name: file.name })
             }
-          } else {
+          })
+          .catch((err) => {
+            window.clearTimeout(timer)
             updateItem(id, { status: "error" })
-          }
-        } catch {
-          updateItem(id, { status: "error" })
-        }
+            console.debug("[attachments] upload error", { name: file.name, error: String(err) })
+          })
+      } catch (err) {
+        updateItem(id, { status: "error" })
       }
-
-      xhr.send(formData)
     },
     [updateItem],
   )
