@@ -2,7 +2,9 @@ export function getStatusLabel(status: string) {
   switch (status) {
     case "OPEN": return "Aberto"
     case "IN_PROGRESS": return "Em Andamento"
+    case "WAITING": return "Em Espera"
     case "DONE": return "Concluído"
+    case "CLOSED": return "Fechado"
     case "CANCELLED": return "Cancelado"
     default: return status
   }
@@ -12,7 +14,9 @@ export function getStatusVariant(status: string) {
   switch (status) {
     case "OPEN": return "soft-warning"
     case "IN_PROGRESS": return "soft-info"
+    case "WAITING": return "soft-warning"
     case "DONE": return "soft-success"
+    case "CLOSED": return "secondary"
     case "CANCELLED": return "soft-destructive"
     default: return "secondary"
   }
