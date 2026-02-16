@@ -41,7 +41,7 @@ export function UserNav({ user }: UserNavProps) {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="z-[60] w-56 p-0 rounded-md border border-[#ffffff1a] bg-[var(--card-surface)] text-foreground shadow-[var(--shadow-e2-main)] data-[state=open]:shadow-[var(--shadow-e3-main)] backdrop-blur supports-backdrop-filter:bg-[var(--card-surface)]/90" align="end" forceMount>
+      <DropdownMenuContent className="z-60 w-56 p-0 rounded-md border border-[#ffffff1a] bg-(--card-surface) text-foreground shadow-(--shadow-e2-main) data-[state=open]:shadow-(--shadow-e3-main) backdrop-blur supports-backdrop-filter:bg-(--card-surface)/90" align="end" forceMount>
         <DropdownMenuLabel className="font-normal p-3">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name}</p>
