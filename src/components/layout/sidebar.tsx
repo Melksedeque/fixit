@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Logo } from "@/components/ui/logo"
 import { AppIcon } from "@/components/ui/app-icon"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { signOut } from "next-auth/react"
 
 const navItems = [
@@ -38,19 +38,49 @@ type SidebarProps = React.HTMLAttributes<HTMLDivElement>
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
-  const [collapsed] = useState<boolean>(false)
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false
+    try {
+      return localStorage.getItem("fixit:sidebar:collapsed") === "true"
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setCollapsed(localStorage.getItem("fixit:sidebar:collapsed") === "true")
+      } catch {}
+    }
+    const onCustom = (e: Event) => {
+      const ce = e as CustomEvent<string>
+      if (typeof ce.detail === "string") {
+        setCollapsed(ce.detail === "true")
+      } else {
+        sync()
+      }
+    }
+    sync()
+    window.addEventListener("fixit:sidebar:collapsed", onCustom as EventListener)
+    window.addEventListener("storage", sync)
+    return () => {
+      window.removeEventListener("fixit:sidebar:collapsed", onCustom as EventListener)
+      window.removeEventListener("storage", sync)
+    }
+  }, [])
 
   return (
     <div className={cn("pb-12 h-screen border-r border-(--sidebar-border) bg-(--sidebar-bg) shadow-[-8px_0_24px_rgba(0,0,0,0.35)] relative transition-[width] duration-300 ease-in-out", className, collapsed ? "w-[72px]" : "w-[264px]")}>
 
       <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-            <div className={cn("mb-8 px-4 flex items-center h-16", collapsed && "justify-center")}>
+        <div className="px-3 py-0">
+            <div className={cn("mb-8 flex items-center h-16", collapsed && "justify-center")}>
                 <Link href="/dashboard" className="flex items-center justify-center">
                     {collapsed ? (
                       <AppIcon size={32} className="" />
                     ) : (
-                      <Logo className="w-full" />
+                      <Logo className="w-full px-4" />
                     )}
                 </Link>
             </div>
