@@ -107,14 +107,14 @@ export default async function TicketsPage({
               <Plus className="h-4 w-4 mr-2" /> Novo Chamado
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[640px]">
+          <DialogContent className="bg-primary-foreground sm:max-w-[640px]">
             <DialogHeader>
               <DialogTitle>Novo Chamado</DialogTitle>
             </DialogHeader>
             <Card className="border-0 shadow-none">
               <CardContent className="p-0 pt-4">
                 <form action={createTicket} className="grid grid-cols-1 gap-4">
-                  <Input name="title" placeholder="Título" aria-label="Título" required />
+                  <Input name="title" label="Título" aria-label="Título" required />
                   <textarea
                     name="description"
                     placeholder="Descrição"
@@ -173,16 +173,16 @@ export default async function TicketsPage({
           <CardDescription>Refine os resultados por status, prioridade e responsável</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="max-w-5xl mx-auto">
-          <form action="/tickets" className="flex items-center justify-between gap-4">
-            <Input
-              name="q"
-              placeholder="Buscar por título ou descrição"
-              defaultValue={params.q || ""}
-              aria-label="Buscar"
-              startIcon={<Search className="h-4 w-4" />}
-              className="flex-1 min-w-[200px]"
-            />
+          <form action="/tickets" className="flex items-center justify-between gap-4 w-full">
+            <div className="flex-1 min-w-[300px]">
+              <Input
+                name="q"
+                placeholder="Buscar por título ou descrição"
+                defaultValue={params.q || ""}
+                aria-label="Buscar"
+                startIcon={<Search className="h-4 w-4" />}
+              />
+            </div>
             <div className="w-[160px] shrink-0">
               <Select name="status" defaultValue={params.status || undefined}>
                 <SelectTrigger aria-label="Status" className="w-full">
@@ -198,7 +198,7 @@ export default async function TicketsPage({
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-[160px] shrink-0">
+            <div className="w-[180px] shrink-0">
               <Select name="priority" defaultValue={params.priority || undefined}>
                 <SelectTrigger aria-label="Prioridade" className="w-full">
                   <SelectValue placeholder="Prioridade" />
@@ -211,7 +211,7 @@ export default async function TicketsPage({
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-[180px] shrink-0">
+            <div className="w-[200px] shrink-0">
               <Select name="assignedTo" defaultValue={assignedPref}>
                 <SelectTrigger aria-label="Responsável" className="w-full">
                   <SelectValue placeholder="Responsável" />
@@ -230,7 +230,6 @@ export default async function TicketsPage({
               <Button type="submit" variant="soft-edit">Aplicar</Button>
             </div>
           </form>
-          </div>
         </CardContent>
       </Card>
 
