@@ -11,13 +11,23 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 import { TicketsView } from "@/app/tickets/tickets-view"
+import { TicketKanban } from "@/components/tickets/ticket-kanban"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { createTicket } from "@/app/tickets/actions"
 
 type SearchParams = {
-  status?: "OPEN" | "IN_PROGRESS" | "DONE" | "CANCELLED"
+  status?: "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
   priority?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
   q?: string
   page?: string
-  assignedTo?: "me" | "any"
+  assignedTo?: "me" | "any" | "unassigned"
+  view?: "list" | "kanban"
 }
 
 export default async function TicketsPage({
@@ -47,9 +57,11 @@ export default async function TicketsPage({
   const assignedPref = params.assignedTo ?? "me"
   if (assignedPref === "me") {
     where.assignedToId = session.user.id
+  } else if (assignedPref === "unassigned") {
+    where.assignedToId = null
   }
 
-  const [tickets, totalCount, stats] = await Promise.all([
+  const [tickets, totalCount, stats, techs] = await Promise.all([
     prisma.ticket.findMany({
       where,
       orderBy: { updatedAt: "desc" },
@@ -72,10 +84,15 @@ export default async function TicketsPage({
       where,
       _count: { status: true },
     }),
+    prisma.user.findMany({
+      where: { role: "TECH" },
+      select: { id: true, name: true },
+    }),
   ])
 
   const pageCount = Math.max(1, Math.ceil(totalCount / take))
   const countBy = (s: string) => stats.find((x) => x.status === s)?._count.status || 0
+  const view = params.view === "kanban" ? "kanban" : "list"
 
   return (
     <div className="space-y-8">
@@ -84,11 +101,67 @@ export default async function TicketsPage({
           <h1 className="text-3xl font-bold tracking-tight">Chamados</h1>
           <Badge variant="secondary" aria-label={`Total de chamados: ${totalCount}`}>{totalCount}</Badge>
         </div>
-        <Button variant="soft-edit" asChild>
-          <Link href="/tickets/new">
-            <Plus className="h-4 w-4 mr-2" /> Novo Chamado
-          </Link>
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="soft-edit">
+              <Plus className="h-4 w-4 mr-2" /> Novo Chamado
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[640px]">
+            <DialogHeader>
+              <DialogTitle>Novo Chamado</DialogTitle>
+            </DialogHeader>
+            <Card className="border-0 shadow-none">
+              <CardContent className="p-0 pt-4">
+                <form action={createTicket} className="grid grid-cols-1 gap-4">
+                  <Input name="title" placeholder="Título" aria-label="Título" required />
+                  <textarea
+                    name="description"
+                    placeholder="Descrição"
+                    aria-label="Descrição"
+                    required
+                    className="min-h-28 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                  <Select name="priority" defaultValue="MEDIUM">
+                    <SelectTrigger aria-label="Prioridade">
+                      <SelectValue placeholder="Prioridade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LOW">Baixa</SelectItem>
+                      <SelectItem value="MEDIUM">Média</SelectItem>
+                      <SelectItem value="HIGH">Alta</SelectItem>
+                      <SelectItem value="CRITICAL">Crítica</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select name="assignedToId">
+                    <SelectTrigger aria-label="Responsável">
+                      <SelectValue placeholder="Atribuir a" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem responsável</SelectItem>
+                      {techs.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    name="deadlineForecast"
+                    placeholder="Previsão (YYYY-MM-DD)"
+                    aria-label="Previsão"
+                    type="date"
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <Button type="submit" variant="soft-success">
+                      Criar Chamado
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -110,7 +183,9 @@ export default async function TicketsPage({
               <SelectContent>
                 <SelectItem value="OPEN">Aberto</SelectItem>
                 <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
+                <SelectItem value="WAITING">Em Espera</SelectItem>
                 <SelectItem value="DONE">Concluído</SelectItem>
+                <SelectItem value="CLOSED">Fechado</SelectItem>
                 <SelectItem value="CANCELLED">Cancelado</SelectItem>
               </SelectContent>
             </Select>
@@ -132,6 +207,7 @@ export default async function TicketsPage({
               <SelectContent>
                 <SelectItem value="me">Atribuídos a mim</SelectItem>
                 <SelectItem value="any">Qualquer responsável</SelectItem>
+                <SelectItem value="unassigned">Sem responsável</SelectItem>
               </SelectContent>
             </Select>
             <Button type="submit" variant="soft-edit">Aplicar</Button>
@@ -151,10 +227,26 @@ export default async function TicketsPage({
         </Card>
         <Card>
           <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Em Espera</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{countBy("WAITING")}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{countBy("IN_PROGRESS")}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Fechados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{countBy("CLOSED")}</div>
           </CardContent>
         </Card>
         <Card>
@@ -175,7 +267,39 @@ export default async function TicketsPage({
         </Card>
       </div>
 
-      <TicketsView tickets={tickets} page={page} pageCount={pageCount} params={params} />
+      <div className="flex items-center justify-between mt-4">
+        <h2 className="text-sm font-medium text-muted-foreground">Visualização</h2>
+        <div className="inline-flex rounded-md border border-border bg-muted/40 p-1">
+          <Button
+            asChild
+            variant={view === "list" ? "default" : "ghost"}
+            size="sm"
+          >
+            <Link href={{ pathname: "/tickets", query: { ...params, view: "list" } }}>
+              Lista
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant={view === "kanban" ? "default" : "ghost"}
+            size="sm"
+          >
+            <Link href={{ pathname: "/tickets", query: { ...params, view: "kanban" } }}>
+              Kanban
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {view === "list" ? (
+        <TicketsView tickets={tickets} page={page} pageCount={pageCount} params={params} />
+      ) : (
+        <TicketKanban
+          tickets={tickets}
+          currentUserRole={session.user.role}
+          currentUserName={session.user.name || "Você"}
+        />
+      )}
 
       <Separator />
 

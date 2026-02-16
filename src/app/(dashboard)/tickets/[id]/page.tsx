@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { addComment, updateStatus, deleteTicket, updateTicket } from "@/app/tickets/actions"
+import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe } from "@/app/tickets/actions"
 import Link from "next/link"
 
 export default async function TicketDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: { mp?: string } }) {
@@ -30,6 +30,8 @@ export default async function TicketDetailPage({ params, searchParams }: { param
   if (!ticket) {
     redirect("/tickets")
   }
+
+  const isTechOrAdmin = session.user.role === "ADMIN" || session.user.role === "TECH"
 
   const mp = Number(searchParams?.mp || "1")
   const take = 10
@@ -67,7 +69,18 @@ export default async function TicketDetailPage({ params, searchParams }: { param
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="text-muted-foreground">Cliente: <span className="text-foreground">{ticket.customer?.name}</span></div>
-          <div className="text-muted-foreground">Responsável: <span className="text-foreground">{ticket.assignedTo?.name || "-"}</span></div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-muted-foreground">
+              Responsável: <span className="text-foreground">{ticket.assignedTo?.name || "-"}</span>
+            </div>
+            {isTechOrAdmin && !ticket.assignedTo && (
+              <form action={assignTicketToMe.bind(null, ticket.id)}>
+                <Button type="submit" variant="soft-success" size="sm">
+                  Assumir Chamado
+                </Button>
+              </form>
+            )}
+          </div>
           <div className="text-muted-foreground">Status atual:
             <Badge variant="secondary" className="ml-2">{ticket.status}</Badge>
           </div>

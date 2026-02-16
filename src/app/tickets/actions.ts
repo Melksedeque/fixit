@@ -20,11 +20,13 @@ export async function createTicket(formData: FormData) {
   const userId = session.user.id
   if (!userId) throw new Error("Unauthorized: missing user id")
 
+  const rawAssignedTo = formData.get("assignedToId")
+
   const parsed = TicketCreateSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description"),
     priority: formData.get("priority"),
-    assignedToId: formData.get("assignedToId") || null,
+    assignedToId: !rawAssignedTo || rawAssignedTo === "none" ? null : rawAssignedTo,
     deadlineForecast: formData.get("deadlineForecast"),
   })
   if (!parsed.success) {
@@ -76,8 +78,17 @@ export async function addComment(ticketId: string, formData: FormData) {
 }
 
 const TicketStatusSchema = z.object({
-status: z.enum(["OPEN", "IN_PROGRESS", "WAITING", "DONE", "CLOSED", "CANCELLED"]),
+  status: z.enum(["OPEN", "IN_PROGRESS", "WAITING", "DONE", "CLOSED", "CANCELLED"]),
 })
+
+const allowedTransitions: Record<TicketStatus, TicketStatus[]> = {
+  OPEN: ["IN_PROGRESS", "WAITING", "CANCELLED"],
+  IN_PROGRESS: ["OPEN", "WAITING", "DONE", "CANCELLED"],
+  WAITING: ["IN_PROGRESS", "CANCELLED"],
+  DONE: ["CLOSED"],
+  CLOSED: [],
+  CANCELLED: [],
+}
 
 export async function updateStatus(ticketId: string, formData: FormData) {
   const session = await auth()
@@ -90,33 +101,42 @@ export async function updateStatus(ticketId: string, formData: FormData) {
     throw new Error(parsed.error.issues.map(i => i.message).join(", "))
   }
 
-const nextStatus = parsed.data.status as TicketStatus
-const now = new Date()
-const existing = await prisma.ticket.findUnique({ where: { id: ticketId }, select: { status: true, createdAt: true, deliveryDate: true } })
-if (!existing) throw new Error("Ticket not found")
+  const nextStatus = parsed.data.status as TicketStatus
+  const now = new Date()
+  const existing = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { status: true, createdAt: true, deliveryDate: true },
+  })
+  if (!existing) throw new Error("Ticket not found")
 
-const updateData: Record<string, unknown> = { status: nextStatus }
-if (nextStatus === "DONE") {
-  updateData.deliveryDate = now
-}
-if (nextStatus === "CLOSED") {
-  updateData.closedAt = now
-  const start = existing.deliveryDate ?? existing.createdAt
-  const minutes = Math.max(0, Math.round((now.getTime() - start.getTime()) / 60000))
-  updateData.executionTime = minutes
-}
-
-await prisma.ticket.update({ where: { id: ticketId }, data: updateData })
-
-await prisma.ticketHistory.create({
-  data: {
-    ticketId,
-    actionType: "STATUS_CHANGE",
-    oldValue: existing.status,
-    newValue: nextStatus,
-    userId: session.user.id!,
+  const currentStatus = existing.status as TicketStatus
+  const allowedNext = allowedTransitions[currentStatus] || []
+  if (!allowedNext.includes(nextStatus)) {
+    throw new Error(`Invalid status transition from ${currentStatus} to ${nextStatus}`)
   }
-})
+
+  const updateData: Record<string, unknown> = { status: nextStatus }
+  if (nextStatus === "DONE") {
+    updateData.deliveryDate = now
+  }
+  if (nextStatus === "CLOSED") {
+    updateData.closedAt = now
+    const start = existing.deliveryDate ?? existing.createdAt
+    const minutes = Math.max(0, Math.round((now.getTime() - start.getTime()) / 60000))
+    updateData.executionTime = minutes
+  }
+
+  await prisma.ticket.update({ where: { id: ticketId }, data: updateData })
+
+  await prisma.ticketHistory.create({
+    data: {
+      ticketId,
+      actionType: "STATUS_CHANGE",
+      oldValue: existing.status,
+      newValue: nextStatus,
+      userId: session.user.id!,
+    }
+  })
 
   revalidatePath(`/tickets/${ticketId}`)
   revalidatePath("/tickets")
@@ -194,6 +214,41 @@ if (data.hasOwnProperty("assignedToId") && data.assignedToId !== prev.assignedTo
     }
   })
 }
+
+  revalidatePath("/tickets")
+  revalidatePath(`/tickets/${ticketId}`)
+}
+
+export async function assignTicketToMe(ticketId: string) {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
+  const userId = session.user.id
+
+  const prev = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { assignedToId: true },
+  })
+
+  if (!prev) throw new Error("Ticket not found")
+  if (prev.assignedToId === userId) {
+    return
+  }
+
+  await prisma.ticket.update({
+    where: { id: ticketId },
+    data: { assignedToId: userId },
+  })
+
+  await prisma.ticketHistory.create({
+    data: {
+      ticketId,
+      actionType: "ASSIGNMENT",
+      oldValue: prev.assignedToId ?? null,
+      newValue: userId,
+      userId,
+    },
+  })
 
   revalidatePath("/tickets")
   revalidatePath(`/tickets/${ticketId}`)
