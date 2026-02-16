@@ -64,9 +64,9 @@ export function Sidebar({ className }: SidebarProps) {
             <div className={cn("mb-8 px-4 flex items-center h-16", collapsed && "justify-center")}>
                 <Link href="/dashboard" className="flex items-center justify-center">
                     {collapsed ? (
-                      <AppIcon size={32} className="brightness-0 invert" />
+                      <AppIcon size={32} className="" />
                     ) : (
-                      <Logo className="w-full brightness-0 invert" />
+                      <Logo className="w-full" />
                     )}
                 </Link>
                 <Button variant="ghost" size="icon" className={cn("ml-auto", collapsed && "mx-auto")} onClick={toggleCollapsed} aria-label={collapsed ? "Expandir" : "Colapsar"}>
