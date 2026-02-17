@@ -21,9 +21,6 @@ type AttachmentItem = {
   url?: string
 }
 
-const fileKey = (file: File) =>
-  `${file.name}-${file.size}-${file.lastModified}-${file.type}`
-
 export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachmentsAreaProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -92,11 +89,11 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
       const uploadsToStart: { id: string; file: File }[] = []
 
       setItems((prev) => {
-        const existingKeys = new Set(prev.map((item) => fileKey(item.file)))
+        // Removida a verificação de duplicatas problemática
+        // Agora permite múltiplos arquivos com características similares
         const newItems: AttachmentItem[] = []
 
         incoming.forEach((file) => {
-          if (existingKeys.has(fileKey(file))) return
           const id = createIdForFile(file)
           const previewUrl = URL.createObjectURL(file)
           const item: AttachmentItem = {
