@@ -21,14 +21,15 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
     theme: "bubble",
     modules: {
       toolbar: [
-        ["bold", "italic"],
+        ["bold", "italic", "underline"],
         [{ list: "ordered" }, { list: "bullet" }],
+        ["link"],
       ],
       clipboard: {
         matchVisual: false,
       },
     },
-    formats: ["bold", "italic", "list", "bullet", "ordered"],
+    formats: ["bold", "italic", "underline", "list", "bullet", "ordered", "link"],
   })
 
   useEffect(() => {
