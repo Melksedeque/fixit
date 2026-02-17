@@ -29,7 +29,7 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
   const [isDragging, setIsDragging] = useState(false)
   const [filesCount, setFilesCount] = useState(0)
   const [items, setItems] = useState<AttachmentItem[]>([])
-  const [uploadQueue, setUploadQueue] = useState<string[]>([])
+  const [uploadQueue, setUploadQueue] = useState<{ id: string; file: File }[]>([])
   const [currentUploadingId, setCurrentUploadingId] = useState<string | null>(null)
 
   const createIdForFile = (file: File) => {
@@ -75,19 +75,19 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
               console.debug("[attachments] upload missing url", { name: file.name })
             }
             setCurrentUploadingId(null)
-            setUploadQueue((q) => q.filter((x) => x !== id))
+            setUploadQueue((q) => q.filter((x) => x.id !== id))
           })
           .catch((err) => {
             window.clearTimeout(timer)
             updateItem(id, { status: "error" })
             console.debug("[attachments] upload error", { name: file.name, error: String(err) })
             setCurrentUploadingId(null)
-            setUploadQueue((q) => q.filter((x) => x !== id))
+            setUploadQueue((q) => q.filter((x) => x.id !== id))
           })
       } catch (err) {
         updateItem(id, { status: "error" })
         setCurrentUploadingId(null)
-        setUploadQueue((q) => q.filter((x) => x !== id))
+        setUploadQueue((q) => q.filter((x) => x.id !== id))
       }
     },
     [updateItem],
@@ -96,23 +96,19 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
   const maybeStartNext = useCallback(() => {
     if (currentUploadingId) return
     setUploadQueue((q) => {
-      const nextId = q[0]
-      if (!nextId) return q
-      const target = items.find((i) => i.id === nextId)
-      if (!target) {
-        return q.slice(1)
-      }
-      setCurrentUploadingId(nextId)
-      startUpload(nextId, target.file)
+      const next = q[0]
+      if (!next) return q
+      setCurrentUploadingId(next.id)
+      startUpload(next.id, next.file)
       return q
     })
-  }, [currentUploadingId, items, startUpload])
+  }, [currentUploadingId, startUpload])
 
   const mergeFiles = useCallback(
     (incoming: File[]) => {
       if (incoming.length === 0) return
 
-      const queuedIds: string[] = []
+      const queued: { id: string; file: File }[] = []
 
       setItems((prev) => {
         const existingKeys = new Set(prev.map((item) => fileKey(item.file)))
@@ -130,7 +126,7 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
             status: "uploading",
           }
           newItems.push(item)
-          queuedIds.push(id)
+          queued.push({ id, file })
         })
 
         const next = [...prev, ...newItems]
@@ -146,8 +142,8 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
         return next
       })
 
-      if (queuedIds.length > 0) {
-        setUploadQueue((q) => [...q, ...queuedIds])
+      if (queued.length > 0) {
+        setUploadQueue((q) => [...q, ...queued])
         // tenta iniciar imediatamente se nada estiver em andamento
         setTimeout(maybeStartNext, 0)
       }
@@ -246,7 +242,7 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
           : item,
       )
 
-      setUploadQueue((q) => [...q, id])
+      setUploadQueue((q) => [...q, { id, file: target.file }])
       window.setTimeout(maybeStartNext, 0)
 
       return next
