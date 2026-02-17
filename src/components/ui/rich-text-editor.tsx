@@ -1,9 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import { useQuill } from "react-quilljs"
 import { cn } from "@/lib/utils"
+import "quill/dist/quill.bubble.css"
 
 interface RichTextEditorProps {
   name: string
@@ -14,106 +15,79 @@ interface RichTextEditorProps {
 
 export function RichTextEditor({ name, defaultValue, label, placeholder }: RichTextEditorProps) {
   const [value, setValue] = useState(defaultValue || "")
-  const [focused, setFocused] = useState(false)
-  const editorRef = useRef<HTMLDivElement | null>(null)
+
+  const { quill, quillRef } = useQuill({
+    placeholder,
+    theme: "bubble",
+    modules: {
+      toolbar: [
+        ["bold", "italic"],
+        [{ list: "ordered" }, { list: "bullet" }],
+      ],
+      clipboard: {
+        matchVisual: false,
+      },
+    },
+    formats: ["bold", "italic", "list", "bullet", "ordered"],
+  })
 
   useEffect(() => {
-    if (editorRef.current && defaultValue) {
-      editorRef.current.innerHTML = defaultValue
+    if (quill && defaultValue) {
+      quill.clipboard.dangerouslyPasteHTML(defaultValue)
     }
-  }, [defaultValue])
+  }, [quill, defaultValue])
 
-  const syncValueFromDom = () => {
-    if (editorRef.current) {
-      setValue(editorRef.current.innerHTML)
+  useEffect(() => {
+    if (!quill) return
+
+    const handleTextChange = () => {
+      const html = quill.root.innerHTML
+      setValue(html === "<p><br></p>" ? "" : html)
     }
-  }
 
-  const withSelectionInEditor = (fn: (range: Range) => void) => {
-    const editor = editorRef.current
-    if (!editor) return
-    const selection = window.getSelection()
-    if (!selection || selection.rangeCount === 0) return
-    const range = selection.getRangeAt(0)
-    if (!editor.contains(range.commonAncestorContainer)) return
-    fn(range)
-    syncValueFromDom()
-  }
+    quill.on("text-change", handleTextChange)
 
-  const applyInlineWrapper = (tag: "strong" | "em") => {
-    withSelectionInEditor((range) => {
-      if (range.collapsed) return
-      const wrapper = document.createElement(tag)
-      const contents = range.extractContents()
-      wrapper.appendChild(contents)
-      range.insertNode(wrapper)
-    })
-  }
+    return () => {
+      quill.off("text-change", handleTextChange)
+    }
+  }, [quill])
 
-  const insertLink = (url: string) => {
-    if (!/^https?:\/\//i.test(url)) return
-    withSelectionInEditor((range) => {
-      const selectionText = range.collapsed ? url : range.toString()
-      range.deleteContents()
-      const link = document.createElement("a")
-      link.href = url
-      link.target = "_blank"
-      link.rel = "noopener noreferrer"
-      link.textContent = selectionText
-      range.insertNode(link)
-    })
-  }
- 
-  const handleLink = async () => {
-    let url: string | null = null
+  useEffect(() => {
+    if (!quill) return
 
-    if (typeof navigator !== "undefined" && navigator.clipboard?.readText) {
-      try {
-        const clipboardText = (await navigator.clipboard.readText())?.trim()
-        if (clipboardText && /^https?:\/\//i.test(clipboardText)) {
-          url = clipboardText
+    const root = quill.root
+
+    const handlePaste = (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items
+      if (!items) return
+
+      const files: File[] = []
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item.kind === "file") {
+          const file = item.getAsFile()
+          if (file && file.type.startsWith("image/")) {
+            files.push(file)
+          }
         }
-      } catch {
+      }
+
+      if (files.length > 0 && typeof window !== "undefined") {
+        event.preventDefault()
+        window.dispatchEvent(
+          new CustomEvent("fixit:ticket-attachments-from-paste", {
+            detail: { files },
+          }),
+        )
       }
     }
 
-    if (!url) {
-      url = window.prompt("URL do link") || null
+    root.addEventListener("paste", handlePaste as unknown as EventListener)
+
+    return () => {
+      root.removeEventListener("paste", handlePaste as unknown as EventListener)
     }
-
-    if (!url) return
-
-    const trimmed = url.trim()
-    if (!trimmed) return
-
-    const finalUrl = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
-    insertLink(finalUrl)
-  }
-
-  const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
-    const items = event.clipboardData?.items
-    if (!items) return
-
-    const files: File[] = []
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
-      if (item.kind === "file") {
-        const file = item.getAsFile()
-        if (file && file.type.startsWith("image/")) {
-          files.push(file)
-        }
-      }
-    }
-
-    if (files.length > 0 && typeof window !== "undefined") {
-      event.preventDefault()
-      window.dispatchEvent(
-        new CustomEvent("fixit:ticket-attachments-from-paste", {
-          detail: { files },
-        }),
-      )
-    }
-  }
+  }, [quill])
 
   return (
     <div className="space-y-2">
@@ -123,52 +97,8 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
         </div>
       )}
       <div className={cn("rounded-md border border-border bg-background")}>
-        <div className="flex items-center gap-1 px-2 py-1 border-b border-border">
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="h-7 px-2 text-xs"
-            onClick={() => applyInlineWrapper("strong")}
-          >
-            B
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="h-7 px-2 text-xs"
-            onClick={() => applyInlineWrapper("em")}
-          >
-            I
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="h-7 px-2 text-xs"
-            onClick={handleLink}
-          >
-            Link
-          </Button>
-        </div>
-        <div className="relative">
-          {placeholder && !value && !focused && (
-            <div className="pointer-events-none absolute inset-x-3 top-2 text-sm text-muted-foreground">
-              {placeholder}
-            </div>
-          )}
-          <div
-            ref={editorRef}
-            className="min-h-28 max-h-[320px] overflow-y-auto rounded-md bg-background px-3 py-2 text-sm focus-visible:outline-none"
-            contentEditable
-            onPaste={handlePaste}
-            onInput={() => {
-              syncValueFromDom()
-            }}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-          />
+        <div className="relative min-h-28">
+          <div ref={quillRef} className="min-h-28" />
         </div>
       </div>
       <input type="hidden" name={name} value={value} />
