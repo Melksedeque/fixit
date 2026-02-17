@@ -2,7 +2,8 @@
 
 import Image from "next/image"
 import { X } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { useDropzone } from "react-dropzone"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -22,9 +23,6 @@ type AttachmentItem = {
 }
 
 export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachmentsAreaProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [filesCount, setFilesCount] = useState(0)
   const [items, setItems] = useState<AttachmentItem[]>([])
 
   const createIdForFile = (file: File) => {
@@ -42,190 +40,159 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
       const formData = new FormData()
       formData.append("file", file)
 
-      try {
-        const ac = new AbortController()
-        const timer = window.setTimeout(() => ac.abort(), 30000)
+      const ac = new AbortController()
+      const timer = window.setTimeout(() => ac.abort(), 30000)
 
-        updateItem(id, { status: "uploading", progress: 10 })
-        console.debug("[attachments] upload start", { name: file.name, size: file.size })
+      updateItem(id, { status: "uploading", progress: 10 })
+      console.log("[attachments] upload start", { name: file.name, size: file.size, id })
 
-        fetch("/api/attachments", {
-          method: "POST",
-          body: formData,
-          signal: ac.signal,
-        })
-          .then(async (res) => {
-            window.clearTimeout(timer)
-            if (!res.ok) {
-              updateItem(id, { status: "error" })
-              console.debug("[attachments] upload failed", { name: file.name, status: res.status })
-              return
-            }
-            const payload = (await res.json()) as { url?: string }
-            if (payload.url) {
-              updateItem(id, { url: payload.url, progress: 100, status: "uploaded" })
-              console.debug("[attachments] upload done", { name: file.name, url: payload.url })
-            } else {
-              updateItem(id, { status: "error" })
-              console.debug("[attachments] upload missing url", { name: file.name })
-            }
-          })
-          .catch((error) => {
-            window.clearTimeout(timer)
+      fetch("/api/attachments", {
+        method: "POST",
+        body: formData,
+        signal: ac.signal,
+      })
+        .then(async (res) => {
+          window.clearTimeout(timer)
+          if (!res.ok) {
             updateItem(id, { status: "error" })
-            console.debug("[attachments] upload error", { name: file.name, error: String(error) })
-          })
-      } catch {
-        updateItem(id, { status: "error" })
-      }
+            console.error("[attachments] upload failed", { name: file.name, status: res.status, id })
+            return
+          }
+          const payload = (await res.json()) as { url?: string }
+          if (payload.url) {
+            updateItem(id, { url: payload.url, progress: 100, status: "uploaded" })
+            console.log("[attachments] upload success", { name: file.name, url: payload.url, id })
+          } else {
+            updateItem(id, { status: "error" })
+            console.error("[attachments] upload missing url", { name: file.name, id })
+          }
+        })
+        .catch((error) => {
+          window.clearTimeout(timer)
+          updateItem(id, { status: "error" })
+          console.error("[attachments] upload error", { name: file.name, error: String(error), id })
+        })
     },
     [updateItem],
   )
 
-  const mergeFiles = useCallback(
-    (incoming: File[]) => {
-      if (incoming.length === 0) return
+  const processFiles = useCallback(
+    (acceptedFiles: File[]) => {
+      console.log("[attachments] processing files", { count: acceptedFiles.length })
 
-      const uploadsToStart: { id: string; file: File }[] = []
+      if (acceptedFiles.length === 0) {
+        console.warn("[attachments] no files to process")
+        return
+      }
+
+      const newItems: AttachmentItem[] = acceptedFiles.map((file) => {
+        const id = createIdForFile(file)
+        const previewUrl = URL.createObjectURL(file)
+        console.log("[attachments] created item", { id, name: file.name, size: file.size })
+        return {
+          id,
+          file,
+          previewUrl,
+          progress: 5,
+          status: "uploading" as AttachmentStatus,
+        }
+      })
 
       setItems((prev) => {
-        // Removida a verificação de duplicatas problemática
-        // Agora permite múltiplos arquivos com características similares
-        const newItems: AttachmentItem[] = []
-
-        incoming.forEach((file) => {
-          const id = createIdForFile(file)
-          const previewUrl = URL.createObjectURL(file)
-          const item: AttachmentItem = {
-            id,
-            file,
-            previewUrl,
-            progress: 5,
-            status: "uploading",
-          }
-          newItems.push(item)
-          uploadsToStart.push({ id, file })
-        })
-
         const next = [...prev, ...newItems]
-
-        const input = inputRef.current
-        if (input) {
-          const dt = new DataTransfer()
-          next.forEach((item) => dt.items.add(item.file))
-          input.files = dt.files
-        }
-
-        setFilesCount(next.length)
+        console.log("[attachments] updated items state", { 
+          previousCount: prev.length, 
+          newCount: newItems.length,
+          totalCount: next.length 
+        })
         return next
       })
 
-      uploadsToStart.forEach(({ id, file }) => {
-        startUpload(id, file)
+      // Inicia uploads individualmente
+      newItems.forEach(({ id, file }) => {
+        console.log("[attachments] scheduling upload", { id, name: file.name })
+        // Pequeno delay para evitar que todos iniciem exatamente ao mesmo tempo
+        setTimeout(() => startUpload(id, file), Math.random() * 100)
       })
     },
     [startUpload],
   )
 
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const custom = event as CustomEvent<{ files?: File[] }>
-      const files = custom.detail?.files || []
-      if (files.length > 0) {
-        mergeFiles(files)
-      }
-    }
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      console.log("[attachments] onDrop triggered", { count: acceptedFiles.length })
+      processFiles(acceptedFiles)
+    },
+    [processFiles],
+  )
 
-    window.addEventListener("fixit:ticket-attachments-from-paste", handler as EventListener)
-    return () => {
-      window.removeEventListener("fixit:ticket-attachments-from-paste", handler as EventListener)
-    }
-  }, [mergeFiles])
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp']
+    },
+    multiple: true,
+    noClick: false,
+    noKeyboard: false,
+  })
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    const list = files ? Array.from(files) : []
-    mergeFiles(list)
-  }
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-  }
-
-  const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragging(false)
-  }
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragging(false)
-
-    const files = Array.from(event.dataTransfer.files || []).filter((file) =>
-      file.type.startsWith("image/"),
-    )
-    mergeFiles(files)
-  }
-
-  const handleRemove = (id: string) => {
-    let target: AttachmentItem | undefined
-
+  const handleRemove = useCallback((id: string) => {
+    console.log("[attachments] removing item", { id })
+    
     setItems((prev) => {
-      target = prev.find((item) => item.id === id)
+      const target = prev.find((item) => item.id === id)
       const remaining = prev.filter((item) => item.id !== id)
 
       if (target) {
         URL.revokeObjectURL(target.previewUrl)
+        
+        // Se já foi enviado, remove do servidor
+        if (target.url) {
+          fetch("/api/attachments", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: target.url }),
+          }).catch((err) => {
+            console.error("[attachments] failed to delete from server", { id, error: err })
+          })
+        }
       }
 
-      const input = inputRef.current
-      if (input) {
-        const dt = new DataTransfer()
-        remaining.forEach((item) => dt.items.add(item.file))
-        input.files = dt.files
-      }
-
-      setFilesCount(remaining.length)
+      console.log("[attachments] item removed", { 
+        id, 
+        remainingCount: remaining.length 
+      })
       return remaining
     })
+  }, [])
 
-    if (target?.url) {
-      fetch("/api/attachments", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: target.url }),
-      }).catch(() => {})
-    }
-  }
+  const handleRetry = useCallback(
+    (id: string) => {
+      console.log("[attachments] retrying upload", { id })
+      
+      setItems((prev) => {
+        const target = prev.find((item) => item.id === id)
+        if (!target) {
+          console.warn("[attachments] retry failed - item not found", { id })
+          return prev
+        }
 
-  const handleRetry = (id: string) => {
-    setItems((prev) => {
-      const target = prev.find((item) => item.id === id)
-      if (!target) return prev
+        const next = prev.map((item) =>
+          item.id === id
+            ? { ...item, status: "uploading" as AttachmentStatus, progress: 5, url: undefined }
+            : item,
+        )
 
-      const next = prev.map((item) =>
-        item.id === id
-          ? { ...item, status: "uploading" as AttachmentStatus, progress: 5, url: undefined }
-          : item,
-      )
+        // Reinicia upload após atualizar estado
+        setTimeout(() => startUpload(id, target.file), 100)
 
-      window.setTimeout(() => {
-        startUpload(id, target.file)
-      }, 0)
+        return next
+      })
+    },
+    [startUpload],
+  )
 
-      return next
-    })
-  }
-
+  // Notifica componente pai sobre status
   useEffect(() => {
     const hasUploading = items.some((item) => item.status === "uploading")
     const hasError = items.some((item) => item.status === "error")
@@ -242,35 +209,27 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
   return (
     <div className="space-y-2">
       <div
+        {...getRootProps()}
         className={cn(
-          "relative flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-background/40 px-3 py-6 text-center transition-colors",
-          isDragging && "border-primary bg-primary/5",
+          "relative flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-background/40 px-3 py-6 text-center transition-colors cursor-pointer hover:border-primary/50 hover:bg-background/60",
+          isDragActive && "border-primary bg-primary/5",
         )}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
       >
-        <input
-          ref={inputRef}
-          type="file"
-          name={name}
-          multiple
-          accept="image/*"
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-          onChange={handleChange}
-        />
-        <p className="text-sm font-medium text-foreground">Arraste e solte imagens aqui</p>
+        <input {...getInputProps()} name={name} />
+        <p className="text-sm font-medium text-foreground">
+          {isDragActive ? "Solte as imagens aqui..." : "Arraste e solte imagens aqui"}
+        </p>
         <p className="mt-1 text-[11px] text-muted-foreground">
           ou clique para selecionar arquivos do seu computador.
         </p>
-        {filesCount > 0 && (
+        {items.length > 0 && (
           <p className="mt-2 text-[11px] text-muted-foreground">
-            {filesCount} arquivo{filesCount > 1 ? "s" : ""} selecionado
-            {filesCount > 1 ? "s" : ""}.
+            {items.length} arquivo{items.length > 1 ? "s" : ""} selecionado
+            {items.length > 1 ? "s" : ""}.
           </p>
         )}
       </div>
+
       {items.length > 0 && (
         <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {items.map((item) => (
@@ -330,6 +289,8 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
           ))}
         </div>
       )}
+
+      {/* Hidden inputs para os arquivos enviados com sucesso */}
       {items
         .filter((item) => item.status === "uploaded" && item.url)
         .map((item) => (
