@@ -21,8 +21,8 @@ import {
 } from "@/components/ui/dialog"
 import { createTicket } from "@/app/(dashboard)/tickets/actions"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
-import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
 import { TicketSubmitButton } from "@/components/tickets/ticket-submit-button"
+import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
