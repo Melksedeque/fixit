@@ -110,7 +110,7 @@ export default async function TicketsPage({
               <Plus className="h-4 w-4 mr-2" /> Novo Chamado
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-primary-foreground sm:max-w-[640px]">
+          <DialogContent className="bg-primary-foreground sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Novo Chamado</DialogTitle>
             </DialogHeader>
