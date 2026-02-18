@@ -53,9 +53,9 @@
 - [x] Rate limit e observabilidade mínima
 
 ## Migração e Dados
-- [ ] Backfill `closedAt` a partir de `deliveryDate` quando aplicável
-- [ ] `slaHours` padrão (ex.: 24) quando ausente
-- [ ] `category` opcional; validar nomenclaturas futuras
+- [x] Backfill `closedAt` a partir de `deliveryDate` quando aplicável
+- [x] `slaHours` padrão (ex.: 24) quando ausente
+- [x] `category` opcional; validar nomenclaturas futuras
 
 ## Qualidade
 - [x] Lint/Typecheck/Build OK
@@ -67,3 +67,13 @@
 - [x] Permitir criação sem responsável
 - [x] Filtro “Sem responsável” na caixa de entrada
 - [x] Botão “Assumir Chamado” (técnicos/admins)
+
+## Melhorias de UX
+- [ ] Campo de Descrição na página de detalhes do chamado precisa interpretar o HTML e renderizar corretamente as tags;
+- [ ] Opção de editar titulo e descrição apenas no formulário de edição do chamado (modal/dialog) e não na página de detalhes;
+- [ ] Arquivos anexos devem estar em um card alinhado à direita do card de Informações;
+- [ ] Badge de Status ao lado da badge de Prioridade que está no topo da página;
+- [ ] Seção de Comentários deve ter um botão para fazer upload de arquivos (imagens/videos/audio). Este botão pode abrir um modal/dialog para upload com dropzone;
+- [ ] O campo de texto do comentário deve ocupar todo o espaço disponível, semelhante ao campo de descrição;
+- [ ] O botão de enviar comentário deve estar alinhado à direita do campo de texto;
+- [ ] A seção de Histórico deve ser a última da página;
