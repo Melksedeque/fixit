@@ -8,6 +8,7 @@ import { getPriorityVariant } from "./utils"
 import Link from "next/link"
 import { toast } from "sonner"
 import { updateStatus } from "@/app/(dashboard)/tickets/actions"
+import { useRouter } from "next/navigation"
 
 type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
 
@@ -53,6 +54,7 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
+  const router = useRouter()
   const isTechOrAdmin = currentUserRole === "ADMIN" || currentUserRole === "TECH"
 
   const getPriorityBorder = (priority: string) => {
@@ -73,6 +75,29 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
   useEffect(() => {
     setBoardTickets(tickets)
   }, [tickets])
+
+  useEffect(() => {
+    let es: EventSource | null = null
+    try {
+      es = new EventSource("/api/tickets/stream")
+      es.onmessage = (ev) => {
+        try {
+          const data = JSON.parse(ev.data)
+          if (data?.type === "ping") return
+          if (data?.type && String(data.type).startsWith("ticket:")) {
+            router.refresh()
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return () => {
+      es?.close()
+    }
+  }, [router])
 
   const changeStatus = (ticketId: string, targetStatus: TicketStatus) => {
     const current = boardTickets.find((t) => t.id === ticketId)
