@@ -66,3 +66,10 @@
 - [x] Permitir criação sem responsável
 - [x] Filtro “Sem responsável” na caixa de entrada
 - [x] Botão “Assumir Chamado” (técnicos/admins)
+
+## Sustentar sessão de usuário
+- [ ] Persistir sessão em cookies (segurança básica)
+- [ ] Invalidar sessão ao fazer logout
+- [ ] Expiração de sessão (ex.: 1h)
+- [ ] Rotas protegidas (server actions)
+- [ ] Acessibilidade (leitores de tela)
