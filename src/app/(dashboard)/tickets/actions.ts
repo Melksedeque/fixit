@@ -8,6 +8,7 @@ import { z } from "zod"
 import { Role, TicketPriority, TicketStatus } from "@prisma/client"
 import { getBus } from "@/lib/realtime/bus"
 import { sendEmail, buildTicketLink } from "@/lib/notifications/email"
+import sanitizeHtml from "sanitize-html"
 
 const TicketCreateSchema = z.object({
   title: z.string().min(3),
@@ -45,10 +46,19 @@ export async function createTicket(formData: FormData) {
   }
 
   const data = parsed.data
+  const safeDescription = sanitizeHtml(data.description, {
+    allowedTags: sanitizeHtml.defaults.allowedTags,
+    allowedAttributes: {
+      a: ["href", "name", "target", "rel"],
+      img: ["src", "alt", "title"],
+      "*": ["style"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
+  })
   const ticket = await prisma.ticket.create({
     data: {
       title: data.title,
-      description: data.description,
+      description: safeDescription,
       priority: data.priority as TicketPriority,
       assignedToId: data.assignedToId || null,
       deadlineForecast: data.deadlineForecast || null,
@@ -401,7 +411,19 @@ export async function updateTicket(ticketId: string, formData: FormData) {
     where: { id: ticketId },
     data: {
       ...(data.title ? { title: data.title } : {}),
-      ...(data.description ? { description: data.description } : {}),
+      ...(data.description
+        ? {
+            description: sanitizeHtml(data.description, {
+              allowedTags: sanitizeHtml.defaults.allowedTags,
+              allowedAttributes: {
+                a: ["href", "name", "target", "rel"],
+                img: ["src", "alt", "title"],
+                "*": ["style"],
+              },
+              allowedSchemes: ["http", "https", "mailto"],
+            }),
+          }
+        : {}),
       ...((isAdmin || isTech) && data.priority ? { priority: data.priority as TicketPriority } : {}),
       ...(data.hasOwnProperty("assignedToId") ? { assignedToId: data.assignedToId || null } : {}),
       ...(data.hasOwnProperty("deadlineForecast") ? { deadlineForecast: data.deadlineForecast || null } : {}),
