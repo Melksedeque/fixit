@@ -60,7 +60,7 @@ export default async function TicketDetailPage({
   const skip = (mp - 1) * take
   const [messages, totalMessages, histories, attachments] = await Promise.all([
     prisma.message.findMany({
-      where: { ticketId: id },
+      where: { ticketId: id, type: "TEXT" },
       orderBy: { createdAt: "desc" },
       skip,
       take,
@@ -73,7 +73,7 @@ export default async function TicketDetailPage({
         user: { select: { name: true } }
       }
     }),
-    prisma.message.count({ where: { ticketId: id } }),
+    prisma.message.count({ where: { ticketId: id, type: "TEXT" } }),
     prisma.ticketHistory.findMany({
       where: { ticketId: id },
       orderBy: { createdAt: "desc" },
@@ -153,20 +153,22 @@ export default async function TicketDetailPage({
                       aria-label="Título"
                       className="rounded-md border border-border bg-background px-3 py-2 text-sm"
                     />
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-muted-foreground">Prioridade</div>
-                      <select
-                        name="priority"
-                        defaultValue={String(ticket.priority)}
-                        aria-label="Prioridade"
-                        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-                      >
-                        <option value="LOW">Baixa</option>
-                        <option value="MEDIUM">Média</option>
-                        <option value="HIGH">Alta</option>
-                        <option value="CRITICAL">Crítica</option>
-                      </select>
-                    </div>
+                    {isTechOrAdmin && (
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium text-muted-foreground">Prioridade</div>
+                        <select
+                          name="priority"
+                          defaultValue={String(ticket.priority)}
+                          aria-label="Prioridade"
+                          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                        >
+                          <option value="LOW">Baixa</option>
+                          <option value="MEDIUM">Média</option>
+                          <option value="HIGH">Alta</option>
+                          <option value="CRITICAL">Crítica</option>
+                        </select>
+                      </div>
+                    )}
                     <RichTextEditor
                       name="description"
                       label="Descrição"
@@ -180,39 +182,89 @@ export default async function TicketDetailPage({
                 </DialogContent>
               </Dialog>
             )}
-            <form action={updateStatus.bind(null, ticket.id)} className="max-w-xs">
-              <select
-                name="status"
-                defaultValue={String(ticket.status)}
-                aria-label="Status"
-                className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-              >
-                <option value="OPEN">Aberto</option>
-                <option value="IN_PROGRESS">Em Andamento</option>
-                <option value="WAITING">Aguardando</option>
-                <option value="DONE">Concluído</option>
-                <option value="CANCELLED">Cancelado</option>
-              </select>
-              <Button type="submit" variant="soft-edit" className="mt-2">Atualizar Status</Button>
-            </form>
+            {isTechOrAdmin && (
+              <form action={updateStatus.bind(null, ticket.id)} className="max-w-xs">
+                <select
+                  name="status"
+                  defaultValue={String(ticket.status)}
+                  aria-label="Status"
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                >
+                  <option value="OPEN">Aberto</option>
+                  <option value="IN_PROGRESS">Em Andamento</option>
+                  <option value="WAITING">Aguardando</option>
+                  <option value="DONE">Concluído</option>
+                  <option value="CANCELLED">Cancelado</option>
+                </select>
+                <Button type="submit" variant="soft-edit" className="mt-2">Atualizar Status</Button>
+              </form>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Anexos</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Anexos</CardTitle>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button type="button" variant="outline" size="sm">Upload de Anexos</Button>
+                </DialogTrigger>
+                <DialogContent className="bg-primary-foreground sm:max-w-[640px] max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Enviar Anexos</DialogTitle>
+                  </DialogHeader>
+                  <form action={addAttachments.bind(null, ticket.id)} className="space-y-3">
+                    <TicketAttachmentsArea name="commentAttachments" />
+                    <div className="flex justify-end">
+                      <Button type="submit" variant="soft-success">Salvar Anexos</Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
           <CardContent>
             {attachments.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                {attachments.map((a) => (
-                  <div key={a.id} className="relative h-24 w-full overflow-hidden rounded-md border border-border bg-muted">
-                    {a.fileUrl ? (
-                      <Image src={a.fileUrl} alt={a.content || "Anexo"} fill className="object-cover" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Sem imagem</div>
-                    )}
-                  </div>
-                ))}
+              <div className="space-y-2">
+                {attachments.map((a) => {
+                  const url = a.fileUrl || a.content || ""
+                  const name = (() => {
+                    try {
+                      const u = new URL(url)
+                      const parts = u.pathname.split("/")
+                      return decodeURIComponent(parts[parts.length - 1] || "arquivo")
+                    } catch {
+                      const parts = url.split("/")
+                      return decodeURIComponent(parts[parts.length - 1] || "arquivo")
+                    }
+                  })()
+                  const dateStr = new Date(a.createdAt).toLocaleString()
+                  return (
+                    <div key={a.id} className="flex items-center justify-between gap-3 rounded-md border border-border bg-(--card-surface) p-2">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-12 w-12 overflow-hidden rounded-md border border-border bg-muted">
+                          {a.fileUrl ? (
+                            <Image src={a.fileUrl} alt={name} fill className="object-cover" />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">Sem imagem</div>
+                          )}
+                        </div>
+                        <div className="text-sm">
+                          <div className="font-medium">{name}</div>
+                          <div className="text-xs text-muted-foreground">Tamanho: — • {dateStr}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <a href={url} target="_blank" rel="noopener">Visualizar</a>
+                        </Button>
+                        <Button asChild variant="soft-success" size="sm">
+                          <a href={url} download>Baixar</a>
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               <div className="flex h-[120px] items-center justify-center text-muted-foreground">
@@ -232,33 +284,14 @@ export default async function TicketDetailPage({
             action={addComment.bind(null, ticket.id)}
             className="space-y-3"
           >
-            <textarea
+            <RichTextEditor
               name="message"
+              label="Comentário"
               placeholder="Escreva um comentário..."
-              aria-label="Comentário"
-              required
-              className="min-h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              defaultValue=""
             />
-            <div className="flex items-center justify-end gap-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button type="button" variant="outline">Upload de Anexos</Button>
-                </DialogTrigger>
-                <DialogContent className="bg-primary-foreground sm:max-w-[640px] max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Enviar Anexos</DialogTitle>
-                  </DialogHeader>
-                  <form action={addAttachments.bind(null, ticket.id)} className="space-y-3">
-                    <TicketAttachmentsArea name="commentAttachments" />
-                    <div className="flex justify-end">
-                      <Button type="submit" variant="soft-success">Salvar Anexos</Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-              <Button type="submit" variant="soft-success">
-                Adicionar Comentário
-              </Button>
+            <div className="flex items-center justify-end">
+              <Button type="submit" variant="soft-success">Adicionar Comentário</Button>
             </div>
           </form>
           <div className="mt-6 space-y-3">
@@ -267,33 +300,7 @@ export default async function TicketDetailPage({
                 <div className="text-xs text-muted-foreground">
                   {m.user?.name} • {new Date(m.createdAt).toLocaleString()}
                 </div>
-                {m.type === "IMAGE" && m.fileUrl ? (
-                  <div className="mt-2">
-                    <Image
-                      src={m.fileUrl}
-                      alt={m.content || "Imagem do chamado"}
-                      width={320}
-                      height={180}
-                      className="h-auto w-full max-w-sm rounded-md border border-border object-cover"
-                    />
-                  </div>
-                ) : m.type === "VIDEO" && m.fileUrl ? (
-                  <div className="mt-2">
-                    <video
-                      controls
-                      className="h-auto w-full max-w-sm rounded-md border border-border"
-                      src={m.fileUrl}
-                    />
-                  </div>
-                ) : m.type === "AUDIO" && m.fileUrl ? (
-                  <div className="mt-2">
-                    <audio controls className="w-full max-w-sm">
-                      <source src={m.fileUrl} />
-                    </audio>
-                  </div>
-                ) : (
-                  <div className="mt-2 text-foreground">{m.content}</div>
-                )}
+                <div className="mt-2 text-foreground" dangerouslySetInnerHTML={{ __html: m.content }} />
               </div>
             ))}
             {messages.length === 0 && (

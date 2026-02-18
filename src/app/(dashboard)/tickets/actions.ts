@@ -54,7 +54,7 @@ export async function createTicket(formData: FormData) {
       deadlineForecast: data.deadlineForecast || null,
       customerId: userId,
     },
-    select: { id: true },
+    select: { id: true, status: true },
   })
 
   const attachmentUrlsRaw = formData.getAll("attachmentUrls")
@@ -119,6 +119,19 @@ export async function createTicket(formData: FormData) {
       }
     } catch {}
   }
+
+  // Registra criação no histórico
+  try {
+    await prisma.ticketHistory.create({
+      data: {
+        ticketId: ticket.id,
+        actionType: "STATUS_CHANGE",
+        oldValue: null,
+        newValue: "OPEN",
+        userId,
+      },
+    })
+  } catch {}
 
   revalidatePath("/tickets")
   try {
@@ -389,13 +402,13 @@ export async function updateTicket(ticketId: string, formData: FormData) {
     data: {
       ...(data.title ? { title: data.title } : {}),
       ...(data.description ? { description: data.description } : {}),
-      ...(data.priority ? { priority: data.priority as TicketPriority } : {}),
+      ...((isAdmin || isTech) && data.priority ? { priority: data.priority as TicketPriority } : {}),
       ...(data.hasOwnProperty("assignedToId") ? { assignedToId: data.assignedToId || null } : {}),
       ...(data.hasOwnProperty("deadlineForecast") ? { deadlineForecast: data.deadlineForecast || null } : {}),
     },
   })
 
-  if (data.priority && data.priority !== prev.priority) {
+  if ((isAdmin || isTech) && data.priority && data.priority !== prev.priority) {
     await prisma.ticketHistory.create({
       data: {
         ticketId,

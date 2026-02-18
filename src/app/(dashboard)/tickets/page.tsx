@@ -52,6 +52,10 @@ export default async function TicketsPage({
   const take = 10
   const skip = (page - 1) * take
   const tab = params.tab === "metrics" ? "metrics" : "tickets"
+  const isAdmin = session.user.role === "ADMIN"
+  const isTech = session.user.role === "TECH"
+  const isUser = session.user.role === "USER"
+  const effectiveTab = isUser ? "tickets" : tab
 
   const where: Record<string, unknown> = {}
   if (params.status) where.status = params.status
@@ -62,9 +66,6 @@ export default async function TicketsPage({
       { description: { contains: params.q, mode: "insensitive" } },
     ]
   }
-  const isAdmin = session.user.role === "ADMIN"
-  const isTech = session.user.role === "TECH"
-  const isUser = session.user.role === "USER"
   const assignedPref = params.assignedTo ?? (isAdmin ? "any" : "me")
   if (isUser) {
     where.customerId = session.user.id
@@ -102,7 +103,7 @@ export default async function TicketsPage({
   ])
 
   const pageCount = Math.max(1, Math.ceil(totalCount / take))
-  const view = params.view === "kanban" ? "kanban" : "list"
+  const view = isUser ? "list" : (params.view === "kanban" ? "kanban" : "list")
   const created = params["created"] === "1"
   let metrics: {
     avgResMin: number
@@ -115,7 +116,7 @@ export default async function TicketsPage({
     countBy: (s: string) => number
   } | null = null
 
-  if (!isUser && tab === "metrics") {
+  if (!isUser && effectiveTab === "metrics") {
     const [stats, avgResolution, avgByTech, slaAvg] = await Promise.all([
       prisma.ticket.groupBy({ by: ["status"], where, _count: { status: true } }),
       prisma.ticket.aggregate({
@@ -187,10 +188,12 @@ export default async function TicketsPage({
         </div>
         {/* Abas: Chamados / Métricas */}
         <SegmentedTabs
-          value={tab}
+          value={effectiveTab}
           items={[
             { label: "Chamados", value: "tickets", href: `/tickets?${new URLSearchParams({ ...params, tab: "tickets" } as Record<string, string>).toString()}` },
-            { label: "Métricas", value: "metrics", href: `/tickets?${new URLSearchParams({ ...params, tab: "metrics" } as Record<string, string>).toString()}`, disabled: isUser },
+            ...(isUser
+              ? []
+              : [{ label: "Métricas", value: "metrics", href: `/tickets?${new URLSearchParams({ ...params, tab: "metrics" } as Record<string, string>).toString()}` }]),
           ]}
         />
         <Dialog>
@@ -260,7 +263,7 @@ export default async function TicketsPage({
         </Dialog>
       </div>
 
-      {tab === "metrics" && !isUser ? (
+      {effectiveTab === "metrics" && !isUser ? (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm font-medium">Gráfico por Status ({metrics?.period === "last30" ? "Últimos 30 dias" : "Total"})</CardTitle>
@@ -303,7 +306,7 @@ export default async function TicketsPage({
         </CardContent>
       </Card>
       ) : null}
-      {tab === "metrics" && !isUser ? (
+      {effectiveTab === "metrics" && !isUser ? (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-2">
@@ -376,7 +379,7 @@ export default async function TicketsPage({
       </Card>
       ) : null}
 
-      {tab === "metrics" && !isUser ? (
+      {effectiveTab === "metrics" && !isUser ? (
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -429,7 +432,7 @@ export default async function TicketsPage({
       </div>
       ) : null}
 
-      {tab === "metrics" && !isUser ? (
+      {effectiveTab === "metrics" && !isUser ? (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -463,7 +466,7 @@ export default async function TicketsPage({
       </div>
       ) : null}
 
-      {tab === "metrics" && !isUser ? (
+      {effectiveTab === "metrics" && !isUser ? (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -485,23 +488,25 @@ export default async function TicketsPage({
         </Card>
       </div>
       ) : null}
-      {tab === "tickets" ? (
+      {effectiveTab === "tickets" ? (
       <div className="flex items-center justify-between mt-4">
         <h2 className="text-sm font-medium text-muted-foreground">Visualização</h2>
-        <SegmentedTabs
-          value={view}
-          items={[
-            { label: "Lista", value: "list", href: `/tickets?${new URLSearchParams({ ...params, view: "list", tab: "tickets" } as Record<string, string>).toString()}` },
-            { label: "Kanban", value: "kanban", href: `/tickets?${new URLSearchParams({ ...params, view: "kanban", tab: "tickets" } as Record<string, string>).toString()}` },
-          ]}
-        />
+        {isUser ? null : (
+          <SegmentedTabs
+            value={view}
+            items={[
+              { label: "Lista", value: "list", href: `/tickets?${new URLSearchParams({ ...params, view: "list", tab: "tickets" } as Record<string, string>).toString()}` },
+              { label: "Kanban", value: "kanban", href: `/tickets?${new URLSearchParams({ ...params, view: "kanban", tab: "tickets" } as Record<string, string>).toString()}` },
+            ]}
+          />
+        )}
       </div>
       ) : null}
 
-      {tab === "tickets" && view === "list" ? (
+      {effectiveTab === "tickets" && view === "list" ? (
         <TicketList tickets={tickets} page={page} pageCount={pageCount} params={params} />
       ) : null}
-      {tab === "tickets" && view === "kanban" ? (
+      {effectiveTab === "tickets" && view === "kanban" ? (
         <TicketKanban
           tickets={tickets}
           currentUserRole={session.user.role}
