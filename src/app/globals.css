@@ -192,8 +192,17 @@ body {
 }
 
 .ql-editor.ql-blank::before {
-  color: var(--muted-foreground);
+  color: #cbd5f5;
   opacity: 1;
+}
+
+.ql-container.ql-bubble {
+  min-height: 8rem;
+}
+
+.ql-editor {
+  min-height: 8rem;
+  cursor: text;
 }
 
 .ql-tooltip {

@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
+import { getPriorityVariant, getStatusLabel, getStatusVariant } from "@/components/tickets/utils"
+import { Download, Eye, Pencil } from "lucide-react"
 
 export default async function TicketDetailPage({
   params,
@@ -55,25 +57,19 @@ export default async function TicketDetailPage({
   const isTechOrAdmin = isAdmin || isTech
   const canEditTicket = isAdmin || isOwner || (isTech && isAssignedTech)
 
-  const mp = Number(searchParams?.mp || "1")
-  const take = 10
-  const skip = (mp - 1) * take
-  const [messages, totalMessages, histories, attachments] = await Promise.all([
+  const [messages, histories, attachments] = await Promise.all([
     prisma.message.findMany({
       where: { ticketId: id, type: "TEXT" },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take,
+      orderBy: { createdAt: "asc" },
       select: {
         id: true,
         content: true,
         type: true,
         fileUrl: true,
         createdAt: true,
-        user: { select: { name: true } }
-      }
+        user: { select: { name: true } },
+      },
     }),
-    prisma.message.count({ where: { ticketId: id, type: "TEXT" } }),
     prisma.ticketHistory.findMany({
       where: { ticketId: id },
       orderBy: { createdAt: "desc" },
@@ -87,57 +83,31 @@ export default async function TicketDetailPage({
       },
     }),
     prisma.message.findMany({
-      where: { ticketId: id, type: "IMAGE" },
+      where: { ticketId: id, type: { in: ["IMAGE", "VIDEO"] } },
       orderBy: { createdAt: "desc" },
       take: 12,
-      select: { id: true, fileUrl: true, content: true, createdAt: true },
+      select: { id: true, fileUrl: true, content: true, createdAt: true, type: true },
     }),
   ])
-  const msgPageCount = Math.max(1, Math.ceil(totalMessages / take))
 
   return (
     <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">{ticket.title}</h1>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary">{ticket.priority}</Badge>
-            <Badge variant="outline">{ticket.status}</Badge>
-            {isAdmin && (
-              <form action={async () => { await deleteTicket(ticket.id) }} >
-                <Button type="submit" variant="soft-destructive">Excluir</Button>
-              </form>
-            )}
-          </div>
-        </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-muted-foreground">Cliente: <span className="text-foreground">{ticket.customer?.name}</span></div>
-            <div className="flex items-center justify-between gap-4">
-              <div className="text-muted-foreground">
-                Responsável: <span className="text-foreground">{ticket.assignedTo?.name || "-"}</span>
-              </div>
-              {isTechOrAdmin && !ticket.assignedTo && (
-                <form action={assignTicketToMe.bind(null, ticket.id)}>
-                  <Button type="submit" variant="soft-success" size="sm">
-                    Assumir Chamado
-                  </Button>
-                </form>
-              )}
-            </div>
-            <div className="text-muted-foreground">Status atual:
-              <Badge variant="secondary" className="ml-2">{ticket.status}</Badge>
-            </div>
-            <div className="text-muted-foreground">Descrição:</div>
-            <div className="prose prose-invert rounded-md border border-border bg-(--card-surface) p-3" dangerouslySetInnerHTML={{ __html: ticket.description || "" }} />
+            <Badge variant={getPriorityVariant(String(ticket.priority))}>
+              {String(ticket.priority)}
+            </Badge>
+            <Badge variant={getStatusVariant(String(ticket.status))}>
+              {getStatusLabel(String(ticket.status))}
+            </Badge>
             {canEditTicket && (
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="soft-edit" size="sm">Editar Chamado</Button>
+                  <Button variant="soft-edit" size="sm">
+                    <Pencil className="h-4 w-4" />
+                    Editar
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-primary-foreground sm:max-w-[640px] max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
@@ -182,6 +152,47 @@ export default async function TicketDetailPage({
                 </DialogContent>
               </Dialog>
             )}
+            {isAdmin && (
+              <form action={async () => { await deleteTicket(ticket.id) }} >
+                <Button type="submit" variant="soft-destructive" size="sm">Excluir</Button>
+              </form>
+            )}
+          </div>
+        </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="text-muted-foreground">Cliente: <span className="text-foreground">{ticket.customer?.name}</span></div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="text-muted-foreground">
+                Responsável: <span className="text-foreground">{ticket.assignedTo?.name || "-"}</span>
+              </div>
+              {isTechOrAdmin && !ticket.assignedTo && (
+                <form action={assignTicketToMe.bind(null, ticket.id)}>
+                  <Button type="submit" variant="soft-success" size="sm">
+                    Assumir Chamado
+                  </Button>
+                </form>
+              )}
+            </div>
+            <div className="text-muted-foreground">
+              Status atual:
+              <Badge variant={getStatusVariant(String(ticket.status))} className="ml-2">
+                {getStatusLabel(String(ticket.status))}
+              </Badge>
+            </div>
+            <div className="text-muted-foreground">
+              Prioridade:
+              <Badge variant={getPriorityVariant(String(ticket.priority))} className="ml-2">
+                {String(ticket.priority)}
+              </Badge>
+            </div>
+            <div className="text-muted-foreground">Descrição:</div>
+            <div className="prose prose-invert rounded-md border border-border bg-(--card-surface) p-3" dangerouslySetInnerHTML={{ __html: ticket.description || "" }} />
             {isTechOrAdmin && (
               <form action={updateStatus.bind(null, ticket.id)} className="max-w-xs">
                 <select
@@ -228,7 +239,7 @@ export default async function TicketDetailPage({
               <div className="space-y-2">
                 {attachments.map((a) => {
                   const url = a.fileUrl || a.content || ""
-                  const name = (() => {
+                  const nameFull = (() => {
                     try {
                       const u = new URL(url)
                       const parts = u.pathname.split("/")
@@ -238,31 +249,61 @@ export default async function TicketDetailPage({
                       return decodeURIComponent(parts[parts.length - 1] || "arquivo")
                     }
                   })()
+                  const name =
+                    nameFull.length > 120 ? `${nameFull.slice(0, 120)}...` : nameFull
                   const dateStr = new Date(a.createdAt).toLocaleString()
                   return (
-                    <div key={a.id} className="flex items-center justify-between gap-3 rounded-md border border-border bg-(--card-surface) p-2">
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-12 overflow-hidden rounded-md border border-border bg-muted">
-                          {a.fileUrl ? (
-                            <Image src={a.fileUrl} alt={name} fill className="object-cover" />
-                          ) : (
-                            <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">Sem imagem</div>
-                          )}
-                        </div>
-                        <div className="text-sm">
-                          <div className="font-medium">{name}</div>
-                          <div className="text-xs text-muted-foreground">Tamanho: — • {dateStr}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button asChild variant="outline" size="sm">
-                          <a href={url} target="_blank" rel="noopener">Visualizar</a>
-                        </Button>
-                        <Button asChild variant="soft-success" size="sm">
-                          <a href={url} download>Baixar</a>
-                        </Button>
-                      </div>
-                    </div>
+                    <Dialog key={a.id}>
+                      <DialogTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-(--card-surface) p-2 text-left hover:bg-muted/60 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="relative h-14 w-14 overflow-hidden rounded-md border border-border bg-muted">
+                              {a.fileUrl ? (
+                                <Image src={a.fileUrl} alt={name} fill className="object-contain" />
+                              ) : (
+                                <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">Sem imagem</div>
+                              )}
+                            </div>
+                            <div className="text-sm">
+                              <div className="font-medium break-all">{name}</div>
+                              <div className="text-xs text-muted-foreground">Tamanho: — • {dateStr}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button asChild variant="outline" size="icon">
+                              <a href={url} target="_blank" rel="noopener" aria-label="Visualizar anexo">
+                                <Eye className="h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button asChild variant="soft-success" size="icon">
+                              <a href={url} download aria-label="Baixar anexo">
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-primary-foreground max-w-3xl">
+                        {a.type === "VIDEO" ? (
+                          <video
+                            controls
+                            className="w-full rounded-md border border-border bg-black"
+                            src={url}
+                          />
+                        ) : (
+                          <Image
+                            src={url}
+                            alt={name}
+                            width={1024}
+                            height={768}
+                            className="h-auto w-full rounded-md border border-border object-contain bg-black"
+                          />
+                        )}
+                      </DialogContent>
+                    </Dialog>
                   )
                 })}
               </div>
@@ -279,7 +320,7 @@ export default async function TicketDetailPage({
         <CardHeader>
           <CardTitle>Comentários</CardTitle>
         </CardHeader>
-        <CardContent>
+          <CardContent>
           <form
             action={addComment.bind(null, ticket.id)}
             className="space-y-3"
@@ -306,27 +347,6 @@ export default async function TicketDetailPage({
             {messages.length === 0 && (
               <div className="text-sm text-muted-foreground">Nenhum comentário ainda.</div>
             )}
-          </div>
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">
-              Página {mp} de {msgPageCount}
-            </div>
-            <div className="flex gap-2">
-              <Button asChild variant="outline" disabled={mp <= 1} aria-label="Página anterior">
-                <Link
-                  href={`/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp - 1) }).toString()}`}
-                >
-                  Anterior
-                </Link>
-              </Button>
-              <Button asChild variant="outline" disabled={mp >= msgPageCount} aria-label="Próxima página">
-                <Link
-                  href={`/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp + 1) }).toString()}`}
-                >
-                  Próxima
-                </Link>
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
