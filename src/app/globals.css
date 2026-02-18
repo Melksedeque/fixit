@@ -209,6 +209,7 @@ body {
   background-color: var(--card);
   border-color: var(--border);
   color: var(--foreground);
+  z-index: 70;
 }
 
 .ql-tooltip input {
