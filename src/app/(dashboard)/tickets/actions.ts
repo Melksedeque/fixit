@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { TicketPriority, TicketStatus } from "@prisma/client"
+import { Role, TicketPriority, TicketStatus } from "@prisma/client"
 
 const TicketCreateSchema = z.object({
   title: z.string().min(3),
@@ -14,6 +14,13 @@ const TicketCreateSchema = z.object({
   assignedToId: z.string().optional().nullable(),
   deadlineForecast: z.coerce.date().optional().nullable(),
 })
+
+function requireRole(role: string | undefined | null, allowed: Role[]) {
+  if (!role) throw new Error("Unauthorized: missing role")
+  if (!allowed.includes(role as Role)) {
+    throw new Error("Forbidden: insufficient permissions")
+  }
+}
 
 export async function createTicket(formData: FormData) {
   const session = await auth()
@@ -80,6 +87,20 @@ export async function addComment(ticketId: string, formData: FormData) {
   const userId = session.user.id
   if (!userId) throw new Error("Unauthorized: missing user id")
 
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { customerId: true, assignedToId: true },
+  })
+  if (!ticket) throw new Error("Ticket not found")
+  const isAdmin = session.user.role === "ADMIN"
+  const isTech = session.user.role === "TECH"
+  const isOwner = ticket.customerId === userId
+  const isAssignedTech = ticket.assignedToId === userId
+
+  if (!isAdmin && !isTech && !isOwner && !isAssignedTech) {
+    throw new Error("Forbidden: cannot comment on this ticket")
+  }
+
   const parsed = TicketCommentSchema.safeParse({
     message: formData.get("message"),
   })
@@ -115,6 +136,7 @@ const allowedTransitions: Record<TicketStatus, TicketStatus[]> = {
 export async function updateStatus(ticketId: string, formData: FormData) {
   const session = await auth()
   if (!session?.user) throw new Error("Unauthorized")
+  requireRole(session.user.role, ["ADMIN", "TECH"])
 
   const parsed = TicketStatusSchema.safeParse({
     status: formData.get("status"),
@@ -127,9 +149,15 @@ export async function updateStatus(ticketId: string, formData: FormData) {
   const now = new Date()
   const existing = await prisma.ticket.findUnique({
     where: { id: ticketId },
-    select: { status: true, createdAt: true, deliveryDate: true },
+    select: { status: true, createdAt: true, deliveryDate: true, assignedToId: true },
   })
   if (!existing) throw new Error("Ticket not found")
+
+  const isAdmin = session.user.role === "ADMIN"
+  const isAssignedTech = existing.assignedToId === session.user.id
+  if (!isAdmin && !isAssignedTech) {
+    throw new Error("Forbidden: cannot change status for this ticket")
+  }
 
   const currentStatus = existing.status as TicketStatus
   const allowedNext = allowedTransitions[currentStatus] || []
@@ -167,6 +195,7 @@ export async function updateStatus(ticketId: string, formData: FormData) {
 export async function deleteTicket(ticketId: string) {
   const session = await auth()
   if (!session?.user) throw new Error("Unauthorized")
+  requireRole(session.user.role, ["ADMIN"])
 
   await prisma.ticket.delete({ where: { id: ticketId } })
   revalidatePath("/tickets")
@@ -184,6 +213,9 @@ export async function updateTicket(ticketId: string, formData: FormData) {
   const session = await auth()
   if (!session?.user) throw new Error("Unauthorized")
 
+  const userId = session.user.id
+  if (!userId) throw new Error("Unauthorized: missing user id")
+
   const parsed = TicketUpdateSchema.safeParse({
     title: formData.get("title") || undefined,
     description: formData.get("description") || undefined,
@@ -199,47 +231,56 @@ export async function updateTicket(ticketId: string, formData: FormData) {
     throw new Error(parsed.error.issues.map(i => i.message).join(", "))
   }
 
-const data = parsed.data
-const prev = await prisma.ticket.findUnique({
-  where: { id: ticketId },
-  select: { priority: true, assignedToId: true }
-})
-if (!prev) throw new Error("Ticket not found")
-
-await prisma.ticket.update({
-  where: { id: ticketId },
-  data: {
-    ...(data.title ? { title: data.title } : {}),
-    ...(data.description ? { description: data.description } : {}),
-    ...(data.priority ? { priority: data.priority as TicketPriority } : {}),
-    ...(data.hasOwnProperty("assignedToId") ? { assignedToId: data.assignedToId || null } : {}),
-    ...(data.hasOwnProperty("deadlineForecast") ? { deadlineForecast: data.deadlineForecast || null } : {}),
-  },
-})
-
-if (data.priority && data.priority !== prev.priority) {
-  await prisma.ticketHistory.create({
-    data: {
-      ticketId,
-      actionType: "PRIORITY_CHANGE",
-      oldValue: prev.priority,
-      newValue: data.priority,
-      userId: session.user.id!,
-    }
+  const data = parsed.data
+  const prev = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { priority: true, assignedToId: true, customerId: true },
   })
-}
+  if (!prev) throw new Error("Ticket not found")
 
-if (data.hasOwnProperty("assignedToId") && data.assignedToId !== prev.assignedToId) {
-  await prisma.ticketHistory.create({
+  const isAdmin = session.user.role === "ADMIN"
+  const isTech = session.user.role === "TECH"
+  const isOwner = prev.customerId === userId
+  const isAssignedTech = prev.assignedToId === userId
+
+  if (!isAdmin && !isOwner && !(isTech && isAssignedTech)) {
+    throw new Error("Forbidden: cannot edit this ticket")
+  }
+
+  await prisma.ticket.update({
+    where: { id: ticketId },
     data: {
-      ticketId,
-      actionType: "ASSIGNMENT",
-      oldValue: prev.assignedToId ?? null,
-      newValue: data.assignedToId ?? null,
-      userId: session.user.id!,
-    }
+      ...(data.title ? { title: data.title } : {}),
+      ...(data.description ? { description: data.description } : {}),
+      ...(data.priority ? { priority: data.priority as TicketPriority } : {}),
+      ...(data.hasOwnProperty("assignedToId") ? { assignedToId: data.assignedToId || null } : {}),
+      ...(data.hasOwnProperty("deadlineForecast") ? { deadlineForecast: data.deadlineForecast || null } : {}),
+    },
   })
-}
+
+  if (data.priority && data.priority !== prev.priority) {
+    await prisma.ticketHistory.create({
+      data: {
+        ticketId,
+        actionType: "PRIORITY_CHANGE",
+        oldValue: prev.priority,
+        newValue: data.priority,
+        userId: session.user.id!,
+      },
+    })
+  }
+
+  if (data.hasOwnProperty("assignedToId") && data.assignedToId !== prev.assignedToId) {
+    await prisma.ticketHistory.create({
+      data: {
+        ticketId,
+        actionType: "ASSIGNMENT",
+        oldValue: prev.assignedToId ?? null,
+        newValue: data.assignedToId ?? null,
+        userId: session.user.id!,
+      },
+    })
+  }
 
   revalidatePath("/tickets")
   revalidatePath(`/tickets/${ticketId}`)
@@ -248,6 +289,7 @@ if (data.hasOwnProperty("assignedToId") && data.assignedToId !== prev.assignedTo
 export async function assignTicketToMe(ticketId: string) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
+  requireRole(session.user.role, ["ADMIN", "TECH"])
 
   const userId = session.user.id
 

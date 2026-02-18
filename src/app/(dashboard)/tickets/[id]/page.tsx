@@ -30,7 +30,7 @@ export default async function TicketDetailPage({
       priority: true,
       customerId: true,
       customer: { select: { name: true } },
-      assignedTo: { select: { name: true } },
+      assignedTo: { select: { id: true, name: true } },
       createdAt: true,
       updatedAt: true,
     },
@@ -40,8 +40,12 @@ export default async function TicketDetailPage({
     redirect("/tickets")
   }
 
-  const isTechOrAdmin = session.user.role === "ADMIN" || session.user.role === "TECH"
-  const canEditTicket = isTechOrAdmin || ticket.customerId === session.user.id
+  const isAdmin = session.user.role === "ADMIN"
+  const isTech = session.user.role === "TECH"
+  const isOwner = ticket.customerId === session.user.id
+  const isAssignedTech = ticket.assignedTo?.id === session.user.id
+  const isTechOrAdmin = isAdmin || isTech
+  const canEditTicket = isAdmin || isOwner || (isTech && isAssignedTech)
 
   const mp = Number(searchParams?.mp || "1")
   const take = 10
@@ -79,15 +83,17 @@ export default async function TicketDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">{ticket.title}</h1>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">{ticket.priority}</Badge>
-          <form action={async () => { await deleteTicket(ticket.id) }} >
-            <Button type="submit" variant="soft-destructive">Excluir</Button>
-          </form>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">{ticket.title}</h1>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{ticket.priority}</Badge>
+            {isAdmin && (
+              <form action={async () => { await deleteTicket(ticket.id) }} >
+                <Button type="submit" variant="soft-destructive">Excluir</Button>
+              </form>
+            )}
+          </div>
         </div>
-      </div>
 
       <Card>
         <CardHeader>
