@@ -67,12 +67,12 @@
 - [x] Botão “Assumir Chamado” (técnicos/admins)
 
 ## Melhorias de UX
-- [ ] Campo de Descrição na página de detalhes do chamado precisa interpretar o HTML e renderizar corretamente as tags;
-- [ ] Opção de editar titulo e descrição apenas no formulário de edição do chamado (modal/dialog) e não na página de detalhes;
-- [ ] Arquivos anexos devem estar em um card alinhado à direita do card de Informações;
-- [ ] Badge de Status ao lado da badge de Prioridade que está no topo da página;
-- [ ] Seção de Comentários deve ter um botão para fazer upload de arquivos (imagens/videos/audio). Este botão pode abrir um modal/dialog para upload com dropzone;
-- [ ] O campo de texto do comentário deve ocupar todo o espaço disponível, semelhante ao campo de descrição;
-- [ ] O botão de enviar comentário deve estar alinhado à direita do campo de texto;
-- [ ] A seção de Histórico deve ser a última da página;
-- [ ] Remover opção de data de previsão da criação de chamados por parte do usuário, quem define a previsão é o técnico responsável.
+- [x] Campo de Descrição na página de detalhes do chamado precisa interpretar o HTML e renderizar corretamente as tags;
+- [x] Opção de editar titulo e descrição apenas no formulário de edição do chamado (modal/dialog) e não na página de detalhes;
+- [x] Arquivos anexos devem estar em um card alinhado à direita do card de Informações;
+- [x] Badge de Status ao lado da badge de Prioridade que está no topo da página;
+- [x] Seção de Comentários deve ter um botão para fazer upload de arquivos (imagens/videos/audio). Este botão pode abrir um modal/dialog para upload com dropzone;
+- [x] O campo de texto do comentário deve ocupar todo o espaço disponível, semelhante ao campo de descrição;
+- [x] O botão de enviar comentário deve estar alinhado à direita do campo de texto;
+- [x] A seção de Histórico deve ser a última da página;
+- [x] Remover opção de data de previsão da criação de chamados por parte do usuário, quem define a previsão é o técnico responsável.

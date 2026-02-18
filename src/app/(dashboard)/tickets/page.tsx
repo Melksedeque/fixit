@@ -247,13 +247,7 @@ export default async function TicketsPage({
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-xs font-medium text-muted-foreground">Previsão</div>
-                    <Input
-                      name="deadlineForecast"
-                      placeholder="dd/mm/aaaa"
-                      aria-label="Previsão"
-                      type="date"
-                    />
+                    {/* Campo de previsão removido: apenas técnicos definem previsões */}
                   </div>
                   <div className="flex gap-2 justify-end">
                     <TicketSubmitButton label="Criar Chamado" />

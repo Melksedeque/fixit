@@ -173,6 +173,52 @@ export async function addComment(ticketId: string, formData: FormData) {
   revalidatePath(`/tickets/${ticketId}`)
 }
 
+export async function addAttachments(ticketId: string, formData: FormData) {
+  const session = await auth()
+  if (!session?.user) throw new Error("Unauthorized")
+  const userId = session.user.id
+  if (!userId) throw new Error("Unauthorized: missing user id")
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { customerId: true, assignedToId: true },
+  })
+  if (!ticket) throw new Error("Ticket not found")
+  const isAdmin = session.user.role === "ADMIN"
+  const isTech = session.user.role === "TECH"
+  const isOwner = ticket.customerId === userId
+  const isAssignedTech = ticket.assignedToId === userId
+
+  if (!isAdmin && !isTech && !isOwner && !isAssignedTech) {
+    throw new Error("Forbidden: cannot add attachments to this ticket")
+  }
+
+  const attachmentUrlsRaw = formData.getAll("attachmentUrls")
+  const attachmentUrls = attachmentUrlsRaw
+    .map((value) => (typeof value === "string" ? value : String(value)))
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+
+  if (attachmentUrls.length === 0) {
+    return
+  }
+
+  await prisma.message.createMany({
+    data: attachmentUrls.map((url) => ({
+      content: url,
+      type: "IMAGE",
+      fileUrl: url,
+      ticketId,
+      userId,
+    })),
+  })
+
+  try {
+    getBus().emit("tickets:event", { type: "ticket:attachments", ticketId, count: attachmentUrls.length })
+  } catch {}
+  revalidatePath(`/tickets/${ticketId}`)
+}
+
 const TicketStatusSchema = z.object({
   status: z.enum(["OPEN", "IN_PROGRESS", "WAITING", "DONE", "CLOSED", "CANCELLED"]),
 })
