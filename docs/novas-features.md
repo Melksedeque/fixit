@@ -1,14 +1,14 @@
+## Tela de Login
+- [ ] Colocar "olho" para visualizar senha digitada
+
+---
+
 ## Sustentar sessão de usuário
 - [ ] Persistir sessão em cookies (segurança básica)
 - [ ] Invalidar sessão ao fazer logout
 - [ ] Expiração de sessão (ex.: 1h)
 - [ ] Rotas protegidas (server actions)
 - [ ] Acessibilidade (leitores de tela)
-
----
-
-## Tela de Login
-- [ ] Colocar "olho" para visualizar senha digitada
 
 ---
 
