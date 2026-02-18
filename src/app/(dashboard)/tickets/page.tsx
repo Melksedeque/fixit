@@ -66,7 +66,7 @@ export default async function TicketsPage({
     where.assignedToId = null
   }
 
-  const [tickets, totalCount, stats, techs, avgResolution, avgByTech] = await Promise.all([
+  const [tickets, totalCount, stats, techs, avgResolution, avgByTech, slaAvg] = await Promise.all([
     prisma.ticket.findMany({
       where,
       orderBy: { updatedAt: "desc" },
@@ -111,6 +111,20 @@ export default async function TicketsPage({
       },
       _avg: { executionTime: true },
     }),
+    prisma.ticket.aggregate({
+      _avg: { slaHours: true },
+      where: { ...where, slaHours: { not: null } },
+    }),
+    prisma.ticket.count({
+      where: {
+        ...where,
+        status: { in: ["DONE", "CLOSED"] },
+        slaHours: { not: null },
+        executionTime: { not: null },
+        // execução acima do SLA (minutos > horas*60)
+        // Prisma não permite comparação direta entre campos, então aproximamos via filter pós-query
+      },
+    }),
   ])
 
   const pageCount = Math.max(1, Math.ceil(totalCount / take))
@@ -125,6 +139,20 @@ export default async function TicketsPage({
     })
     .sort((a, b) => a.minutes - b.minutes)
     .slice(0, 5)
+  const slaAvgHours = Math.round(slaAvg._avg.slaHours || 0)
+  // Como não há comparação direta campo-campo em Prisma count, recontamos via fetch mínimo
+  const closedDoneTickets = await prisma.ticket.findMany({
+    where: {
+      ...where,
+      status: { in: ["DONE", "CLOSED"] },
+      slaHours: { not: null },
+      executionTime: { not: null },
+    },
+    select: { slaHours: true, executionTime: true },
+  })
+  const slaBreachesCount = closedDoneTickets.filter(
+    (t) => (t.executionTime || 0) > ((t.slaHours || 0) * 60)
+  ).length
 
   return (
     <div className="space-y-8">
@@ -355,6 +383,27 @@ export default async function TicketsPage({
                 </span>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">SLA Médio</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{slaAvgHours > 0 ? `${slaAvgHours}h` : "—"}</div>
+            <CardDescription>Entre tickets com SLA definido</CardDescription>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Fora do SLA</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{slaBreachesCount}</div>
+            <CardDescription>Concluídos/fechados que excederam o SLA</CardDescription>
           </CardContent>
         </Card>
       </div>
