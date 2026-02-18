@@ -21,6 +21,12 @@ export async function sendEmail(payload: EmailPayload) {
     return
   }
 
+  console.log("[email] sendEmail called", {
+    to: payload.to,
+    subject: payload.subject,
+    hasHtml: Boolean(payload.html),
+  })
+
   const resend = new Resend(apiKey)
   const usesUnverifiedDomain = from.includes("vercel.app")
   const safeFrom = usesUnverifiedDomain ? "Fixit <onboarding@resend.dev>" : from
@@ -33,6 +39,10 @@ export async function sendEmail(payload: EmailPayload) {
       text: payload.text,
       ...(payload.html ? { html: payload.html } : {}),
       ...(replyTo ? { reply_to: replyTo } : {}),
+    })
+    console.log("[email] sendEmail succeeded", {
+      to: payload.to,
+      subject: payload.subject,
     })
     if (usesUnverifiedDomain) {
       console.warn("[email] using onboarding@resend.dev as From (domain unverified)", {
