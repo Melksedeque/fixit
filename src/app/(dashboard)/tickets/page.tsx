@@ -24,6 +24,7 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { TicketSubmitButton } from "@/components/tickets/ticket-submit-button"
 import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
 import { TicketCreatedToast } from "@/components/tickets/ticket-created-toast"
+import { SegmentedTabs } from "@/components/ui/tabs"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
@@ -33,6 +34,7 @@ type SearchParams = {
   assignedTo?: "me" | "any" | "unassigned"
   view?: "list" | "kanban"
   created?: string
+  tab?: "tickets" | "metrics"
 }
 
 export default async function TicketsPage({
@@ -49,6 +51,7 @@ export default async function TicketsPage({
   const page = Number(params.page || "1")
   const take = 10
   const skip = (page - 1) * take
+  const tab = params.tab === "metrics" ? "metrics" : "tickets"
 
   const where: Record<string, unknown> = {}
   if (params.status) where.status = params.status
@@ -59,19 +62,22 @@ export default async function TicketsPage({
       { description: { contains: params.q, mode: "insensitive" } },
     ]
   }
-  const assignedPref = params.assignedTo ?? "me"
+  const isAdmin = session.user.role === "ADMIN"
+  const isTech = session.user.role === "TECH"
   const isUser = session.user.role === "USER"
+  const assignedPref = params.assignedTo ?? (isAdmin ? "any" : "me")
   if (isUser) {
     where.customerId = session.user.id
+  } else if (isTech) {
+    // Técnicos sempre visualizam apenas os próprios chamados
+    where.assignedToId = session.user.id
   } else {
-    if (assignedPref === "me") {
-      where.assignedToId = session.user.id
-    } else if (assignedPref === "unassigned") {
-      where.assignedToId = null
-    }
+    // Admin pode alternar o filtro
+    if (assignedPref === "me") where.assignedToId = session.user.id
+    if (assignedPref === "unassigned") where.assignedToId = null
   }
 
-  const [tickets, totalCount, stats, techs, avgResolution, avgByTech, slaAvg] = await Promise.all([
+  const [tickets, totalCount, techs] = await Promise.all([
     prisma.ticket.findMany({
       where,
       orderBy: { updatedAt: "desc" },
@@ -89,100 +95,87 @@ export default async function TicketsPage({
       },
     }),
     prisma.ticket.count({ where }),
-    prisma.ticket.groupBy({
-      by: ["status"],
-      where,
-      _count: { status: true },
-    }),
     prisma.user.findMany({
       where: { role: "TECH" },
       select: { id: true, name: true },
     }),
-    prisma.ticket.aggregate({
-      _avg: { executionTime: true },
-      where: {
-        ...where,
-        status: { in: ["DONE", "CLOSED"] },
-        executionTime: { not: null },
-      },
-    }),
-    prisma.ticket.groupBy({
-      by: ["assignedToId"],
-      where: {
-        ...where,
-        status: { in: ["DONE", "CLOSED"] },
-        executionTime: { not: null },
-        assignedToId: { not: null },
-      },
-      _avg: { executionTime: true },
-    }),
-    prisma.ticket.aggregate({
-      _avg: { slaHours: true },
-      where: { ...where, slaHours: { not: null } },
-    }),
-    prisma.ticket.count({
-      where: {
-        ...where,
-        status: { in: ["DONE", "CLOSED"] },
-        slaHours: { not: null },
-        executionTime: { not: null },
-        // execução acima do SLA (minutos > horas*60)
-        // Prisma não permite comparação direta entre campos, então aproximamos via filter pós-query
-      },
-    }),
   ])
 
   const pageCount = Math.max(1, Math.ceil(totalCount / take))
-  const countBy = (s: string) => stats.find((x) => x.status === s)?._count.status || 0
   const view = params.view === "kanban" ? "kanban" : "list"
   const created = params["created"] === "1"
-  const avgResMin = Math.round(avgResolution._avg.executionTime || 0)
-  const avgByTechDisplay = avgByTech
-    .map((row) => {
-      const tech = techs.find((t) => t.id === row.assignedToId)
-      return { name: tech?.name || "—", minutes: Math.round(row._avg.executionTime || 0) }
+  let metrics: {
+    avgResMin: number
+    avgByTechDisplay: { name: string; minutes: number }[]
+    slaAvgHours: number
+    slaBreachesCount: number
+    period: "all" | "last30"
+    countByPeriod: (s: string) => number
+    maxCountPeriod: number
+    countBy: (s: string) => number
+  } | null = null
+
+  if (!isUser && tab === "metrics") {
+    const [stats, avgResolution, avgByTech, slaAvg] = await Promise.all([
+      prisma.ticket.groupBy({ by: ["status"], where, _count: { status: true } }),
+      prisma.ticket.aggregate({
+        _avg: { executionTime: true },
+        where: { ...where, status: { in: ["DONE", "CLOSED"] }, executionTime: { not: null } },
+      }),
+      prisma.ticket.groupBy({
+        by: ["assignedToId"],
+        where: {
+          ...where,
+          status: { in: ["DONE", "CLOSED"] },
+          executionTime: { not: null },
+          assignedToId: { not: null },
+        },
+        _avg: { executionTime: true },
+      }),
+      prisma.ticket.aggregate({ _avg: { slaHours: true }, where: { ...where, slaHours: { not: null } } }),
+    ])
+    const closedDoneTickets = await prisma.ticket.findMany({
+      where: { ...where, status: { in: ["DONE", "CLOSED"] }, slaHours: { not: null }, executionTime: { not: null } },
+      select: { slaHours: true, executionTime: true },
     })
-    .sort((a, b) => a.minutes - b.minutes)
-    .slice(0, 5)
-  const slaAvgHours = Math.round(slaAvg._avg.slaHours || 0)
-  // Como não há comparação direta campo-campo em Prisma count, recontamos via fetch mínimo
-  const closedDoneTickets = await prisma.ticket.findMany({
-    where: {
-      ...where,
-      status: { in: ["DONE", "CLOSED"] },
-      slaHours: { not: null },
-      executionTime: { not: null },
-    },
-    select: { slaHours: true, executionTime: true },
-  })
-  const slaBreachesCount = closedDoneTickets.filter(
-    (t) => (t.executionTime || 0) > ((t.slaHours || 0) * 60)
-  ).length
-  const period = params.created === "last30" ? "last30" : "all"
-  const last30Date = new Date()
-  last30Date.setDate(last30Date.getDate() - 30)
-  const [statsLast30] = await Promise.all([
-    prisma.ticket.groupBy({
-      by: ["status"],
-      where: {
-        ...(period === "last30" ? { createdAt: { gte: last30Date } } : {}),
-      },
-      _count: { status: true },
-    }),
-  ])
-  const countByPeriod = (s: string) =>
-    (period === "last30"
-      ? statsLast30.find((x) => x.status === s)?._count.status
-      : stats.find((x) => x.status === s)?._count.status) || 0
-  const maxCountPeriod =
-    Math.max(
-      countByPeriod("OPEN"),
-      countByPeriod("WAITING"),
-      countByPeriod("IN_PROGRESS"),
-      countByPeriod("DONE"),
-      countByPeriod("CLOSED"),
-      countByPeriod("CANCELLED"),
-    ) || 1
+    const slaBreachesCount = closedDoneTickets.filter(
+      (t) => (t.executionTime || 0) > ((t.slaHours || 0) * 60),
+    ).length
+    const avgResMin = Math.round(avgResolution._avg.executionTime || 0)
+    const avgByTechDisplay = avgByTech
+      .map((row) => {
+        const tech = techs.find((t) => t.id === row.assignedToId)
+        return { name: tech?.name || "—", minutes: Math.round(row._avg.executionTime || 0) }
+      })
+      .sort((a, b) => a.minutes - b.minutes)
+      .slice(0, 5)
+    const slaAvgHours = Math.round(slaAvg._avg.slaHours || 0)
+    const period = params.created === "last30" ? "last30" : "all"
+    const last30Date = new Date()
+    last30Date.setDate(last30Date.getDate() - 30)
+    const [statsLast30] = await Promise.all([
+      prisma.ticket.groupBy({
+        by: ["status"],
+        where: { ...(period === "last30" ? { createdAt: { gte: last30Date } } : {}) },
+        _count: { status: true },
+      }),
+    ])
+    const countBy = (s: string) => stats.find((x) => x.status === s)?._count.status || 0
+    const countByPeriod = (s: string) =>
+      (period === "last30"
+        ? statsLast30.find((x) => x.status === s)?._count.status
+        : stats.find((x) => x.status === s)?._count.status) || 0
+    const maxCountPeriod =
+      Math.max(
+        countByPeriod("OPEN"),
+        countByPeriod("WAITING"),
+        countByPeriod("IN_PROGRESS"),
+        countByPeriod("DONE"),
+        countByPeriod("CLOSED"),
+        countByPeriod("CANCELLED"),
+      ) || 1
+    metrics = { avgResMin, avgByTechDisplay, slaAvgHours, slaBreachesCount, period, countByPeriod, maxCountPeriod, countBy }
+  }
 
   return (
     <div className="space-y-8">
@@ -192,6 +185,14 @@ export default async function TicketsPage({
           <h1 className="text-3xl font-bold tracking-tight">Chamados</h1>
           <Badge variant="secondary" aria-label={`Total de chamados: ${totalCount}`}>{totalCount}</Badge>
         </div>
+        {/* Abas: Chamados / Métricas */}
+        <SegmentedTabs
+          value={tab}
+          items={[
+            { label: "Chamados", value: "tickets", href: `/tickets?${new URLSearchParams({ ...params, tab: "tickets" } as Record<string, string>).toString()}` },
+            { label: "Métricas", value: "metrics", href: `/tickets?${new URLSearchParams({ ...params, tab: "metrics" } as Record<string, string>).toString()}`, disabled: isUser },
+          ]}
+        />
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="default">
@@ -259,14 +260,15 @@ export default async function TicketsPage({
         </Dialog>
       </div>
 
+      {tab === "metrics" && !isUser ? (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm font-medium">Gráfico por Status ({period === "last30" ? "Últimos 30 dias" : "Total"})</CardTitle>
+          <CardTitle className="text-sm font-medium">Gráfico por Status ({metrics?.period === "last30" ? "Últimos 30 dias" : "Total"})</CardTitle>
           <div className="inline-flex rounded-md border border-border bg-muted/40 p-1">
-            <Button asChild variant={period === "all" ? "default" : "ghost"} size="sm">
+            <Button asChild variant={(metrics?.period || "all") === "all" ? "default" : "ghost"} size="sm">
               <Link href={{ pathname: "/tickets", query: { ...params, created: undefined } }}>Total</Link>
             </Button>
-            <Button asChild variant={period === "last30" ? "default" : "ghost"} size="sm">
+            <Button asChild variant={(metrics?.period || "all") === "last30" ? "default" : "ghost"} size="sm">
               <Link href={{ pathname: "/tickets", query: { ...params, created: "last30" } }}>Últimos 30d</Link>
             </Button>
           </div>
@@ -280,8 +282,8 @@ export default async function TicketsPage({
             { label: "Fechados", key: "CLOSED" },
             { label: "Cancelados", key: "CANCELLED" },
           ].map((item) => {
-            const count = countByPeriod(item.key)
-            const pct = Math.round((count / maxCountPeriod) * 100)
+            const count = metrics?.countByPeriod(item.key) || 0
+            const pct = Math.round((count / (metrics?.maxCountPeriod || 1)) * 100)
             return (
               <div key={item.key} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
@@ -300,6 +302,8 @@ export default async function TicketsPage({
           })}
         </CardContent>
       </Card>
+      ) : null}
+      {tab === "metrics" && !isUser ? (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-2">
@@ -347,7 +351,7 @@ export default async function TicketsPage({
                 </SelectContent>
               </Select>
             </div>
-            {isUser ? null : (
+            {isAdmin ? (
               <div className="w-[200px] shrink-0">
                 <Select name="assignedTo" defaultValue={assignedPref}>
                   <SelectTrigger aria-label="Responsável" className="w-full">
@@ -360,7 +364,7 @@ export default async function TicketsPage({
                   </SelectContent>
                 </Select>
               </div>
-            )}
+            ) : null}
             <div className="flex items-center gap-2 shrink-0">
               <Button asChild variant="ghost">
                 <Link href="/tickets" aria-label="Limpar filtros">Limpar</Link>
@@ -370,14 +374,16 @@ export default async function TicketsPage({
           </form>
         </CardContent>
       </Card>
+      ) : null}
 
+      {tab === "metrics" && !isUser ? (
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Abertos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{countBy("OPEN")}</div>
+            <div className="text-2xl font-bold">{metrics?.countBy("OPEN") || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -385,7 +391,7 @@ export default async function TicketsPage({
             <CardTitle className="text-sm font-medium">Em Espera</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{countBy("WAITING")}</div>
+            <div className="text-2xl font-bold">{metrics?.countBy("WAITING") || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -393,7 +399,7 @@ export default async function TicketsPage({
             <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{countBy("IN_PROGRESS")}</div>
+            <div className="text-2xl font-bold">{metrics?.countBy("IN_PROGRESS") || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -401,7 +407,7 @@ export default async function TicketsPage({
             <CardTitle className="text-sm font-medium">Fechados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{countBy("CLOSED")}</div>
+            <div className="text-2xl font-bold">{metrics?.countBy("CLOSED") || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -409,7 +415,7 @@ export default async function TicketsPage({
             <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{countBy("DONE")}</div>
+            <div className="text-2xl font-bold">{metrics?.countBy("DONE") || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -417,11 +423,13 @@ export default async function TicketsPage({
             <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{countBy("CANCELLED")}</div>
+            <div className="text-2xl font-bold">{metrics?.countBy("CANCELLED") || 0}</div>
           </CardContent>
         </Card>
       </div>
+      ) : null}
 
+      {tab === "metrics" && !isUser ? (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -429,7 +437,7 @@ export default async function TicketsPage({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {avgResMin > 0 ? `${Math.floor(avgResMin / 60)}h ${avgResMin % 60}m` : "—"}
+              {metrics && metrics.avgResMin > 0 ? `${Math.floor(metrics.avgResMin / 60)}h ${metrics.avgResMin % 60}m` : "—"}
             </div>
             <CardDescription>Chamados concluídos/fechados</CardDescription>
           </CardContent>
@@ -439,10 +447,10 @@ export default async function TicketsPage({
             <CardTitle className="text-sm font-medium">Tempo Médio por Técnico</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {avgByTechDisplay.length === 0 && (
+            {(!metrics || metrics.avgByTechDisplay.length === 0) && (
               <div className="text-sm text-muted-foreground">Sem dados para técnicos.</div>
             )}
-            {avgByTechDisplay.map((row) => (
+            {metrics?.avgByTechDisplay.map((row) => (
               <div key={row.name} className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{row.name}</span>
                 <span className="font-medium">
@@ -453,14 +461,16 @@ export default async function TicketsPage({
           </CardContent>
         </Card>
       </div>
+      ) : null}
 
+      {tab === "metrics" && !isUser ? (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">SLA Médio</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{slaAvgHours > 0 ? `${slaAvgHours}h` : "—"}</div>
+            <div className="text-2xl font-bold">{metrics && metrics.slaAvgHours > 0 ? `${metrics.slaAvgHours}h` : "—"}</div>
             <CardDescription>Entre tickets com SLA definido</CardDescription>
           </CardContent>
         </Card>
@@ -469,44 +479,35 @@ export default async function TicketsPage({
             <CardTitle className="text-sm font-medium">Fora do SLA</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{slaBreachesCount}</div>
+            <div className="text-2xl font-bold">{metrics?.slaBreachesCount || 0}</div>
             <CardDescription>Concluídos/fechados que excederam o SLA</CardDescription>
           </CardContent>
         </Card>
       </div>
+      ) : null}
+      {tab === "tickets" ? (
       <div className="flex items-center justify-between mt-4">
         <h2 className="text-sm font-medium text-muted-foreground">Visualização</h2>
-        <div className="inline-flex rounded-md border border-border bg-muted/40 p-1">
-          <Button
-            asChild
-            variant={view === "list" ? "default" : "ghost"}
-            size="sm"
-          >
-            <Link href={{ pathname: "/tickets", query: { ...params, view: "list" } }}>
-              Lista
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant={view === "kanban" ? "default" : "ghost"}
-            size="sm"
-          >
-            <Link href={{ pathname: "/tickets", query: { ...params, view: "kanban" } }}>
-              Kanban
-            </Link>
-          </Button>
-        </div>
+        <SegmentedTabs
+          value={view}
+          items={[
+            { label: "Lista", value: "list", href: `/tickets?${new URLSearchParams({ ...params, view: "list", tab: "tickets" } as Record<string, string>).toString()}` },
+            { label: "Kanban", value: "kanban", href: `/tickets?${new URLSearchParams({ ...params, view: "kanban", tab: "tickets" } as Record<string, string>).toString()}` },
+          ]}
+        />
       </div>
+      ) : null}
 
-      {view === "list" ? (
+      {tab === "tickets" && view === "list" ? (
         <TicketList tickets={tickets} page={page} pageCount={pageCount} params={params} />
-      ) : (
+      ) : null}
+      {tab === "tickets" && view === "kanban" ? (
         <TicketKanban
           tickets={tickets}
           currentUserRole={session.user.role}
           currentUserName={session.user.name || "Você"}
         />
-      )}
+      ) : null}
 
       <Separator />
 
