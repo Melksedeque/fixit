@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   experimental: {
     proxyClientMaxBodySize: "15mb",
+    serverActions: {
+      bodySizeLimit: "15mb",
+    },
   },
   images: {
     remotePatterns: [
