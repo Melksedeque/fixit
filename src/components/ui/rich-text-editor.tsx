@@ -98,8 +98,8 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
         </div>
       )}
       <div className={cn("rounded-md border border-border bg-background")}>
-        <div className="relative min-h-32">
-          <div ref={quillRef} className="h-full text-stone-50" />
+        <div className="relative">
+          <div ref={quillRef} className="min-h-32 w-full cursor-text" />
         </div>
       </div>
       <input type="hidden" name={name} value={value} />
