@@ -5,8 +5,12 @@
 - [ ] Rotas protegidas (server actions)
 - [ ] Acessibilidade (leitores de tela)
 
+---
+
 ## Tela de Login
 - [ ] Colocar "olho" para visualizar senha digitada
+
+---
 
 ## Sistema de Segurança
 - [ ] Diferença de permissões entre técnicos e usuários normais
