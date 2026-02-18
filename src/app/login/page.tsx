@@ -6,7 +6,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-2">
         <div className="flex justify-center mb-4">
-          <Logo width={180} className="brightness-0 invert" />
+          <Logo width={180} className="" />
         </div>
       </div>
       <LoginForm />

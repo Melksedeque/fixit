@@ -8,7 +8,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
       <main className="flex flex-col items-center gap-8 text-center p-8 max-w-2xl">
         <h1>
-          <Logo width={300} className="brightness-0 invert" />
+          <Logo width={300} className="" />
         </h1>
         <p className="text-xl text-muted-foreground">
           Sistema de chamados focado em comunicação rápida e gestão ágil.
