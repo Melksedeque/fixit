@@ -4,11 +4,11 @@
 ---
 
 ## Sustentar sessão de usuário
-- [ ] Persistir sessão em cookies (segurança básica)
-- [ ] Invalidar sessão ao fazer logout
-- [ ] Expiração de sessão (ex.: 1h)
-- [ ] Rotas protegidas (server actions)
-- [ ] Acessibilidade (leitores de tela)
+- [x] Persistir sessão em cookies (segurança básica)
+- [x] Invalidar sessão ao fazer logout
+- [x] Expiração de sessão (ex.: 1h)
+- [x] Rotas protegidas (server actions)
+- [x] Acessibilidade (leitores de tela)
 
 ---
 
