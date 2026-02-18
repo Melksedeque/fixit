@@ -8,7 +8,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { LogIn, ArrowRight } from "lucide-react"
+import { LogIn, ArrowRight, Eye, EyeOff } from "lucide-react"
 import { checkEmail } from "@/app/login/actions"
 
 const loginSchema = z.object({
@@ -23,6 +23,7 @@ export function LoginForm() {
   const [step, setStep] = useState<"email" | "password">("email")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   
   const {
     register,
@@ -136,13 +137,24 @@ export function LoginForm() {
                 {step === "password" && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-right-8 duration-300">
                          <div className="space-y-1">
-                            <Input
-                                label="Senha"
-                                type="password"
-                                {...register("password")}
+                            <div className="relative">
+                              <Input
+                                  label="Senha"
+                                  type={showPassword ? "text" : "password"}
+                                  {...register("password")}
+                                  disabled={loading}
+                                  autoFocus
+                              />
+                              <button
+                                type="button"
+                                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                 disabled={loading}
-                                autoFocus
-                            />
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
                             {errors.password && (
                                 <p className="text-xs text-destructive">{errors.password.message}</p>
                             )}

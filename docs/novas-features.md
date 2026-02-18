@@ -1,5 +1,5 @@
 ## Tela de Login
-- [ ] Colocar "olho" para visualizar senha digitada
+- [x] Colocar "olho" para visualizar senha digitada
 
 ---
 
