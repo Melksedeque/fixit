@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe } from "@/app/(dashboard)/tickets/actions"
 import Link from "next/link"
+import Image from "next/image"
 
 export default async function TicketDetailPage({
   params,
@@ -27,6 +28,7 @@ export default async function TicketDetailPage({
       description: true,
       status: true,
       priority: true,
+      customerId: true,
       customer: { select: { name: true } },
       assignedTo: { select: { name: true } },
       createdAt: true,
@@ -39,22 +41,39 @@ export default async function TicketDetailPage({
   }
 
   const isTechOrAdmin = session.user.role === "ADMIN" || session.user.role === "TECH"
+  const canEditTicket = isTechOrAdmin || ticket.customerId === session.user.id
 
   const mp = Number(searchParams?.mp || "1")
   const take = 10
   const skip = (mp - 1) * take
-  const [messages, totalMessages] = await Promise.all([
+  const [messages, totalMessages, histories] = await Promise.all([
     prisma.message.findMany({
       where: { ticketId: id },
       orderBy: { createdAt: "desc" },
       skip,
       take,
       select: {
-        id: true, content: true, createdAt: true,
+        id: true,
+        content: true,
+        type: true,
+        fileUrl: true,
+        createdAt: true,
         user: { select: { name: true } }
       }
     }),
-    prisma.message.count({ where: { ticketId: id } })
+    prisma.message.count({ where: { ticketId: id } }),
+    prisma.ticketHistory.findMany({
+      where: { ticketId: id },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        actionType: true,
+        oldValue: true,
+        newValue: true,
+        createdAt: true,
+        user: { select: { name: true } },
+      },
+    }),
   ])
   const msgPageCount = Math.max(1, Math.ceil(totalMessages / take))
 
@@ -95,17 +114,41 @@ export default async function TicketDetailPage({
           <div className="rounded-md border border-border bg-(--card-surface) p-3">
             {ticket.description}
           </div>
-          <form action={async (formData) => { await updateTicket(ticket.id, formData) }} className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
-            <input name="title" defaultValue={ticket.title} aria-label="Título" className="rounded-md border border-border bg-background px-3 py-2 text-sm" />
-            <select name="priority" defaultValue={String(ticket.priority)} aria-label="Prioridade" className="rounded-md border border-border bg-background px-3 py-2 text-sm">
-              <option value="LOW">Baixa</option>
-              <option value="MEDIUM">Média</option>
-              <option value="HIGH">Alta</option>
-              <option value="CRITICAL">Crítica</option>
-            </select>
-            <textarea name="description" defaultValue={ticket.description} aria-label="Descrição" className="md:col-span-2 min-h-24 rounded-md border border-border bg-background px-3 py-2 text-sm" />
-            <Button type="submit" variant="soft-edit" className="md:col-span-2">Salvar Edição</Button>
-          </form>
+          {canEditTicket && (
+            <form
+              action={async (formData) => {
+                await updateTicket(ticket.id, formData)
+              }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4"
+            >
+              <input
+                name="title"
+                defaultValue={ticket.title}
+                aria-label="Título"
+                className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+              <select
+                name="priority"
+                defaultValue={String(ticket.priority)}
+                aria-label="Prioridade"
+                className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="LOW">Baixa</option>
+                <option value="MEDIUM">Média</option>
+                <option value="HIGH">Alta</option>
+                <option value="CRITICAL">Crítica</option>
+              </select>
+              <textarea
+                name="description"
+                defaultValue={ticket.description}
+                aria-label="Descrição"
+                className="md:col-span-2 min-h-24 rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+              <Button type="submit" variant="soft-edit" className="md:col-span-2">
+                Salvar Edição
+              </Button>
+            </form>
+          )}
           <form action={async (formData) => { await updateStatus(ticket.id, formData) }} className="max-w-xs">
             <Select name="status" defaultValue={String(ticket.status)}>
               <SelectTrigger aria-label="Status">
@@ -125,18 +168,93 @@ export default async function TicketDetailPage({
 
       <Card>
         <CardHeader>
+          <CardTitle>Histórico</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {histories.length === 0 && (
+            <div className="text-sm text-muted-foreground">Nenhum evento de histórico ainda.</div>
+          )}
+          {histories.map((h) => {
+            let description = ""
+            if (h.actionType === "STATUS_CHANGE") {
+              description = `Status: ${h.oldValue ?? "-"} → ${h.newValue ?? "-"}`
+            } else if (h.actionType === "ASSIGNMENT") {
+              description = `Responsável: ${h.oldValue ?? "-"} → ${h.newValue ?? "-"}`
+            } else if (h.actionType === "PRIORITY_CHANGE") {
+              description = `Prioridade: ${h.oldValue ?? "-"} → ${h.newValue ?? "-"}`
+            }
+            return (
+              <div
+                key={h.id}
+                className="flex items-start justify-between rounded-md border border-border bg-(--card-surface) p-3"
+              >
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">
+                    {h.user?.name} • {new Date(h.createdAt).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-foreground">{description}</div>
+                </div>
+              </div>
+            )
+          })}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Comentários</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={async (formData) => { await addComment(ticket.id, formData) }} className="space-y-3">
-            <textarea name="message" placeholder="Escreva um comentário..." aria-label="Comentário" required className="min-h-24 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
-            <Button type="submit" variant="soft-success">Adicionar Comentário</Button>
+          <form
+            action={async (formData) => {
+              await addComment(ticket.id, formData)
+            }}
+            className="space-y-3"
+          >
+            <textarea
+              name="message"
+              placeholder="Escreva um comentário..."
+              aria-label="Comentário"
+              required
+              className="min-h-24 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+            <Button type="submit" variant="soft-success">
+              Adicionar Comentário
+            </Button>
           </form>
           <div className="mt-6 space-y-3">
             {messages.map((m) => (
               <div key={m.id} className="rounded-md border border-border bg-(--card-surface) p-3">
-                <div className="text-xs text-muted-foreground">{m.user?.name} • {new Date(m.createdAt).toLocaleString()}</div>
-                <div className="text-foreground">{m.content}</div>
+                <div className="text-xs text-muted-foreground">
+                  {m.user?.name} • {new Date(m.createdAt).toLocaleString()}
+                </div>
+                {m.type === "IMAGE" && m.fileUrl ? (
+                  <div className="mt-2">
+                    <Image
+                      src={m.fileUrl}
+                      alt={m.content || "Imagem do chamado"}
+                      width={320}
+                      height={180}
+                      className="h-auto w-full max-w-sm rounded-md border border-border object-cover"
+                    />
+                  </div>
+                ) : m.type === "VIDEO" && m.fileUrl ? (
+                  <div className="mt-2">
+                    <video
+                      controls
+                      className="h-auto w-full max-w-sm rounded-md border border-border"
+                      src={m.fileUrl}
+                    />
+                  </div>
+                ) : m.type === "AUDIO" && m.fileUrl ? (
+                  <div className="mt-2">
+                    <audio controls className="w-full max-w-sm">
+                      <source src={m.fileUrl} />
+                    </audio>
+                  </div>
+                ) : (
+                  <div className="mt-2 text-foreground">{m.content}</div>
+                )}
               </div>
             ))}
             {messages.length === 0 && (
@@ -149,10 +267,18 @@ export default async function TicketDetailPage({
             </div>
             <div className="flex gap-2">
               <Button asChild variant="outline" disabled={mp <= 1} aria-label="Página anterior">
-                <Link href={`/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp - 1) }).toString()}`}>Anterior</Link>
+                <Link
+                  href={`/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp - 1) }).toString()}`}
+                >
+                  Anterior
+                </Link>
               </Button>
               <Button asChild variant="outline" disabled={mp >= msgPageCount} aria-label="Próxima página">
-                <Link href={`/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp + 1) }).toString()}`}>Próxima</Link>
+                <Link
+                  href={`/tickets/${ticket.id}?${new URLSearchParams({ mp: String(mp + 1) }).toString()}`}
+                >
+                  Próxima
+                </Link>
               </Button>
             </div>
           </div>

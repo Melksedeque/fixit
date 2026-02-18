@@ -31,9 +31,9 @@
 
 ## Detalhe do Chamado
 - [x] Painel de controle (status, prioridade, responsável)
-- [ ] Edição inline de título/descrição
-- [ ] Timeline do histórico (TicketHistory)
-- [ ] Comentários com tipos (TEXT/IMAGE/VIDEO/AUDIO) e preview
+- [x] Edição inline de título/descrição
+- [x] Timeline do histórico (TicketHistory)
+- [x] Comentários com tipos (TEXT/IMAGE/VIDEO/AUDIO) e preview
 
 ## Métricas e Dashboard
 - [ ] Contadores por status incluindo WAITING/CLOSED
