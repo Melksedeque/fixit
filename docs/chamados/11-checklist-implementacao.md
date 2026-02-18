@@ -59,8 +59,6 @@
 
 ## Qualidade
 - [x] Lint/Typecheck/Build OK
-- [ ] Testes de ações (status/assign/history)
-- [ ] A11y básico (foco/aria nos componentes)
 
 ## Fluxo de Criação e Responsável
 - [x] Mover criação de chamado para modal na página de tickets
@@ -77,3 +75,4 @@
 - [ ] O campo de texto do comentário deve ocupar todo o espaço disponível, semelhante ao campo de descrição;
 - [ ] O botão de enviar comentário deve estar alinhado à direita do campo de texto;
 - [ ] A seção de Histórico deve ser a última da página;
+- [ ] Remover opção de data de previsão da criação de chamados por parte do usuário, quem define a previsão é o técnico responsável.
