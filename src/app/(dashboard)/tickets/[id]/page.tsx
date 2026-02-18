@@ -8,6 +8,7 @@ import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe,
 import Image from "next/image"
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -145,7 +146,12 @@ export default async function TicketDetailPage({
                       defaultValue={ticket.description || ""}
                     />
                     <div className="flex justify-end">
-                      <Button type="submit" variant="soft-edit"><Save /> Salvar</Button>
+                      <DialogClose asChild>
+                        <Button type="submit" variant="soft-edit">
+                          <Save className="h-4 w-4" />
+                          Salvar
+                        </Button>
+                      </DialogClose>
                     </div>
                   </form>
                 </DialogContent>
