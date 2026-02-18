@@ -16,7 +16,7 @@ import {
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
 import { getPriorityLabel, getPriorityVariant, getStatusLabel, getStatusVariant } from "@/components/tickets/utils"
-import { Download, Eye, Paperclip, Pencil, Send } from "lucide-react"
+import { Download, Eye, Paperclip, Pencil, Save, Send } from "lucide-react"
 
 export default async function TicketDetailPage({
   params,
@@ -145,7 +145,7 @@ export default async function TicketDetailPage({
                       defaultValue={ticket.description || ""}
                     />
                     <div className="flex justify-end">
-                      <Button type="submit" variant="soft-edit">Salvar</Button>
+                      <Button type="submit" variant="soft-edit"><Save /> Salvar</Button>
                     </div>
                   </form>
                 </DialogContent>
