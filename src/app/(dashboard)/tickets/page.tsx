@@ -106,7 +106,7 @@ export default async function TicketsPage({
         </div>
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="soft-edit">
+            <Button variant="default">
               <Plus className="h-4 w-4 mr-2" /> Novo Chamado
             </Button>
           </DialogTrigger>
