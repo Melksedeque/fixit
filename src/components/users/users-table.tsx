@@ -148,15 +148,17 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
             </TableCell>
                 <TableCell className="p-5">
                   {user.role === "ADMIN" ? (
-                    <Badge variant="outline" className="border-purple-600 bg-purple-700/20 text-purple-600">
+                    <Badge variant="outline" className="border-purple-400 bg-purple-400/15 text-purple-400">
                       ADMIN
                     </Badge>
                   ) : user.role === "TECH" ? (
-                    <Badge variant="outline" className="border-emerald-600 bg-emerald-700/20 text-emerald-600">
+                    <Badge variant="outline" className="border-green-400 bg-green-400/15 text-green-400">
                       TECH
                     </Badge>
                   ) : (
-                    <Badge variant="outline">USER</Badge>
+                    <Badge variant="outline" className="border-sky-400 bg-sky-400/15 text-sky-400">
+                      USER
+                    </Badge>
                   )}
                 </TableCell>
                 {isAdmin && (
