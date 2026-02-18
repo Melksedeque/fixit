@@ -42,7 +42,6 @@
 - [x] Gráficos por status e período
 
 ## Permissões
-## Permissões
 - [x] ADMIN: criar/editar/atribuir/fechar/cancelar
 - [x] TECHNICIAN: visualizar/atualizar status/atribuir/fechar/cancelar
 - [x] USER: criar/comentar/visualizar próprios chamados/atualizar próprios chamados
