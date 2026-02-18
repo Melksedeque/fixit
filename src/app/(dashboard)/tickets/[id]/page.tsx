@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe, addAttachments } from "@/app/(dashboard)/tickets/actions"
-import Link from "next/link"
 import Image from "next/image"
 import {
   Dialog,
@@ -16,8 +15,8 @@ import {
 } from "@/components/ui/dialog"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
-import { getPriorityVariant, getStatusLabel, getStatusVariant } from "@/components/tickets/utils"
-import { Download, Eye, Pencil } from "lucide-react"
+import { getPriorityLabel, getPriorityVariant, getStatusLabel, getStatusVariant } from "@/components/tickets/utils"
+import { Download, Eye, Paperclip, Pencil, Send } from "lucide-react"
 
 export default async function TicketDetailPage({
   params,
@@ -94,9 +93,9 @@ export default async function TicketDetailPage({
     <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">{ticket.title}</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <Badge variant={getPriorityVariant(String(ticket.priority))}>
-              {String(ticket.priority)}
+              {getPriorityLabel(String(ticket.priority))}
             </Badge>
             <Badge variant={getStatusVariant(String(ticket.status))}>
               {getStatusLabel(String(ticket.status))}
@@ -180,16 +179,10 @@ export default async function TicketDetailPage({
               )}
             </div>
             <div className="text-muted-foreground">
-              Status atual:
-              <Badge variant={getStatusVariant(String(ticket.status))} className="ml-2">
-                {getStatusLabel(String(ticket.status))}
-              </Badge>
+              Status atual: {getStatusLabel(String(ticket.status))}
             </div>
             <div className="text-muted-foreground">
-              Prioridade:
-              <Badge variant={getPriorityVariant(String(ticket.priority))} className="ml-2">
-                {String(ticket.priority)}
-              </Badge>
+              Prioridade: {getPriorityLabel(String(ticket.priority))}
             </div>
             <div className="text-muted-foreground">Descrição:</div>
             <div className="prose prose-invert rounded-md border border-border bg-(--card-surface) p-3" dangerouslySetInnerHTML={{ __html: ticket.description || "" }} />
@@ -218,7 +211,7 @@ export default async function TicketDetailPage({
               <CardTitle>Anexos</CardTitle>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button type="button" variant="outline" size="sm">Upload de Anexos</Button>
+                  <Button type="button" variant="outline" size="sm"><Paperclip /> Upload de Anexos</Button>
                 </DialogTrigger>
                 <DialogContent className="bg-primary-foreground sm:max-w-[640px] max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
@@ -332,7 +325,7 @@ export default async function TicketDetailPage({
               defaultValue=""
             />
             <div className="flex items-center justify-end">
-              <Button type="submit" variant="soft-success">Adicionar Comentário</Button>
+              <Button type="submit" variant="soft-success"><Send /> Adicionar Comentário</Button>
             </div>
           </form>
           <div className="mt-6 space-y-3">
