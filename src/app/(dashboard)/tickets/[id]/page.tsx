@@ -179,10 +179,10 @@ export default async function TicketDetailPage({
               )}
             </div>
             <div className="text-muted-foreground">
-              Status atual: {getStatusLabel(String(ticket.status))}
+              Status atual: <span className="text-foreground">{getStatusLabel(String(ticket.status))}</span>
             </div>
             <div className="text-muted-foreground">
-              Prioridade: {getPriorityLabel(String(ticket.priority))}
+              Prioridade: <span className="text-foreground">{getPriorityLabel(String(ticket.priority))}</span>
             </div>
             <div className="text-muted-foreground">Descrição:</div>
             <div className="prose prose-invert rounded-md border border-border bg-(--card-surface) p-3" dangerouslySetInnerHTML={{ __html: ticket.description || "" }} />
