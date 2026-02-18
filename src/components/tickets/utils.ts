@@ -10,6 +10,16 @@ export function getStatusLabel(status: string) {
   }
 }
 
+export function getPriorityLabel(priority: string) {
+  switch (priority) {
+    case "LOW": return "Baixa"
+    case "MEDIUM": return "Média"
+    case "HIGH": return "Alta"
+    case "CRITICAL": return "Crítica"
+    default: return priority
+  }
+}
+
 export function getStatusVariant(status: string) {
   switch (status) {
     case "OPEN": return "soft-warning"
