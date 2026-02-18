@@ -110,7 +110,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="absolute bottom-3 px-3 w-full">
           <Button variant="soft-destructive" className={cn(
             "mt-6 flex items-center justify-start h-10 w-full",
-            collapsed && "justify-center")} onClick={() => signOut()}>
+            collapsed && "justify-center")} onClick={() => signOut({ callbackUrl: '/login' })}>
             <LogOut className="h-5 w-5" />
             {!collapsed && "Sair"}
           </Button>
@@ -161,7 +161,7 @@ export function MobileSidebar() {
                     </div>
                 </div>
                  <div className="absolute bottom-4 w-full px-6">
-                    <Button variant="ghost" className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20" onClick={() => signOut()}>
+                    <Button variant="ghost" className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-900/20" onClick={() => signOut({ callbackUrl: '/login' })}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Sair
                     </Button>

@@ -71,7 +71,7 @@ export function UserNav({ user }: UserNavProps) {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={() => signOut()}>
+        <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={() => signOut({ callbackUrl: '/login' })}>
             <span className="inline-flex items-center justify-center rounded-md bg-red-500/10 border border-red-500/20 p-1 mr-2">
               <LogOut className="h-4 w-4" />
             </span>
