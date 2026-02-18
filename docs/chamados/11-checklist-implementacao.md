@@ -39,7 +39,7 @@
 - [x] Contadores por status incluindo WAITING/CLOSED
 - [x] Tempo médio de resolução (por técnico e geral)
 - [x] SLA médio e chamados fora do SLA
-- [ ] Gráficos por status e período
+- [x] Gráficos por status e período
 
 ## Permissões
 - [ ] ADMIN: criar/editar/atribuir/fechar/cancelar

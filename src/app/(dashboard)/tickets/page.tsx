@@ -153,6 +153,31 @@ export default async function TicketsPage({
   const slaBreachesCount = closedDoneTickets.filter(
     (t) => (t.executionTime || 0) > ((t.slaHours || 0) * 60)
   ).length
+  const period = params.created === "last30" ? "last30" : "all"
+  const last30Date = new Date()
+  last30Date.setDate(last30Date.getDate() - 30)
+  const [statsLast30] = await Promise.all([
+    prisma.ticket.groupBy({
+      by: ["status"],
+      where: {
+        ...(period === "last30" ? { createdAt: { gte: last30Date } } : {}),
+      },
+      _count: { status: true },
+    }),
+  ])
+  const countByPeriod = (s: string) =>
+    (period === "last30"
+      ? statsLast30.find((x) => x.status === s)?._count.status
+      : stats.find((x) => x.status === s)?._count.status) || 0
+  const maxCountPeriod =
+    Math.max(
+      countByPeriod("OPEN"),
+      countByPeriod("WAITING"),
+      countByPeriod("IN_PROGRESS"),
+      countByPeriod("DONE"),
+      countByPeriod("CLOSED"),
+      countByPeriod("CANCELLED"),
+    ) || 1
 
   return (
     <div className="space-y-8">
@@ -235,6 +260,47 @@ export default async function TicketsPage({
         </Dialog>
       </div>
 
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm font-medium">Gráfico por Status ({period === "last30" ? "Últimos 30 dias" : "Total"})</CardTitle>
+          <div className="inline-flex rounded-md border border-border bg-muted/40 p-1">
+            <Button asChild variant={period === "all" ? "default" : "ghost"} size="sm">
+              <Link href={{ pathname: "/tickets", query: { ...params, created: undefined } }}>Total</Link>
+            </Button>
+            <Button asChild variant={period === "last30" ? "default" : "ghost"} size="sm">
+              <Link href={{ pathname: "/tickets", query: { ...params, created: "last30" } }}>Últimos 30d</Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {[
+            { label: "Abertos", key: "OPEN" },
+            { label: "Em Espera", key: "WAITING" },
+            { label: "Em Andamento", key: "IN_PROGRESS" },
+            { label: "Concluídos", key: "DONE" },
+            { label: "Fechados", key: "CLOSED" },
+            { label: "Cancelados", key: "CANCELLED" },
+          ].map((item) => {
+            const count = countByPeriod(item.key)
+            const pct = Math.round((count / maxCountPeriod) * 100)
+            return (
+              <div key={item.key} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="font-medium">{count}</span>
+                </div>
+                <div className="h-2 w-full rounded bg-muted">
+                  <div
+                    className="h-2 rounded bg-primary transition-all"
+                    style={{ width: `${pct}%` }}
+                    aria-label={`${item.label}: ${count}`}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-2">
