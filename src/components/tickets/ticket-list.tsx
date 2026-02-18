@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Eye, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { getStatusLabel, getStatusVariant, getPriorityVariant } from "./utils"
 import {
   AlertDialog,
@@ -38,6 +40,29 @@ interface TicketListProps {
 }
 
 export function TicketList({ tickets, page, pageCount, params }: TicketListProps) {
+  const router = useRouter()
+  useEffect(() => {
+    let es: EventSource | null = null
+    try {
+      es = new EventSource("/api/tickets/stream")
+      es.onmessage = (ev) => {
+        try {
+          const data = JSON.parse(ev.data)
+          if (data?.type === "ping") return
+          if (data?.type && String(data.type).startsWith("ticket:")) {
+            router.refresh()
+          }
+        } catch {
+          // ignore
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return () => {
+      es?.close()
+    }
+  }, [router])
   if (tickets.length === 0) {
     return (
       <div className="flex h-[200px] items-center justify-center text-muted-foreground">

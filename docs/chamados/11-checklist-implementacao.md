@@ -48,9 +48,9 @@
 - [x] Gate nas server actions e filtros coerentes com papel
 
 ## Notificações e Tempo Real
-- [ ] Websocket para atualização de lista/kanban
-- [ ] E-mail para eventos (fechado/cancelado/atribuído)
-- [ ] Rate limit e observabilidade mínima
+- [x] Websocket/SSE para atualização de lista/kanban
+- [x] E-mail para eventos (fechado/cancelado/atribuído)
+- [x] Rate limit e observabilidade mínima
 
 ## Migração e Dados
 - [ ] Backfill `closedAt` a partir de `deliveryDate` quando aplicável

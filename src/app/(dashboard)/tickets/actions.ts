@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { Role, TicketPriority, TicketStatus } from "@prisma/client"
+import { getBus } from "@/lib/realtime/bus"
+import { sendEmail, buildTicketLink } from "@/lib/notifications/email"
 
 const TicketCreateSchema = z.object({
   title: z.string().min(3),
@@ -74,6 +76,9 @@ export async function createTicket(formData: FormData) {
   }
 
   revalidatePath("/tickets")
+  try {
+    getBus().emit("tickets:event", { type: "ticket:created", ticketId: ticket.id })
+  } catch {}
   redirect("/tickets?assignedTo=any&created=1")
 }
 
@@ -117,6 +122,9 @@ export async function addComment(ticketId: string, formData: FormData) {
     },
   })
 
+  try {
+    getBus().emit("tickets:event", { type: "ticket:commented", ticketId })
+  } catch {}
   revalidatePath(`/tickets/${ticketId}`)
 }
 
@@ -188,6 +196,41 @@ export async function updateStatus(ticketId: string, formData: FormData) {
     }
   })
 
+  try {
+    getBus().emit("tickets:event", { type: "ticket:status", ticketId, status: nextStatus })
+    if (nextStatus === "CLOSED" || nextStatus === "CANCELLED") {
+      const ticket = await prisma.ticket.findUnique({
+        where: { id: ticketId },
+        select: { customer: { select: { email: true, name: true } }, title: true, id: true },
+      })
+      if (ticket?.customer?.email) {
+        const link = buildTicketLink(ticket.id)
+        const shortId = ticket.id.slice(0, 6)
+        const subject = `[Fixit] Chamado ${nextStatus === "CLOSED" ? "Fechado" : "Cancelado"} — ${ticket.title}`
+        const text = [
+          `Olá${ticket.customer?.name ? ` ${ticket.customer.name}` : ""},`,
+          "",
+          `O chamado "${ticket.title}" (ID: ${shortId}) foi ${nextStatus === "CLOSED" ? "fechado" : "cancelado"}.`,
+          `Acesse os detalhes: ${link}`,
+          "",
+          "Atenciosamente,",
+          "Fixit",
+        ].join("\n")
+        const html = [
+          `<p>Olá${ticket.customer?.name ? ` ${ticket.customer.name}` : ""},</p>`,
+          `<p>O chamado <strong>"${ticket.title}"</strong> (ID: <code>${shortId}</code>) foi ${nextStatus === "CLOSED" ? "fechado" : "cancelado"}.</p>`,
+          `<p><a href="${link}">Clique aqui para ver os detalhes do chamado</a></p>`,
+          `<p>Atenciosamente,<br/>Fixit</p>`,
+        ].join("")
+        await sendEmail({
+          to: ticket.customer.email,
+          subject,
+          text,
+          html,
+        })
+      }
+    }
+  } catch {}
   revalidatePath(`/tickets/${ticketId}`)
   revalidatePath("/tickets")
 }
@@ -198,6 +241,9 @@ export async function deleteTicket(ticketId: string) {
   requireRole(session.user.role, ["ADMIN"])
 
   await prisma.ticket.delete({ where: { id: ticketId } })
+  try {
+    getBus().emit("tickets:event", { type: "ticket:deleted", ticketId })
+  } catch {}
   revalidatePath("/tickets")
 }
 
@@ -280,6 +326,49 @@ export async function updateTicket(ticketId: string, formData: FormData) {
         userId: session.user.id!,
       },
     })
+    try {
+      getBus().emit("tickets:event", { type: "ticket:assigned", ticketId, to: data.assignedToId })
+      const target = await prisma.user.findUnique({
+        where: { id: data.assignedToId || undefined },
+        select: { email: true, name: true },
+      })
+      const ticket = await prisma.ticket.findUnique({
+        where: { id: ticketId },
+        select: { title: true, id: true },
+      })
+      if (target?.email && ticket?.title) {
+        const link = buildTicketLink(ticketId)
+        const shortId = ticket.id.slice(0, 6)
+        const subject = `[Fixit] Novo chamado atribuído — ${ticket.title}`
+        const text = [
+          `Olá${target.name ? ` ${target.name}` : ""},`,
+          "",
+          "Um chamado foi atribuído a você:",
+          `Título: "${ticket.title}"`,
+          `ID: ${shortId}`,
+          `Acesse para iniciar: ${link}`,
+          "",
+          "Obrigado,",
+          "Fixit",
+        ].join("\n")
+        const html = [
+          `<p>Olá${target.name ? ` ${target.name}` : ""},</p>`,
+          `<p>Um chamado foi atribuído a você:</p>`,
+          `<ul>`,
+          `<li><strong>Título:</strong> ${ticket.title}</li>`,
+          `<li><strong>ID:</strong> <code>${shortId}</code></li>`,
+          `</ul>`,
+          `<p><a href="${link}">Clique aqui para abrir o chamado</a></p>`,
+          `<p>Obrigado,<br/>Fixit</p>`,
+        ].join("")
+        await sendEmail({
+          to: target.email,
+          subject,
+          text,
+          html,
+        })
+      }
+    } catch {}
   }
 
   revalidatePath("/tickets")
@@ -318,6 +407,9 @@ export async function assignTicketToMe(ticketId: string) {
     },
   })
 
+  try {
+    getBus().emit("tickets:event", { type: "ticket:assigned", ticketId, to: userId })
+  } catch {}
   revalidatePath("/tickets")
   revalidatePath(`/tickets/${ticketId}`)
 }
