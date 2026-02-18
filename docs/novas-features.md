@@ -13,10 +13,10 @@
 ---
 
 ## Sistema de Segurança
-- [ ] Diferença de permissões entre técnicos e usuários normais
-- [ ] Hash de senhas (bcrypt)
-- [ ] Proteção contra CSRF
-- [ ] Proteção contra XSS
-- [ ] Proteção contra injeção de SQL
-- [ ] Proteção contra ataque de força bruta
-- [ ] Lista de usuários disponível apenas para ADMIN
+- [x] Diferença de permissões entre técnicos e usuários normais
+- [x] Hash de senhas (bcrypt)
+- [x] Proteção contra CSRF
+- [x] Proteção contra XSS
+- [x] Proteção contra injeção de SQL
+- [x] Proteção contra ataque de força bruta
+- [x] Lista de usuários disponível apenas para ADMIN
