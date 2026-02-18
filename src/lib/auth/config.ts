@@ -26,13 +26,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token.sub && session.user) {
         session.user.id = token.sub
         session.user.role = token.role as string
+        if (token.avatar && typeof token.avatar === "string") {
+          session.user.image = token.avatar as string
+        }
       }
       return session
     },
     async jwt({ token, user }) {
       if (user) {
-        token.sub = user.id
-        token.role = user.role
+        const dbUser = user as {
+          id: string
+          role: string
+          avatar?: string | null
+        }
+        token.sub = dbUser.id
+        token.role = dbUser.role
+        if (dbUser.avatar && typeof dbUser.avatar === "string") {
+          token.avatar = dbUser.avatar
+        }
       }
       return token
     }

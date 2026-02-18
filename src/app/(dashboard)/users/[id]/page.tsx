@@ -10,6 +10,7 @@ import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { getUserInitials } from "@/lib/utils/user"
 
 export default async function UserDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -73,9 +74,6 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
   const inProgressTickets = stats.find(s => s.status === "IN_PROGRESS")?._count.status || 0
   const doneTickets = stats.find(s => s.status === "DONE")?._count.status || 0
   const completionRate = totalTickets ? Math.round((doneTickets / totalTickets) * 100) : 0
-
-  const getInitials = (name: string) =>
-    name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
   const formatPhone = (phone: string) => {
     const cleaned = phone.replace(/\\D/g, "")
     if (cleaned.length === 11) return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
@@ -118,7 +116,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
             <CardHeader className="flex flex-col items-center text-center pb-2">
               <Avatar className="h-32 w-32 mb-4">
                 <AvatarImage src={user.avatar || undefined} alt={user.name} />
-                <AvatarFallback className="text-2xl">{getInitials(user.name)}</AvatarFallback>
+                <AvatarFallback className="text-2xl">{getUserInitials(user.name)}</AvatarFallback>
               </Avatar>
               <CardTitle className="text-xl">{user.name}</CardTitle>
               <CardDescription className="flex items-center gap-1 mt-1">

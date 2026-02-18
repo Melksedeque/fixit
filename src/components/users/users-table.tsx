@@ -24,6 +24,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Role } from "@prisma/client"
 import { useRouter } from "next/navigation"
+import { getUserInitials } from "@/lib/utils/user"
 
 interface User {
   id: string
@@ -55,15 +56,6 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
     router.refresh()
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase()
-  }
-
   const formatPhone = (phone: string) => {
     const cleaned = phone.replace(/\D/g, "")
     if (cleaned.length === 11) {
@@ -86,7 +78,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                 <Plus className="mr-2 h-4 w-4" /> Novo Usuário
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] bg-primary-foreground">
               <DialogHeader>
                 <DialogTitle>Novo Usuário</DialogTitle>
               </DialogHeader>
@@ -121,7 +113,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                   <div className="flex items-center gap-3">
                     <Avatar>
                       <AvatarImage src={user.avatar || undefined} alt={user.name} />
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                      <AvatarFallback>{getUserInitials(user.name)}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{user.name}</span>
                   </div>
@@ -156,9 +148,15 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
             </TableCell>
                 <TableCell className="p-5">
                   {user.role === "ADMIN" ? (
-                    <Badge variant="soft-success" className="shadow-(--shadow-glow-brand-soft)">ADMIN</Badge>
+                    <Badge variant="outline" className="border-purple-600 bg-purple-700/20 text-purple-600">
+                      ADMIN
+                    </Badge>
+                  ) : user.role === "TECH" ? (
+                    <Badge variant="outline" className="border-emerald-600 bg-emerald-700/20 text-emerald-600">
+                      TECH
+                    </Badge>
                   ) : (
-                    <Badge variant="soft-info">USER</Badge>
+                    <Badge variant="outline">USER</Badge>
                   )}
                 </TableCell>
                 {isAdmin && (
@@ -203,7 +201,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
       </div>
 
       <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] bg-primary-foreground">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
           </DialogHeader>
