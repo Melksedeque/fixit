@@ -66,7 +66,7 @@ export default async function TicketsPage({
     where.assignedToId = null
   }
 
-  const [tickets, totalCount, stats, techs] = await Promise.all([
+  const [tickets, totalCount, stats, techs, avgResolution, avgByTech, slaAvg] = await Promise.all([
     prisma.ticket.findMany({
       where,
       orderBy: { updatedAt: "desc" },
@@ -93,12 +93,91 @@ export default async function TicketsPage({
       where: { role: "TECH" },
       select: { id: true, name: true },
     }),
+    prisma.ticket.aggregate({
+      _avg: { executionTime: true },
+      where: {
+        ...where,
+        status: { in: ["DONE", "CLOSED"] },
+        executionTime: { not: null },
+      },
+    }),
+    prisma.ticket.groupBy({
+      by: ["assignedToId"],
+      where: {
+        ...where,
+        status: { in: ["DONE", "CLOSED"] },
+        executionTime: { not: null },
+        assignedToId: { not: null },
+      },
+      _avg: { executionTime: true },
+    }),
+    prisma.ticket.aggregate({
+      _avg: { slaHours: true },
+      where: { ...where, slaHours: { not: null } },
+    }),
+    prisma.ticket.count({
+      where: {
+        ...where,
+        status: { in: ["DONE", "CLOSED"] },
+        slaHours: { not: null },
+        executionTime: { not: null },
+        // execução acima do SLA (minutos > horas*60)
+        // Prisma não permite comparação direta entre campos, então aproximamos via filter pós-query
+      },
+    }),
   ])
 
   const pageCount = Math.max(1, Math.ceil(totalCount / take))
   const countBy = (s: string) => stats.find((x) => x.status === s)?._count.status || 0
   const view = params.view === "kanban" ? "kanban" : "list"
   const created = params["created"] === "1"
+  const avgResMin = Math.round(avgResolution._avg.executionTime || 0)
+  const avgByTechDisplay = avgByTech
+    .map((row) => {
+      const tech = techs.find((t) => t.id === row.assignedToId)
+      return { name: tech?.name || "—", minutes: Math.round(row._avg.executionTime || 0) }
+    })
+    .sort((a, b) => a.minutes - b.minutes)
+    .slice(0, 5)
+  const slaAvgHours = Math.round(slaAvg._avg.slaHours || 0)
+  // Como não há comparação direta campo-campo em Prisma count, recontamos via fetch mínimo
+  const closedDoneTickets = await prisma.ticket.findMany({
+    where: {
+      ...where,
+      status: { in: ["DONE", "CLOSED"] },
+      slaHours: { not: null },
+      executionTime: { not: null },
+    },
+    select: { slaHours: true, executionTime: true },
+  })
+  const slaBreachesCount = closedDoneTickets.filter(
+    (t) => (t.executionTime || 0) > ((t.slaHours || 0) * 60)
+  ).length
+  const period = params.created === "last30" ? "last30" : "all"
+  const last30Date = new Date()
+  last30Date.setDate(last30Date.getDate() - 30)
+  const [statsLast30] = await Promise.all([
+    prisma.ticket.groupBy({
+      by: ["status"],
+      where: {
+        ...(period === "last30" ? { createdAt: { gte: last30Date } } : {}),
+      },
+      _count: { status: true },
+    }),
+  ])
+  const countByPeriod = (s: string) =>
+    (period === "last30"
+      ? statsLast30.find((x) => x.status === s)?._count.status
+      : stats.find((x) => x.status === s)?._count.status) || 0
+  const maxCountPeriod =
+    Math.max(
+      countByPeriod("OPEN"),
+      countByPeriod("WAITING"),
+      countByPeriod("IN_PROGRESS"),
+      countByPeriod("DONE"),
+      countByPeriod("CLOSED"),
+      countByPeriod("CANCELLED"),
+    ) || 1
 
   return (
     <div className="space-y-8">
@@ -181,6 +260,47 @@ export default async function TicketsPage({
         </Dialog>
       </div>
 
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm font-medium">Gráfico por Status ({period === "last30" ? "Últimos 30 dias" : "Total"})</CardTitle>
+          <div className="inline-flex rounded-md border border-border bg-muted/40 p-1">
+            <Button asChild variant={period === "all" ? "default" : "ghost"} size="sm">
+              <Link href={{ pathname: "/tickets", query: { ...params, created: undefined } }}>Total</Link>
+            </Button>
+            <Button asChild variant={period === "last30" ? "default" : "ghost"} size="sm">
+              <Link href={{ pathname: "/tickets", query: { ...params, created: "last30" } }}>Últimos 30d</Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {[
+            { label: "Abertos", key: "OPEN" },
+            { label: "Em Espera", key: "WAITING" },
+            { label: "Em Andamento", key: "IN_PROGRESS" },
+            { label: "Concluídos", key: "DONE" },
+            { label: "Fechados", key: "CLOSED" },
+            { label: "Cancelados", key: "CANCELLED" },
+          ].map((item) => {
+            const count = countByPeriod(item.key)
+            const pct = Math.round((count / maxCountPeriod) * 100)
+            return (
+              <div key={item.key} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="font-medium">{count}</span>
+                </div>
+                <div className="h-2 w-full rounded bg-muted">
+                  <div
+                    className="h-2 rounded bg-primary transition-all"
+                    style={{ width: `${pct}%` }}
+                    aria-label={`${item.label}: ${count}`}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-2">
@@ -301,6 +421,58 @@ export default async function TicketsPage({
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Tempo Médio (geral)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {avgResMin > 0 ? `${Math.floor(avgResMin / 60)}h ${avgResMin % 60}m` : "—"}
+            </div>
+            <CardDescription>Chamados concluídos/fechados</CardDescription>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Tempo Médio por Técnico</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {avgByTechDisplay.length === 0 && (
+              <div className="text-sm text-muted-foreground">Sem dados para técnicos.</div>
+            )}
+            {avgByTechDisplay.map((row) => (
+              <div key={row.name} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{row.name}</span>
+                <span className="font-medium">
+                  {row.minutes > 0 ? `${Math.floor(row.minutes / 60)}h ${row.minutes % 60}m` : "—"}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">SLA Médio</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{slaAvgHours > 0 ? `${slaAvgHours}h` : "—"}</div>
+            <CardDescription>Entre tickets com SLA definido</CardDescription>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Fora do SLA</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{slaBreachesCount}</div>
+            <CardDescription>Concluídos/fechados que excederam o SLA</CardDescription>
+          </CardContent>
+        </Card>
+      </div>
       <div className="flex items-center justify-between mt-4">
         <h2 className="text-sm font-medium text-muted-foreground">Visualização</h2>
         <div className="inline-flex rounded-md border border-border bg-muted/40 p-1">

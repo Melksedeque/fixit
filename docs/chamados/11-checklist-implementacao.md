@@ -36,10 +36,10 @@
 - [x] Comentários com tipos (TEXT/IMAGE/VIDEO/AUDIO) e preview
 
 ## Métricas e Dashboard
-- [ ] Contadores por status incluindo WAITING/CLOSED
-- [ ] Tempo médio de resolução (por técnico e geral)
-- [ ] SLA médio e chamados fora do SLA
-- [ ] Gráficos por status e período
+- [x] Contadores por status incluindo WAITING/CLOSED
+- [x] Tempo médio de resolução (por técnico e geral)
+- [x] SLA médio e chamados fora do SLA
+- [x] Gráficos por status e período
 
 ## Permissões
 - [ ] ADMIN: criar/editar/atribuir/fechar/cancelar
