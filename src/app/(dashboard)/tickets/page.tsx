@@ -66,7 +66,7 @@ export default async function TicketsPage({
     where.assignedToId = null
   }
 
-  const [tickets, totalCount, stats, techs] = await Promise.all([
+  const [tickets, totalCount, stats, techs, avgResolution, avgByTech] = await Promise.all([
     prisma.ticket.findMany({
       where,
       orderBy: { updatedAt: "desc" },
@@ -93,12 +93,38 @@ export default async function TicketsPage({
       where: { role: "TECH" },
       select: { id: true, name: true },
     }),
+    prisma.ticket.aggregate({
+      _avg: { executionTime: true },
+      where: {
+        ...where,
+        status: { in: ["DONE", "CLOSED"] },
+        executionTime: { not: null },
+      },
+    }),
+    prisma.ticket.groupBy({
+      by: ["assignedToId"],
+      where: {
+        ...where,
+        status: { in: ["DONE", "CLOSED"] },
+        executionTime: { not: null },
+        assignedToId: { not: null },
+      },
+      _avg: { executionTime: true },
+    }),
   ])
 
   const pageCount = Math.max(1, Math.ceil(totalCount / take))
   const countBy = (s: string) => stats.find((x) => x.status === s)?._count.status || 0
   const view = params.view === "kanban" ? "kanban" : "list"
   const created = params["created"] === "1"
+  const avgResMin = Math.round(avgResolution._avg.executionTime || 0)
+  const avgByTechDisplay = avgByTech
+    .map((row) => {
+      const tech = techs.find((t) => t.id === row.assignedToId)
+      return { name: tech?.name || "—", minutes: Math.round(row._avg.executionTime || 0) }
+    })
+    .sort((a, b) => a.minutes - b.minutes)
+    .slice(0, 5)
 
   return (
     <div className="space-y-8">
@@ -301,6 +327,37 @@ export default async function TicketsPage({
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Tempo Médio (geral)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {avgResMin > 0 ? `${Math.floor(avgResMin / 60)}h ${avgResMin % 60}m` : "—"}
+            </div>
+            <CardDescription>Chamados concluídos/fechados</CardDescription>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Tempo Médio por Técnico</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {avgByTechDisplay.length === 0 && (
+              <div className="text-sm text-muted-foreground">Sem dados para técnicos.</div>
+            )}
+            {avgByTechDisplay.map((row) => (
+              <div key={row.name} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{row.name}</span>
+                <span className="font-medium">
+                  {row.minutes > 0 ? `${Math.floor(row.minutes / 60)}h ${row.minutes % 60}m` : "—"}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
       <div className="flex items-center justify-between mt-4">
         <h2 className="text-sm font-medium text-muted-foreground">Visualização</h2>
         <div className="inline-flex rounded-md border border-border bg-muted/40 p-1">

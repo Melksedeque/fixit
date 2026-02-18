@@ -37,7 +37,7 @@
 
 ## Métricas e Dashboard
 - [x] Contadores por status incluindo WAITING/CLOSED
-- [ ] Tempo médio de resolução (por técnico e geral)
+- [x] Tempo médio de resolução (por técnico e geral)
 - [ ] SLA médio e chamados fora do SLA
 - [ ] Gráficos por status e período
 
