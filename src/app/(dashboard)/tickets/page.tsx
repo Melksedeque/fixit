@@ -23,6 +23,7 @@ import { createTicket } from "@/app/(dashboard)/tickets/actions"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { TicketSubmitButton } from "@/components/tickets/ticket-submit-button"
 import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
+import { TicketCreatedToast } from "@/components/tickets/ticket-created-toast"
 
 type SearchParams = {
   status?: "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
@@ -31,6 +32,7 @@ type SearchParams = {
   page?: string
   assignedTo?: "me" | "any" | "unassigned"
   view?: "list" | "kanban"
+  created?: string
 }
 
 export default async function TicketsPage({
@@ -96,9 +98,11 @@ export default async function TicketsPage({
   const pageCount = Math.max(1, Math.ceil(totalCount / take))
   const countBy = (s: string) => stats.find((x) => x.status === s)?._count.status || 0
   const view = params.view === "kanban" ? "kanban" : "list"
+  const created = params["created"] === "1"
 
   return (
     <div className="space-y-8">
+      <TicketCreatedToast created={created} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">Chamados</h1>

@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth/config"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { TicketPriority, TicketStatus } from "@prisma/client"
 
@@ -66,6 +67,7 @@ export async function createTicket(formData: FormData) {
   }
 
   revalidatePath("/tickets")
+  redirect("/tickets?assignedTo=any&created=1")
 }
 
 const TicketCommentSchema = z.object({

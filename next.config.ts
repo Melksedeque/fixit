@@ -1,14 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+  experimental: {
+    proxyClientMaxBodySize: "15mb",
+  },
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '*.public.blob.vercel-storage.com',
-        port: '',
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+        port: "",
       },
     ],
   },

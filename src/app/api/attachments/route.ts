@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth/config"
 import { del, put } from "@vercel/blob"
 
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
+
 export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user) {
@@ -13,6 +15,10 @@ export async function POST(request: Request) {
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Arquivo inválido" }, { status: 400 })
+  }
+
+   if (file.size > MAX_FILE_SIZE_BYTES) {
+    return NextResponse.json({ error: "Arquivo muito grande (máximo 5MB por arquivo)" }, { status: 413 })
   }
 
   const safeName =
@@ -54,4 +60,3 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json({ ok: true })
 }
-

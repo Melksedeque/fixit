@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface TicketAttachmentsAreaProps {
   name?: string
@@ -24,6 +25,7 @@ type AttachmentItem = {
 
 export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachmentsAreaProps) {
   const [items, setItems] = useState<AttachmentItem[]>([])
+  const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
   const createIdForFile = (file: File) => {
     return `${file.name}-${file.size}-${file.lastModified}-${file.type}-${Math.random()
@@ -128,10 +130,25 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected: (fileRejections) => {
+      fileRejections.forEach((rejection) => {
+        const sizeMb = rejection.file.size / (1024 * 1024)
+        console.warn("[attachments] file rejected (too large)", {
+          name: rejection.file.name,
+          size: rejection.file.size,
+        })
+        toast.error(
+          `Arquivo "${rejection.file.name}" é muito grande (${sizeMb.toFixed(
+            1,
+          )}MB). Máximo 5MB por arquivo.`,
+        )
+      })
+    },
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp']
+      "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"],
     },
     multiple: true,
+    maxSize: MAX_FILE_SIZE_BYTES,
     noClick: false,
     noKeyboard: false,
   })
@@ -220,7 +237,7 @@ export function TicketAttachmentsArea({ name = "attachments" }: TicketAttachment
           {isDragActive ? "Solte as imagens aqui..." : "Arraste e solte imagens aqui"}
         </p>
         <p className="mt-1 text-[11px] text-muted-foreground">
-          ou clique para selecionar arquivos do seu computador.
+          ou clique para selecionar arquivos do seu computador. Máximo 5MB por arquivo.
         </p>
         {items.length > 0 && (
           <p className="mt-2 text-[11px] text-muted-foreground">
