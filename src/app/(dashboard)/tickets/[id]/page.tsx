@@ -4,7 +4,6 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe } from "@/app/(dashboard)/tickets/actions"
 import Link from "next/link"
 import Image from "next/image"
@@ -122,9 +121,7 @@ export default async function TicketDetailPage({
           </div>
           {canEditTicket && (
             <form
-              action={async (formData) => {
-                await updateTicket(ticket.id, formData)
-              }}
+              action={updateTicket.bind(null, ticket.id)}
               className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4"
             >
               <input
@@ -155,18 +152,19 @@ export default async function TicketDetailPage({
               </Button>
             </form>
           )}
-          <form action={async (formData) => { await updateStatus(ticket.id, formData) }} className="max-w-xs">
-            <Select name="status" defaultValue={String(ticket.status)}>
-              <SelectTrigger aria-label="Status">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="OPEN">Aberto</SelectItem>
-                <SelectItem value="IN_PROGRESS">Em Andamento</SelectItem>
-                <SelectItem value="DONE">Concluído</SelectItem>
-                <SelectItem value="CANCELLED">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
+          <form action={updateStatus.bind(null, ticket.id)} className="max-w-xs">
+            <select
+              name="status"
+              defaultValue={String(ticket.status)}
+              aria-label="Status"
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="OPEN">Aberto</option>
+              <option value="IN_PROGRESS">Em Andamento</option>
+              <option value="WAITING">Aguardando</option>
+              <option value="DONE">Concluído</option>
+              <option value="CANCELLED">Cancelado</option>
+            </select>
             <Button type="submit" variant="soft-edit" className="mt-2">Atualizar Status</Button>
           </form>
         </CardContent>
@@ -212,9 +210,7 @@ export default async function TicketDetailPage({
         </CardHeader>
         <CardContent>
           <form
-            action={async (formData) => {
-              await addComment(ticket.id, formData)
-            }}
+            action={addComment.bind(null, ticket.id)}
             className="space-y-3"
           >
             <textarea

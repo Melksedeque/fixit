@@ -75,6 +75,51 @@ export async function createTicket(formData: FormData) {
     })
   }
 
+  if (data.assignedToId) {
+    try {
+      const target = await prisma.user.findUnique({
+        where: { id: data.assignedToId || undefined },
+        select: { email: true, name: true },
+      })
+      const ticketInfo = await prisma.ticket.findUnique({
+        where: { id: ticket.id },
+        select: { title: true, id: true },
+      })
+      if (target?.email && ticketInfo?.title) {
+        const link = buildTicketLink(ticket.id)
+        const shortId = ticket.id.slice(0, 6)
+        const subject = `[Fixit] Novo chamado atribuído — ${ticketInfo.title}`
+        const text = [
+          `Olá${target.name ? ` ${target.name}` : ""},`,
+          "",
+          "Um chamado foi atribuído a você:",
+          `Título: "${ticketInfo.title}"`,
+          `ID: ${shortId}`,
+          `Acesse para iniciar: ${link}`,
+          "",
+          "Obrigado,",
+          "Fixit",
+        ].join("\n")
+        const html = [
+          `<p>Olá${target.name ? ` ${target.name}` : ""},</p>`,
+          `<p>Um chamado foi atribuído a você:</p>`,
+          `<ul>`,
+          `<li><strong>Título:</strong> ${ticketInfo.title}</li>`,
+          `<li><strong>ID:</strong> <code>${shortId}</code></li>`,
+          `</ul>`,
+          `<p><a href="${link}">Clique aqui para abrir o chamado</a></p>`,
+          `<p>Obrigado,<br/>Fixit</p>`,
+        ].join("")
+        await sendEmail({
+          to: target.email,
+          subject,
+          text,
+          html,
+        })
+      }
+    } catch {}
+  }
+
   revalidatePath("/tickets")
   try {
     getBus().emit("tickets:event", { type: "ticket:created", ticketId: ticket.id })
