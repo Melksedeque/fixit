@@ -94,7 +94,7 @@ export function LoginForm() {
         <div className="w-full bg-card border border-border rounded-lg shadow-lg p-6 relative z-20">
             <div className="space-y-2 text-center mb-6">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">Acessar Sistema</h1>
-                <p className="text-sm text-muted-foreground">
+                <p id="login-step-desc" className="text-sm text-muted-foreground">
                 {step === "email" ? "Qual é o seu e-mail?" : "Agora, sua senha secreta"}
                 </p>
             </div>
@@ -108,6 +108,7 @@ export function LoginForm() {
                                 type="email"
                                 {...register("email")}
                                 disabled={loading}
+                                aria-describedby="login-step-desc"
                                 onKeyDown={(e) => {
                                     if(e.key === 'Enter') {
                                         e.preventDefault()
@@ -116,7 +117,7 @@ export function LoginForm() {
                                 }}
                             />
                             {errors.email && (
-                                <p className="text-xs text-destructive">{errors.email.message}</p>
+                                <p className="text-xs text-destructive" role="alert" aria-live="polite">{errors.email.message}</p>
                             )}
                         </div>
                         <Button 
@@ -148,6 +149,7 @@ export function LoginForm() {
                               <button
                                 type="button"
                                 aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                                aria-pressed={showPassword}
                                 onClick={() => setShowPassword((prev) => !prev)}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                 disabled={loading}
@@ -156,12 +158,12 @@ export function LoginForm() {
                               </button>
                             </div>
                             {errors.password && (
-                                <p className="text-xs text-destructive">{errors.password.message}</p>
+                                <p className="text-xs text-destructive" role="alert" aria-live="polite">{errors.password.message}</p>
                             )}
                         </div>
                         
                         {error && (
-                            <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                            <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md" role="alert" aria-live="assertive">
                                 {error}
                             </div>
                         )}
@@ -194,7 +196,7 @@ export function LoginForm() {
                  
                  {/* Email Error only for step 1 (shown below button usually, or handled above) */}
                  {step === "email" && error && (
-                    <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                    <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md" role="alert" aria-live="assertive">
                         {error}
                     </div>
                 )}

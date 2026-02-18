@@ -8,6 +8,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/login',
   },
+  session: {
+    strategy: 'jwt',
+    maxAge: 60 * 60,
+  },
   callbacks: {
     async session({ session, token }) {
       if (token.sub && session.user) {
