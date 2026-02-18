@@ -60,10 +60,15 @@ export default async function TicketsPage({
     ]
   }
   const assignedPref = params.assignedTo ?? "me"
-  if (assignedPref === "me") {
-    where.assignedToId = session.user.id
-  } else if (assignedPref === "unassigned") {
-    where.assignedToId = null
+  const isUser = session.user.role === "USER"
+  if (isUser) {
+    where.customerId = session.user.id
+  } else {
+    if (assignedPref === "me") {
+      where.assignedToId = session.user.id
+    } else if (assignedPref === "unassigned") {
+      where.assignedToId = null
+    }
   }
 
   const [tickets, totalCount, stats, techs, avgResolution, avgByTech, slaAvg] = await Promise.all([
@@ -348,18 +353,20 @@ export default async function TicketsPage({
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-[200px] shrink-0">
-              <Select name="assignedTo" defaultValue={assignedPref}>
-                <SelectTrigger aria-label="Responsável" className="w-full">
-                  <SelectValue placeholder="Responsável" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="me">Atribuídos a mim</SelectItem>
-                  <SelectItem value="any">Qualquer responsável</SelectItem>
-                  <SelectItem value="unassigned">Sem responsável</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {isUser ? null : (
+              <div className="w-[200px] shrink-0">
+                <Select name="assignedTo" defaultValue={assignedPref}>
+                  <SelectTrigger aria-label="Responsável" className="w-full">
+                    <SelectValue placeholder="Responsável" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="me">Atribuídos a mim</SelectItem>
+                    <SelectItem value="any">Qualquer responsável</SelectItem>
+                    <SelectItem value="unassigned">Sem responsável</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="flex items-center gap-2 shrink-0">
               <Button asChild variant="ghost">
                 <Link href="/tickets" aria-label="Limpar filtros">Limpar</Link>

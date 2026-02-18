@@ -42,9 +42,11 @@
 - [x] Gráficos por status e período
 
 ## Permissões
-- [ ] ADMIN: criar/editar/atribuir/fechar/cancelar
-- [ ] USER: criar/comentar/visualizar próprios chamados
-- [ ] Gate nas server actions e filtros coerentes com papel
+## Permissões
+- [x] ADMIN: criar/editar/atribuir/fechar/cancelar
+- [x] TECHNICIAN: visualizar/atualizar status/atribuir/fechar/cancelar
+- [x] USER: criar/comentar/visualizar próprios chamados/atualizar próprios chamados
+- [x] Gate nas server actions e filtros coerentes com papel
 
 ## Notificações e Tempo Real
 - [ ] Websocket para atualização de lista/kanban
