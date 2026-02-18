@@ -19,18 +19,14 @@ import { LogOut, Settings2, User2 } from "lucide-react"
 import { User } from "next-auth"
 import { signOut } from "next-auth/react"
 import Link from "next/link"
+import { getUserInitials } from "@/lib/utils/user"
 
 interface UserNavProps {
   user: User
 }
 
 export function UserNav({ user }: UserNavProps) {
-  const initials = user?.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .substring(0, 2) || "U"
+  const initials = getUserInitials(user?.name)
 
   return (
     <DropdownMenu>

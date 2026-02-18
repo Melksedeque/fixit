@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
+import { put, del } from "@vercel/blob"
 
 const UserSchema = z.object({
   name: z.string().min(3),
@@ -14,6 +15,8 @@ const UserSchema = z.object({
   whatsapp: z.string().optional(),
   removeAvatar: z.boolean().optional(),
 })
+
+const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
 
 export async function createUser(_prevState: unknown, formData: FormData) {
   const session = await auth()
@@ -42,6 +45,28 @@ export async function createUser(_prevState: unknown, formData: FormData) {
 
   const passwordHash = await bcrypt.hash(data.password, 10)
 
+  let avatarUrl: string | null = null
+  const avatarFile = formData.get("avatar")
+
+  if (avatarFile instanceof File && avatarFile.size > 0) {
+    if (avatarFile.size > MAX_AVATAR_SIZE_BYTES) {
+      return { error: "Imagem muito grande. Tamanho máximo de 5MB." }
+    }
+
+    const safeName =
+      avatarFile.name.replace(/[^a-zA-Z0-9.\-]/g, "_") ||
+      `avatar-${Date.now().toString(16)}`
+    const pathname = `users/avatars/${Date.now()}-${safeName}`
+
+    const blob = await put(pathname, avatarFile, {
+      access: "public",
+      addRandomSuffix: true,
+      contentType: avatarFile.type || "image/jpeg",
+    })
+
+    avatarUrl = blob.url
+  }
+
   try {
     await prisma.user.create({
       data: {
@@ -50,6 +75,7 @@ export async function createUser(_prevState: unknown, formData: FormData) {
         password: passwordHash,
         role: data.role,
         whatsapp: data.whatsapp || null,
+        avatar: avatarUrl,
       },
     })
 
@@ -98,8 +124,40 @@ export async function updateUser(
     passwordToSave = await bcrypt.hash(data.password, 10)
   }
 
-  const avatarValue =
-    data.removeAvatar === true ? null : existing.avatar
+  let avatarValue = existing.avatar
+  const avatarFile = formData.get("avatar")
+
+  if (data.removeAvatar === true) {
+    avatarValue = null
+    if (existing.avatar) {
+      try {
+        await del(existing.avatar)
+      } catch {}
+    }
+  } else if (avatarFile instanceof File && avatarFile.size > 0) {
+    if (avatarFile.size > MAX_AVATAR_SIZE_BYTES) {
+      return { error: "Imagem muito grande. Tamanho máximo de 5MB." }
+    }
+
+    const safeName =
+      avatarFile.name.replace(/[^a-zA-Z0-9.\-]/g, "_") ||
+      `avatar-${Date.now().toString(16)}`
+    const pathname = `users/avatars/${Date.now()}-${safeName}`
+
+    const blob = await put(pathname, avatarFile, {
+      access: "public",
+      addRandomSuffix: true,
+      contentType: avatarFile.type || "image/jpeg",
+    })
+
+    avatarValue = blob.url
+
+    if (existing.avatar) {
+      try {
+        await del(existing.avatar)
+      } catch {}
+    }
+  }
 
   try {
     await prisma.user.update({
