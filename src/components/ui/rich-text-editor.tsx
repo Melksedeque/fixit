@@ -29,7 +29,7 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
         matchVisual: false,
       },
     },
-    formats: ["bold", "italic", "underline", "list", "bullet", "ordered", "link"],
+    formats: ["bold", "italic", "underline", "list", "link"],
   })
 
   useEffect(() => {
@@ -98,8 +98,8 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
         </div>
       )}
       <div className={cn("rounded-md border border-border bg-background")}>
-        <div className="relative min-h-28">
-          <div ref={quillRef} className="min-h-28" />
+        <div className="relative min-h-32">
+          <div ref={quillRef} className="min-h-32" />
         </div>
       </div>
       <input type="hidden" name={name} value={value} />
