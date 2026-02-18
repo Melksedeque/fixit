@@ -36,7 +36,7 @@
 - [x] Comentários com tipos (TEXT/IMAGE/VIDEO/AUDIO) e preview
 
 ## Métricas e Dashboard
-- [ ] Contadores por status incluindo WAITING/CLOSED
+- [x] Contadores por status incluindo WAITING/CLOSED
 - [ ] Tempo médio de resolução (por técnico e geral)
 - [ ] SLA médio e chamados fora do SLA
 - [ ] Gráficos por status e período
