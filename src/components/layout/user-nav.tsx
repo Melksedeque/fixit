@@ -38,7 +38,7 @@ export function UserNav({ user }: UserNavProps) {
               </span>
               <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-blue-700/60 bg-blue-900/60 px-2 py-0.5">
                 <Shield
-                  className="text-blue-400"
+                  className="text-blue-300"
                   style={{ width: 12, height: 12 }}
                 />
                 <span className="text-[10px] font-medium text-blue-200">
