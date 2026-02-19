@@ -29,20 +29,19 @@ export function UserNav({ user }: UserNavProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative h-10 rounded-full px-2 flex items-center gap-2"
+          className="relative h-10 rounded-full px-2 flex items-center gap-2 hover:bg-transparent"
         >
           <div className="flex items-center gap-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-end">
               <span className="text-sm font-semibold leading-tight">
                 {user?.name}
               </span>
-              <span className="mt-0.5 inline-flex items-center gap-1 rounded-full border border-blue-700/60 bg-blue-900/60 px-2 py-0.5">
-                <Shield className="h-3 w-3 text-blue-200" />
-                <span className="text-[11px] font-medium text-blue-50">
+              <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-blue-700/60 bg-blue-900/60 px-2 py-0.5">
+                <Shield
+                  className="text-blue-300"
+                  style={{ width: 12, height: 12 }}
+                />
+                <span className="text-[10px] font-medium text-blue-200">
                   {user?.role === 'ADMIN'
                     ? 'Administrador'
                     : user?.role === 'TECH'
@@ -51,6 +50,10 @@ export function UserNav({ user }: UserNavProps) {
                 </span>
               </span>
             </div>
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
           </div>
         </Button>
       </DropdownMenuTrigger>
@@ -88,7 +91,7 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="rounded-none cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/15 hover:text-red-300 focus:bg-red-500/15"
+          className="rounded-none cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/15 hover:text-red-300 focus:bg-red-500/15 focus:text-red-300"
           onClick={() => signOut({ callbackUrl: '/login' })}
         >
           <span className="inline-flex items-center justify-center rounded-md bg-red-500/10 border border-red-500/20 p-1 mr-2">
