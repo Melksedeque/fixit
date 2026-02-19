@@ -1,44 +1,16 @@
 'use client'
 
 import { useFormState } from 'react-dom'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { changePassword } from './actions'
+import { changePassword, type ChangePasswordState } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-const initialState = {
-  error: undefined as string | undefined,
+const initialState: ChangePasswordState = {
+  error: undefined,
 }
 
 export default function ChangePasswordPage() {
-  const router = useRouter()
-  const { data: session, status } = useSession()
   const [state, formAction] = useFormState(changePassword, initialState)
-
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!session?.user) {
-      router.replace('/login')
-      return
-    }
-    if (!session.user.mustChangePassword) {
-      router.replace('/dashboard')
-    }
-  }, [session, status, router])
-
-  useEffect(() => {
-    if (!state || state.error) return
-    if (status === 'authenticated') {
-      router.push('/dashboard')
-      router.refresh()
-    }
-  }, [state, router, status])
-
-  if (status === 'loading') {
-    return null
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -82,4 +54,3 @@ export default function ChangePasswordPage() {
     </div>
   )
 }
-
