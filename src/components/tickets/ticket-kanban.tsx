@@ -217,14 +217,21 @@ export function TicketKanban({
                 </div>
               ) : (
                 columnTickets.map((ticket) => (
-                  <Link key={ticket.id} href={`/tickets/${ticket.id}`} className="block">
+                  <Link
+                    key={ticket.id}
+                    href={`/tickets/${ticket.id}`}
+                    className="block"
+                  >
                     <Card
                       draggable={isTechOrAdmin}
                       onDragStart={
                         !isTechOrAdmin
                           ? undefined
                           : (event) => {
-                              event.dataTransfer.setData('text/plain', ticket.id)
+                              event.dataTransfer.setData(
+                                'text/plain',
+                                ticket.id
+                              )
                               setDraggedId(ticket.id)
                             }
                       }
