@@ -32,7 +32,7 @@ export async function sendEmail(payload: EmailPayload) {
 
   const resend = new Resend(apiKey)
   const usesUnverifiedDomain = from.includes('vercel.app')
-  const safeFrom = usesUnverifiedDomain ? 'Fixit <onboarding@resend.dev>' : from
+  const safeFrom = usesUnverifiedDomain ? 'Fixit - Sistema de Chamados <onboarding@resend.dev>' : from
 
   try {
     await resend.emails.send({
@@ -90,18 +90,18 @@ export async function sendWelcomeEmail(user: BasicUser) {
   const text = [
     greeting,
     '',
-    'Sua conta na Fixit foi criada com sucesso.',
+    'Sua conta na Fixit - Sistema de Chamados foi criada com sucesso.',
     'A partir de agora você pode abrir chamados, acompanhar o andamento e interagir com a equipe técnica.',
     '',
     'Obrigado,',
-    'Fixit',
+    'Fixit - Sistema de Chamados',
   ].join('\n')
 
   const html = [
     `<p>${greeting}</p>`,
     `<p>Sua conta na <strong>Fixit</strong> foi criada com sucesso.</p>`,
     `<p>A partir de agora você pode abrir chamados, acompanhar o andamento e interagir com a equipe técnica.</p>`,
-    `<p>Obrigado,<br/>Fixit</p>`,
+    `<p>Obrigado,<br/>Fixit - Sistema de Chamados</p>`,
   ].join('')
 
   await sendEmail({
@@ -130,7 +130,7 @@ export async function sendTicketAssignedEmail(
     `Acesse para iniciar: ${link}`,
     '',
     'Obrigado,',
-    'Fixit',
+    'Fixit - Sistema de Chamados',
   ].join('\n')
 
   const html = [
@@ -141,7 +141,7 @@ export async function sendTicketAssignedEmail(
     `<li><strong>ID:</strong> <code>${shortId}</code></li>`,
     `</ul>`,
     `<p><a href="${link}">Clique aqui para abrir o chamado</a></p>`,
-    `<p>Obrigado,<br/>Fixit</p>`,
+    `<p>Obrigado,<br/>Fixit - Sistema de Chamados</p>`,
   ].join('')
 
   await sendEmail({
@@ -171,7 +171,7 @@ export async function sendTicketBroadcastToTechs(
     `Acesse o sistema para assumir o chamado: ${link}`,
     '',
     'Obrigado,',
-    'Fixit',
+    'Fixit - Sistema de Chamados',
   ].join('\n')
 
   const html = [
@@ -182,7 +182,7 @@ export async function sendTicketBroadcastToTechs(
     `<li><strong>ID:</strong> <code>${shortId}</code></li>`,
     `</ul>`,
     `<p><a href="${link}">Clique aqui para acessar o chamado</a></p>`,
-    `<p>Obrigado,<br/>Fixit</p>`,
+    `<p>Obrigado,<br/>Fixit - Sistema de Chamados</p>`,
   ].join('')
 
   for (const tech of techs) {
@@ -211,14 +211,14 @@ export async function sendTicketClosedEmail(
     `Você pode conferir os detalhes e o histórico de atendimento em: ${link}`,
     '',
     'Atenciosamente,',
-    'Fixit',
+    'Fixit - Sistema de Chamados',
   ].join('\n')
 
   const html = [
     `<p>${greeting}</p>`,
     `<p>O chamado <strong>"${ticket.title}"</strong> (ID: <code>${shortId}</code>) foi concluído.</p>`,
     `<p><a href="${link}">Clique aqui para ver os detalhes do chamado</a></p>`,
-    `<p>Atenciosamente,<br/>Fixit</p>`,
+    `<p>Atenciosamente,<br/>Fixit - Sistema de Chamados</p>`,
   ].join('')
 
   await sendEmail({
@@ -248,7 +248,7 @@ export async function sendPasswordResetEmail(
     'Se você não solicitou essa alteração, ignore este e-mail.',
     '',
     'Atenciosamente,',
-    'Fixit',
+    'Fixit - Sistema de Chamados',
   ].join('\n')
 
   const html = [
@@ -257,7 +257,7 @@ export async function sendPasswordResetEmail(
     `<p><strong>Senha temporária:</strong> <code>${temporaryPassword}</code></p>`,
     `<p>Use essa senha para acessar o sistema e, em seguida, defina uma nova senha de sua preferência.</p>`,
     `<p>Se você não solicitou essa alteração, ignore este e-mail.</p>`,
-    `<p>Atenciosamente,<br/>Fixit</p>`,
+    `<p>Atenciosamente,<br/>Fixit - Sistema de Chamados</p>`,
   ].join('')
 
   await sendEmail({
@@ -311,7 +311,7 @@ export async function sendSlaReminderEmail(
     `<li><strong>Prazo previsto:</strong> ${deadlineStr}</li>`,
     `</ul>`,
     `<p><a href="${link}">Clique aqui para acessar o chamado</a></p>`,
-    `<p>Obrigado,<br/>Fixit</p>`,
+    `<p>Obrigado,<br/>Fixit - Sistema de Chamados</p>`,
   ].join('')
 
   await sendEmail({
