@@ -4,14 +4,14 @@ import { auth } from '@/lib/auth/config'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
-type ChangePasswordState = {
+export type ChangePasswordState = {
   error?: string
 }
 
 export async function changePassword(
-  _prevState: ChangePasswordState | undefined,
+  _prevState: ChangePasswordState,
   formData: FormData
-): Promise<ChangePasswordState | void> {
+): Promise<ChangePasswordState> {
   const session = await auth()
   if (!session?.user) {
     return { error: 'Não autorizado.' }
@@ -46,6 +46,5 @@ export async function changePassword(
     },
   })
 
-  return
+  return { error: undefined }
 }
-
