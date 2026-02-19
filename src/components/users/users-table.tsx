@@ -91,6 +91,13 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
         )}
       </div>
 
+      {!isAdmin && (
+        <p className="text-sm text-muted-foreground">
+          Você pode visualizar a lista de usuários. Para criar, editar ou
+          excluir usuários, é necessário ser administrador.
+        </p>
+      )}
+
       <div className="rounded-lg border-none bg-(--card-surface) overflow-hidden">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-(--card-surface)/95 backdrop-blur supports-backdrop-filter:bg-(--card-surface)/80">
