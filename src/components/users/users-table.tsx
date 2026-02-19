@@ -91,7 +91,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
         )}
       </div>
 
-      <div className="rounded-md border border-border bg-(--card-surface) overflow-hidden">
+      <div className="rounded-lg border-none bg-(--card-surface) overflow-hidden">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-(--card-surface)/95 backdrop-blur supports-backdrop-filter:bg-(--card-surface)/80">
             <TableRow className="border-border">
@@ -106,7 +106,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
             {users.map((user) => (
               <TableRow 
                 key={user.id} 
-                className="cursor-pointer hover:bg-muted/40 transition-colors duration-200 ease-out odd:bg-muted/30"
+                className="cursor-pointer hover:bg-primary/5 transition-colors duration-200 ease-out even:bg-muted"
                 onClick={() => router.push(`/users/${user.id}`)}
               >
                 <TableCell className="p-5">
