@@ -1,9 +1,18 @@
+import { auth } from '@/lib/auth/config'
+import { redirect } from 'next/navigation'
 import { Logo } from '@/components/ui/logo'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth()
+  if (session?.user) {
+    if ((session.user as any).mustChangePassword) {
+      redirect('/change-password')
+    }
+    redirect('/dashboard')
+  }
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
       <main className="flex flex-col items-center gap-8 text-center p-8 max-w-2xl">
