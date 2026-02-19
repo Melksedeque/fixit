@@ -12,7 +12,7 @@ import { LogIn, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { checkEmail } from '@/app/login/actions'
 
 const loginSchema = z.object({
-  email: z.string().email('E-mail inválido'),
+  email: z.email('E-mail inválido'),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
 })
 
