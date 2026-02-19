@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LogIn, ArrowRight, Eye, EyeOff } from 'lucide-react'
-import { checkEmail, requestPasswordReset } from '@/app/login/actions'
+import { checkEmail } from '@/app/login/actions'
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -83,13 +83,23 @@ export function LoginForm() {
     setResetMessage(null)
 
     try {
-      const result = await requestPasswordReset(email)
+      const res = await fetch('/api/auth/password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const result = (await res.json()) as {
+        success?: boolean
+        error?: string
+      }
       if (result?.success) {
         setResetMessage(
           'Se o e-mail estiver cadastrado, enviamos uma senha temporária.'
         )
       } else if (result?.error) {
         setError(result.error)
+      } else {
+        setError('Não foi possível solicitar recuperação de senha.')
       }
     } catch {
       setError('Não foi possível solicitar recuperação de senha.')
@@ -226,7 +236,7 @@ export function LoginForm() {
 
               <button
                 type="button"
-                className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                className="cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:underline"
                 disabled={loading}
                 onClick={handlePasswordReset}
               >
