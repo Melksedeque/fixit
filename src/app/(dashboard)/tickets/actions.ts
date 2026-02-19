@@ -7,7 +7,14 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { Role, TicketPriority, TicketStatus } from '@prisma/client'
 import { getBus } from '@/lib/realtime/bus'
-import { sendEmail, buildTicketLink } from '@/lib/notifications/email'
+import {
+  buildTicketLink,
+  sendEmail,
+  sendTicketAssignedEmail,
+  sendTicketBroadcastToTechs,
+  sendTicketClosedEmail,
+  sendSlaReminderEmail,
+} from '@/lib/notifications/email'
 import sanitizeHtml from 'sanitize-html'
 
 const TicketCreateSchema = z.object({
@@ -65,7 +72,11 @@ export async function createTicket(formData: FormData) {
       deadlineForecast: data.deadlineForecast || null,
       customerId: userId,
     },
-    select: { id: true, status: true },
+    select: {
+      id: true,
+      status: true,
+      title: true,
+    },
   })
 
   const attachmentUrlsRaw = formData.getAll('attachmentUrls')
@@ -92,41 +103,33 @@ export async function createTicket(formData: FormData) {
         where: { id: data.assignedToId || undefined },
         select: { email: true, name: true },
       })
-      const ticketInfo = await prisma.ticket.findUnique({
-        where: { id: ticket.id },
-        select: { title: true, id: true },
+      if (target?.email) {
+        await sendTicketAssignedEmail(
+          { id: ticket.id, title: ticket.title },
+          {
+            name: target.name,
+            email: target.email,
+          }
+        )
+      }
+    } catch {}
+  } else {
+    try {
+      const techs = await prisma.user.findMany({
+        where: { role: 'TECH', email: { not: null } },
+        select: { email: true, name: true },
       })
-      if (target?.email && ticketInfo?.title) {
-        const link = buildTicketLink(ticket.id)
-        const shortId = ticket.id.slice(0, 6)
-        const subject = `[Fixit] Novo chamado atribuído — ${ticketInfo.title}`
-        const text = [
-          `Olá${target.name ? ` ${target.name}` : ''},`,
-          '',
-          'Um chamado foi atribuído a você:',
-          `Título: "${ticketInfo.title}"`,
-          `ID: ${shortId}`,
-          `Acesse para iniciar: ${link}`,
-          '',
-          'Obrigado,',
-          'Fixit',
-        ].join('\n')
-        const html = [
-          `<p>Olá${target.name ? ` ${target.name}` : ''},</p>`,
-          `<p>Um chamado foi atribuído a você:</p>`,
-          `<ul>`,
-          `<li><strong>Título:</strong> ${ticketInfo.title}</li>`,
-          `<li><strong>ID:</strong> <code>${shortId}</code></li>`,
-          `</ul>`,
-          `<p><a href="${link}">Clique aqui para abrir o chamado</a></p>`,
-          `<p>Obrigado,<br/>Fixit</p>`,
-        ].join('')
-        await sendEmail({
-          to: target.email,
-          subject,
-          text,
-          html,
-        })
+      const prepared = techs
+        .filter((t) => t.email)
+        .map((t) => ({
+          name: t.name,
+          email: t.email as string,
+        }))
+      if (prepared.length > 0) {
+        await sendTicketBroadcastToTechs(
+          { id: ticket.id, title: ticket.title },
+          prepared
+        )
       }
     } catch {}
   }
@@ -361,30 +364,13 @@ export async function updateStatus(ticketId: string, formData: FormData) {
         },
       })
       if (ticket?.customer?.email) {
-        const link = buildTicketLink(ticket.id)
-        const shortId = ticket.id.slice(0, 6)
-        const subject = `[Fixit] Chamado ${nextStatus === 'CLOSED' ? 'Fechado' : 'Cancelado'} — ${ticket.title}`
-        const text = [
-          `Olá${ticket.customer?.name ? ` ${ticket.customer.name}` : ''},`,
-          '',
-          `O chamado "${ticket.title}" (ID: ${shortId}) foi ${nextStatus === 'CLOSED' ? 'fechado' : 'cancelado'}.`,
-          `Acesse os detalhes: ${link}`,
-          '',
-          'Atenciosamente,',
-          'Fixit',
-        ].join('\n')
-        const html = [
-          `<p>Olá${ticket.customer?.name ? ` ${ticket.customer.name}` : ''},</p>`,
-          `<p>O chamado <strong>"${ticket.title}"</strong> (ID: <code>${shortId}</code>) foi ${nextStatus === 'CLOSED' ? 'fechado' : 'cancelado'}.</p>`,
-          `<p><a href="${link}">Clique aqui para ver os detalhes do chamado</a></p>`,
-          `<p>Atenciosamente,<br/>Fixit</p>`,
-        ].join('')
-        await sendEmail({
-          to: ticket.customer.email,
-          subject,
-          text,
-          html,
-        })
+        await sendTicketClosedEmail(
+          { id: ticket.id, title: ticket.title },
+          {
+            name: ticket.customer.name,
+            email: ticket.customer.email,
+          }
+        )
       }
     }
   } catch {}
@@ -527,36 +513,10 @@ export async function updateTicket(ticketId: string, formData: FormData) {
         select: { title: true, id: true },
       })
       if (target?.email && ticket?.title) {
-        const link = buildTicketLink(ticketId)
-        const shortId = ticket.id.slice(0, 6)
-        const subject = `[Fixit] Novo chamado atribuído — ${ticket.title}`
-        const text = [
-          `Olá${target.name ? ` ${target.name}` : ''},`,
-          '',
-          'Um chamado foi atribuído a você:',
-          `Título: "${ticket.title}"`,
-          `ID: ${shortId}`,
-          `Acesse para iniciar: ${link}`,
-          '',
-          'Obrigado,',
-          'Fixit',
-        ].join('\n')
-        const html = [
-          `<p>Olá${target.name ? ` ${target.name}` : ''},</p>`,
-          `<p>Um chamado foi atribuído a você:</p>`,
-          `<ul>`,
-          `<li><strong>Título:</strong> ${ticket.title}</li>`,
-          `<li><strong>ID:</strong> <code>${shortId}</code></li>`,
-          `</ul>`,
-          `<p><a href="${link}">Clique aqui para abrir o chamado</a></p>`,
-          `<p>Obrigado,<br/>Fixit</p>`,
-        ].join('')
-        await sendEmail({
-          to: target.email,
-          subject,
-          text,
-          html,
-        })
+        await sendTicketAssignedEmail(
+          { id: ticket.id, title: ticket.title },
+          { name: target.name, email: target.email }
+        )
       }
     } catch {}
   }
@@ -606,4 +566,78 @@ export async function assignTicketToMe(ticketId: string) {
   } catch {}
   revalidatePath('/tickets')
   revalidatePath(`/tickets/${ticketId}`)
+}
+
+export async function sendSlaReminders() {
+  const now = new Date()
+
+  const tickets = await prisma.ticket.findMany({
+    where: {
+      deadlineForecast: { not: null },
+      status: { notIn: ['DONE', 'CLOSED', 'CANCELLED'] },
+      assignedToId: { not: null },
+    },
+    select: {
+      id: true,
+      title: true,
+      deadlineForecast: true,
+      slaReminderOneDaySent: true,
+      slaReminderTwoHoursSent: true,
+      assignedTo: {
+        select: {
+          email: true,
+          name: true,
+        },
+      },
+    },
+  })
+
+  for (const ticket of tickets) {
+    if (!ticket.deadlineForecast) continue
+
+    const diffMs = ticket.deadlineForecast.getTime() - now.getTime()
+    const diffHours = diffMs / 3600000
+
+    if (
+      !ticket.slaReminderOneDaySent &&
+      diffHours <= 24 &&
+      diffHours > 2 &&
+      ticket.assignedTo?.email
+    ) {
+      await sendSlaReminderEmail(
+        { id: ticket.id, title: ticket.title },
+        {
+          name: ticket.assignedTo.name,
+          email: ticket.assignedTo.email,
+        },
+        ticket.deadlineForecast,
+        'ONE_DAY'
+      )
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { slaReminderOneDaySent: true },
+      })
+    }
+
+    if (
+      !ticket.slaReminderTwoHoursSent &&
+      diffHours <= 2 &&
+      diffHours > 0 &&
+      ticket.assignedTo?.email
+    ) {
+      await sendSlaReminderEmail(
+        { id: ticket.id, title: ticket.title },
+        {
+          name: ticket.assignedTo.name,
+          email: ticket.assignedTo.email,
+        },
+        ticket.deadlineForecast,
+        'TWO_HOURS'
+      )
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { slaReminderTwoHoursSent: true },
+      })
+    }
+  }
 }
