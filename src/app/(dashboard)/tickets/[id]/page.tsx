@@ -30,6 +30,10 @@ export default async function TicketDetailPage({
   const session = await auth()
   if (!session?.user) redirect("/login")
 
+  const isAdmin = session.user.role === "ADMIN"
+  const isTech = session.user.role === "TECH"
+  const isUser = session.user.role === "USER"
+
   const ticket = await prisma.ticket.findUnique({
     where: { id },
     select: {
@@ -50,12 +54,14 @@ export default async function TicketDetailPage({
     redirect("/tickets")
   }
 
-  const isAdmin = session.user.role === "ADMIN"
-  const isTech = session.user.role === "TECH"
   const isOwner = ticket.customerId === session.user.id
   const isAssignedTech = ticket.assignedTo?.id === session.user.id
   const isTechOrAdmin = isAdmin || isTech
   const canEditTicket = isAdmin || isOwner || (isTech && isAssignedTech)
+
+  if ((isUser && !isOwner) || (isTech && !isAssignedTech && !isAdmin)) {
+    redirect("/tickets")
+  }
 
   const [messages, histories, attachments] = await Promise.all([
     prisma.message.findMany({

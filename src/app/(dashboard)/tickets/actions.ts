@@ -407,11 +407,14 @@ export async function updateTicket(ticketId: string, formData: FormData) {
     throw new Error("Forbidden: cannot edit this ticket")
   }
 
+  const canEditBasicFields = isAdmin || isOwner || (isTech && isAssignedTech)
+  const canEditAdvancedFields = isAdmin || (isTech && isAssignedTech)
+
   await prisma.ticket.update({
     where: { id: ticketId },
     data: {
-      ...(data.title ? { title: data.title } : {}),
-      ...(data.description
+      ...(canEditBasicFields && data.title ? { title: data.title } : {}),
+      ...(canEditBasicFields && data.description
         ? {
             description: sanitizeHtml(data.description, {
               allowedTags: sanitizeHtml.defaults.allowedTags,
@@ -424,13 +427,17 @@ export async function updateTicket(ticketId: string, formData: FormData) {
             }),
           }
         : {}),
-      ...((isAdmin || isTech) && data.priority ? { priority: data.priority as TicketPriority } : {}),
-      ...(data.hasOwnProperty("assignedToId") ? { assignedToId: data.assignedToId || null } : {}),
-      ...(data.hasOwnProperty("deadlineForecast") ? { deadlineForecast: data.deadlineForecast || null } : {}),
+      ...(canEditAdvancedFields && data.priority ? { priority: data.priority as TicketPriority } : {}),
+      ...(canEditAdvancedFields && data.hasOwnProperty("assignedToId")
+        ? { assignedToId: data.assignedToId || null }
+        : {}),
+      ...(canEditAdvancedFields && data.hasOwnProperty("deadlineForecast")
+        ? { deadlineForecast: data.deadlineForecast || null }
+        : {}),
     },
   })
 
-  if ((isAdmin || isTech) && data.priority && data.priority !== prev.priority) {
+  if (canEditAdvancedFields && data.priority && data.priority !== prev.priority) {
     await prisma.ticketHistory.create({
       data: {
         ticketId,
@@ -442,7 +449,7 @@ export async function updateTicket(ticketId: string, formData: FormData) {
     })
   }
 
-  if (data.hasOwnProperty("assignedToId") && data.assignedToId !== prev.assignedToId) {
+  if (canEditAdvancedFields && data.hasOwnProperty("assignedToId") && data.assignedToId !== prev.assignedToId) {
     await prisma.ticketHistory.create({
       data: {
         ticketId,
