@@ -95,7 +95,14 @@ export async function updateUser(
   formData: FormData,
 ) {
   const session = await auth()
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (!session?.user) {
+    return { error: "Não autorizado" }
+  }
+
+  const isAdmin = session.user.role === "ADMIN"
+  const isSelf = session.user.id === userId
+
+  if (!isAdmin && !isSelf) {
     return { error: "Não autorizado" }
   }
 
@@ -166,7 +173,7 @@ export async function updateUser(
         name: data.name,
         email: data.email,
         password: passwordToSave,
-        role: data.role,
+        role: isAdmin ? data.role : existing.role,
         whatsapp: data.whatsapp || null,
         avatar: avatarValue,
       },

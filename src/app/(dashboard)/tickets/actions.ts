@@ -167,10 +167,15 @@ export async function addComment(ticketId: string, formData: FormData) {
   if (!ticket) throw new Error("Ticket not found")
   const isAdmin = session.user.role === "ADMIN"
   const isTech = session.user.role === "TECH"
+  const isUser = session.user.role === "USER"
   const isOwner = ticket.customerId === userId
   const isAssignedTech = ticket.assignedToId === userId
 
-  if (!isAdmin && !isTech && !isOwner && !isAssignedTech) {
+  if (isUser && !isOwner) {
+    throw new Error("Forbidden: cannot comment on this ticket")
+  }
+
+  if (!isAdmin && !isOwner && !(isTech && isAssignedTech)) {
     throw new Error("Forbidden: cannot comment on this ticket")
   }
 
@@ -209,10 +214,15 @@ export async function addAttachments(ticketId: string, formData: FormData) {
   if (!ticket) throw new Error("Ticket not found")
   const isAdmin = session.user.role === "ADMIN"
   const isTech = session.user.role === "TECH"
+  const isUser = session.user.role === "USER"
   const isOwner = ticket.customerId === userId
   const isAssignedTech = ticket.assignedToId === userId
 
-  if (!isAdmin && !isTech && !isOwner && !isAssignedTech) {
+  if (isUser && !isOwner) {
+    throw new Error("Forbidden: cannot add attachments to this ticket")
+  }
+
+  if (!isAdmin && !isOwner && !(isTech && isAssignedTech)) {
     throw new Error("Forbidden: cannot add attachments to this ticket")
   }
 
