@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Logo } from "@/components/ui/logo"
 import { AppIcon } from "@/components/ui/app-icon"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 
-const navItems = [
+const baseNavItems = [
   {
     title: "Dashboard",
     href: "/dashboard",
@@ -38,6 +39,29 @@ type SidebarProps = React.HTMLAttributes<HTMLDivElement>
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const role = session?.user?.role
+  const navItems = useMemo(() => {
+    if (role === "ADMIN") {
+      return baseNavItems
+    }
+    if (role === "TECH") {
+      return baseNavItems.filter(
+        item =>
+          item.href === "/dashboard" ||
+          item.href === "/tickets" ||
+          item.href === "/users",
+      )
+    }
+    if (role === "USER") {
+      return baseNavItems.filter(
+        item => item.href === "/dashboard" || item.href === "/tickets",
+      )
+    }
+    return baseNavItems.filter(
+      item => item.href === "/dashboard" || item.href === "/tickets",
+    )
+  }, [role])
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === "undefined") return false
     try {
@@ -121,6 +145,29 @@ export function Sidebar({ className }: SidebarProps) {
 
 export function MobileSidebar() {
     const pathname = usePathname()
+    const { data: session } = useSession()
+    const role = session?.user?.role
+    const navItems = useMemo(() => {
+      if (role === "ADMIN") {
+        return baseNavItems
+      }
+      if (role === "TECH") {
+        return baseNavItems.filter(
+          item =>
+            item.href === "/dashboard" ||
+            item.href === "/tickets" ||
+            item.href === "/users",
+        )
+      }
+      if (role === "USER") {
+        return baseNavItems.filter(
+          item => item.href === "/dashboard" || item.href === "/tickets",
+        )
+      }
+      return baseNavItems.filter(
+        item => item.href === "/dashboard" || item.href === "/tickets",
+      )
+    }, [role])
     const [open, setOpen] = useState(false)
 
     return (
