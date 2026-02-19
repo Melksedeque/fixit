@@ -7,21 +7,21 @@ type EmailPayload = {
   html?: string
 }
 
-export async function sendEmail(payload: EmailPayload) {
+export async function sendEmail(payload: EmailPayload): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM
   const replyTo = process.env.RESEND_REPLY_TO || from
 
-  if (!apiKey || !from) {
+  if (!apiKey) {
     console.warn(
-      '[email] missing RESEND_API_KEY or RESEND_FROM, skipping send',
+      '[email] missing RESEND_API_KEY, skipping send',
       {
         hasApiKey: Boolean(apiKey),
         hasFrom: Boolean(from),
         to: payload.to,
       }
     )
-    return
+    return false
   }
 
   console.log('[email] sendEmail called', {
@@ -31,10 +31,14 @@ export async function sendEmail(payload: EmailPayload) {
   })
 
   const resend = new Resend(apiKey)
-  const usesUnverifiedDomain = from.includes('vercel.app')
-  const safeFrom = usesUnverifiedDomain
-    ? 'Fixit - Sistema de Chamados <onboarding@resend.dev>'
-    : from
+  const usesUnverifiedDomain =
+    (from && from.includes('vercel.app')) || !from || from.trim() === ''
+  const safeFrom =
+    usesUnverifiedDomain && !from
+      ? 'Fixit - Sistema de Chamados <onboarding@resend.dev>'
+      : usesUnverifiedDomain
+        ? 'Fixit - Sistema de Chamados <onboarding@resend.dev>'
+        : from!
 
   try {
     await resend.emails.send({
@@ -59,12 +63,14 @@ export async function sendEmail(payload: EmailPayload) {
         }
       )
     }
+    return true
   } catch (error) {
     console.error('[email] send failed', {
       error: String(error),
       to: payload.to,
       subject: payload.subject,
     })
+    return false
   }
 }
 
@@ -84,7 +90,7 @@ type BasicTicket = {
   title: string
 }
 
-export async function sendWelcomeEmail(user: BasicUser) {
+export async function sendWelcomeEmail(user: BasicUser): Promise<boolean> {
   const shortName = user.name?.split(' ')[0] || ''
   const greeting = shortName ? `Olá ${shortName},` : 'Olá,'
 
@@ -106,7 +112,7 @@ export async function sendWelcomeEmail(user: BasicUser) {
     `<p>Obrigado,<br/>Fixit - Sistema de Chamados</p>`,
   ].join('')
 
-  await sendEmail({
+  return await sendEmail({
     to: user.email,
     subject,
     text,

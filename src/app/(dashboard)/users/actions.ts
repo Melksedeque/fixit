@@ -81,11 +81,19 @@ export async function createUser(_prevState: unknown, formData: FormData) {
     })
 
     try {
-      await sendWelcomeEmail({
+      const emailSent = await sendWelcomeEmail({
         name: created.name,
         email: created.email,
       })
-    } catch {}
+      if (!emailSent) {
+        console.warn('[users] welcome email was not sent', {
+          userId: created.id,
+          email: created.email,
+        })
+      }
+    } catch {
+      console.error('[users] welcome email threw unexpectedly')
+    }
 
     revalidatePath('/users')
     return { success: true }
