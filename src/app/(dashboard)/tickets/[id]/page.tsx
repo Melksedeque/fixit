@@ -21,10 +21,8 @@ import { Download, Eye, Paperclip, Pencil, Save, Send } from "lucide-react"
 
 export default async function TicketDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams?: { mp?: string }
 }) {
   const { id } = await params
   const session = await auth()
