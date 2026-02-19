@@ -3,6 +3,7 @@
 import { auth } from '@/lib/auth/config'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { redirect } from 'next/navigation'
 
 export type ChangePasswordState = {
   error?: string
@@ -46,5 +47,5 @@ export async function changePassword(
     },
   })
 
-  return { error: undefined }
+  redirect('/dashboard')
 }
