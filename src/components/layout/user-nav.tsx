@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, Settings2, User2 } from 'lucide-react'
+import { LogOut, Settings2, Shield, User2 } from 'lucide-react'
 import { User } from 'next-auth'
 import { signOut } from 'next-auth/react'
 import Link from 'next/link'
@@ -27,11 +27,31 @@ export function UserNav({ user }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+        <Button
+          variant="ghost"
+          className="relative h-10 rounded-full px-2 flex items-center gap-2"
+        >
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-semibold leading-tight">
+                {user?.name}
+              </span>
+              <span className="mt-0.5 inline-flex items-center gap-1 rounded-full border border-blue-700/60 bg-blue-900/60 px-2 py-0.5">
+                <Shield className="h-3 w-3 text-blue-200" />
+                <span className="text-[11px] font-medium text-blue-50">
+                  {user?.role === 'ADMIN'
+                    ? 'Administrador'
+                    : user?.role === 'TECH'
+                      ? 'Técnico'
+                      : 'Usuário'}
+                </span>
+              </span>
+            </div>
+          </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
