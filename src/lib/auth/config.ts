@@ -39,9 +39,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.image = dbUser.avatar
       }
 
-       if (typeof dbUser?.mustChangePassword === 'boolean') {
-         ;(session.user as any).mustChangePassword = dbUser.mustChangePassword
-       }
+      if (typeof dbUser?.mustChangePassword === 'boolean') {
+        ;(session.user as any).mustChangePassword = dbUser.mustChangePassword
+      }
 
       return session
     },
