@@ -140,23 +140,7 @@ export function Sidebar({ className, userRole }: SidebarProps) {
               )}
             </Link>
           </div>
-          {!collapsed && userRole && (
-            <div className="mb-4">
-              <p className="text-[11px] uppercase tracking-wide text-blue-300/80">
-                Acesso
-              </p>
-              <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-blue-700/60 bg-blue-900/60 px-2 py-1">
-                <Shield className="h-3 w-3 text-blue-200" />
-                <span className="text-[11px] font-medium text-blue-50">
-                  {userRole === 'ADMIN'
-                    ? 'Administrador'
-                    : userRole === 'TECH'
-                      ? 'Técnico'
-                      : 'Usuário'}
-                </span>
-              </div>
-            </div>
-          )}
+          {!collapsed && <div className="mb-4" />}
           <div className="space-y-1">
             {navItems.map((item) => (
               <Button
@@ -254,16 +238,16 @@ export function MobileSidebar({ userRole }: MobileSidebarProps) {
             <Logo width={100} className="brightness-0 invert" />
           </SheetTitle>
           {userRole && (
-            <p className="mt-1 text-xs text-blue-100/80">
-              Acesso:{' '}
-              <span className="font-medium">
+            <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-blue-700/60 bg-blue-900/60 px-2 py-1">
+              <Shield className="h-3 w-3 text-blue-200" />
+              <span className="text-[11px] font-medium text-blue-50">
                 {userRole === 'ADMIN'
                   ? 'Administrador'
                   : userRole === 'TECH'
                     ? 'Técnico'
                     : 'Usuário'}
               </span>
-            </p>
+            </div>
           )}
         </SheetHeader>
         <div className="px-3 py-4">
