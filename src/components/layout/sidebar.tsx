@@ -10,7 +10,6 @@ import { Logo } from "@/components/ui/logo"
 import { AppIcon } from "@/components/ui/app-icon"
 import { useEffect, useMemo, useState } from "react"
 import { signOut } from "next-auth/react"
-import { useSession } from "next-auth/react"
 
 const baseNavItems = [
   {
@@ -35,12 +34,12 @@ const baseNavItems = [
   },
 ]
 
-type SidebarProps = React.HTMLAttributes<HTMLDivElement>
+type SidebarProps = React.HTMLAttributes<HTMLDivElement> & {
+  role?: string | null
+}
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, role }: SidebarProps) {
   const pathname = usePathname()
-  const { data: session } = useSession()
-  const role = session?.user?.role
   const navItems = useMemo(() => {
     if (role === "ADMIN") {
       return baseNavItems
@@ -143,10 +142,12 @@ export function Sidebar({ className }: SidebarProps) {
   )
 }
 
-export function MobileSidebar() {
+type MobileSidebarProps = {
+  role?: string | null
+}
+
+export function MobileSidebar({ role }: MobileSidebarProps) {
     const pathname = usePathname()
-    const { data: session } = useSession()
-    const role = session?.user?.role
     const navItems = useMemo(() => {
       if (role === "ADMIN") {
         return baseNavItems

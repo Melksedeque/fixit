@@ -496,7 +496,7 @@ export default async function TicketsPage({
             value={view}
             items={[
               { label: "Lista", value: "list", href: `/tickets?${new URLSearchParams({ ...params, view: "list", tab: "tickets" } as Record<string, string>).toString()}` },
-              { label: "Kanban", value: "kanban", href: `/tickets?${new URLSearchParams({ ...params, view: "kanban", tab: "tickets" } as Record<string, string>).toString()}` },
+              { label: "Quadro", value: "kanban", href: `/tickets?${new URLSearchParams({ ...params, view: "kanban", tab: "tickets" } as Record<string, string>).toString()}` },
             ]}
           />
         )}

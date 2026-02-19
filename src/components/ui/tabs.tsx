@@ -22,7 +22,7 @@ export function SegmentedTabs({
   return (
     <div
       className={cn(
-        "inline-flex rounded-md border border-border bg-muted/40 p-1",
+        "inline-flex rounded-md border border-border bg-muted/40 gap-2 p-1",
         className,
       )}
       role="tablist"

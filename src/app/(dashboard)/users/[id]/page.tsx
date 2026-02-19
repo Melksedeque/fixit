@@ -7,8 +7,11 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
   const session = await auth()
   const { id } = await params
 
-  if (session?.user?.role !== "ADMIN") {
-    redirect("/users")
+  if (
+    !session?.user ||
+    (session.user.role !== "ADMIN" && session.user.role !== "TECH")
+  ) {
+    redirect("/dashboard")
   }
 
   const user = await prisma.user.findUnique({
