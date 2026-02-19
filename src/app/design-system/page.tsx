@@ -1,7 +1,14 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { InputMask } from "@/components/ui/input-mask"
-import { Save, Trash2, ArrowRight, CheckCircle, AlertTriangle, Edit } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { InputMask } from '@/components/ui/input-mask'
+import {
+  Save,
+  Trash2,
+  ArrowRight,
+  CheckCircle,
+  AlertTriangle,
+  Edit,
+} from 'lucide-react'
 
 export default function DesignSystemPage() {
   return (
@@ -19,7 +26,7 @@ export default function DesignSystemPage() {
           <Button variant="warning">Warning</Button>
           <Button variant="edit">Edit</Button>
         </div>
-        
+
         <h3 className="text-xl font-semibold mt-8">Com Ícones</h3>
         <div className="flex flex-wrap gap-4 items-center">
           <Button>
@@ -57,8 +64,16 @@ export default function DesignSystemPage() {
         <h2 className="text-2xl font-bold">Inputs com Máscara</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputMask mask="cpf" label="CPF" placeholder="000.000.000-00" />
-          <InputMask mask="cnpj" label="CNPJ" placeholder="00.000.000/0000-00" />
-          <InputMask mask="phone" label="Telefone" placeholder="(00) 00000-0000" />
+          <InputMask
+            mask="cnpj"
+            label="CNPJ"
+            placeholder="00.000.000/0000-00"
+          />
+          <InputMask
+            mask="phone"
+            label="Telefone"
+            placeholder="(00) 00000-0000"
+          />
           <InputMask mask="cep" label="CEP" placeholder="00000-000" />
           <InputMask mask="money" label="Valor" placeholder="R$ 0,00" />
           <InputMask mask="date" label="Data" placeholder="00/00/0000" />

@@ -1,11 +1,18 @@
-import { auth } from "@/lib/auth/config"
-import { prisma } from "@/lib/prisma"
-import { redirect } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { addComment, updateStatus, deleteTicket, updateTicket, assignTicketToMe, addAttachments } from "@/app/(dashboard)/tickets/actions"
-import Image from "next/image"
+import { auth } from '@/lib/auth/config'
+import { prisma } from '@/lib/prisma'
+import { redirect } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  addComment,
+  updateStatus,
+  deleteTicket,
+  updateTicket,
+  assignTicketToMe,
+  addAttachments,
+} from '@/app/(dashboard)/tickets/actions'
+import Image from 'next/image'
 import {
   Dialog,
   DialogClose,
@@ -13,22 +20,29 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { RichTextEditor } from "@/components/ui/rich-text-editor"
-import { TicketAttachmentsArea } from "@/components/tickets/ticket-attachments-area"
-import { getPriorityLabel, getPriorityVariant, getStatusLabel, getStatusVariant } from "@/components/tickets/utils"
-import { Download, Eye, Paperclip, Pencil, Save, Send } from "lucide-react"
+} from '@/components/ui/dialog'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { TicketAttachmentsArea } from '@/components/tickets/ticket-attachments-area'
+import {
+  getPriorityLabel,
+  getPriorityVariant,
+  getStatusLabel,
+  getStatusVariant,
+} from '@/components/tickets/utils'
+import { Download, Eye, Paperclip, Pencil, Save, Send } from 'lucide-react'
 
 export default async function TicketDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams?: { mp?: string }
 }) {
   const { id } = await params
   const session = await auth()
-  if (!session?.user) redirect("/login")
+  if (!session?.user) redirect('/login')
+
+  const isAdmin = session.user.role === 'ADMIN'
+  const isTech = session.user.role === 'TECH'
+  const isUser = session.user.role === 'USER'
 
   const ticket = await prisma.ticket.findUnique({
     where: { id },
@@ -47,20 +61,22 @@ export default async function TicketDetailPage({
   })
 
   if (!ticket) {
-    redirect("/tickets")
+    redirect('/tickets')
   }
 
-  const isAdmin = session.user.role === "ADMIN"
-  const isTech = session.user.role === "TECH"
   const isOwner = ticket.customerId === session.user.id
   const isAssignedTech = ticket.assignedTo?.id === session.user.id
   const isTechOrAdmin = isAdmin || isTech
   const canEditTicket = isAdmin || isOwner || (isTech && isAssignedTech)
 
+  if ((isUser && !isOwner) || (isTech && !isAssignedTech && !isAdmin)) {
+    redirect('/tickets')
+  }
+
   const [messages, histories, attachments] = await Promise.all([
     prisma.message.findMany({
-      where: { ticketId: id, type: "TEXT" },
-      orderBy: { createdAt: "asc" },
+      where: { ticketId: id, type: 'TEXT' },
+      orderBy: { createdAt: 'asc' },
       select: {
         id: true,
         content: true,
@@ -72,7 +88,7 @@ export default async function TicketDetailPage({
     }),
     prisma.ticketHistory.findMany({
       where: { ticketId: id },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       select: {
         id: true,
         actionType: true,
@@ -83,87 +99,101 @@ export default async function TicketDetailPage({
       },
     }),
     prisma.message.findMany({
-      where: { ticketId: id, type: { in: ["IMAGE", "VIDEO"] } },
-      orderBy: { createdAt: "desc" },
+      where: { ticketId: id, type: { in: ['IMAGE', 'VIDEO'] } },
+      orderBy: { createdAt: 'desc' },
       take: 12,
-      select: { id: true, fileUrl: true, content: true, createdAt: true, type: true },
+      select: {
+        id: true,
+        fileUrl: true,
+        content: true,
+        createdAt: true,
+        type: true,
+      },
     }),
   ])
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">{ticket.title}</h1>
-          <div className="flex items-center gap-4">
-            <Badge variant={getPriorityVariant(String(ticket.priority))}>
-              {getPriorityLabel(String(ticket.priority))}
-            </Badge>
-            <Badge variant={getStatusVariant(String(ticket.status))}>
-              {getStatusLabel(String(ticket.status))}
-            </Badge>
-            {canEditTicket && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="soft-edit" size="sm">
-                    <Pencil className="h-4 w-4" />
-                    Editar
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-primary-foreground sm:max-w-[640px] max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Editar Chamado</DialogTitle>
-                  </DialogHeader>
-                  <form
-                    action={updateTicket.bind(null, ticket.id)}
-                    className="grid grid-cols-1 gap-4"
-                  >
-                    <input
-                      name="title"
-                      defaultValue={ticket.title}
-                      aria-label="Título"
-                      className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-                    />
-                    {isTechOrAdmin && (
-                      <div className="space-y-1">
-                        <div className="text-xs font-medium text-muted-foreground">Prioridade</div>
-                        <select
-                          name="priority"
-                          defaultValue={String(ticket.priority)}
-                          aria-label="Prioridade"
-                          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-                        >
-                          <option value="LOW">Baixa</option>
-                          <option value="MEDIUM">Média</option>
-                          <option value="HIGH">Alta</option>
-                          <option value="CRITICAL">Crítica</option>
-                        </select>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">{ticket.title}</h1>
+        <div className="flex items-center gap-4">
+          <Badge variant={getPriorityVariant(String(ticket.priority))}>
+            {getPriorityLabel(String(ticket.priority))}
+          </Badge>
+          <Badge variant={getStatusVariant(String(ticket.status))}>
+            {getStatusLabel(String(ticket.status))}
+          </Badge>
+          {canEditTicket && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="soft-edit" size="sm">
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-primary-foreground sm:max-w-[640px] max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Editar Chamado</DialogTitle>
+                </DialogHeader>
+                <form
+                  action={updateTicket.bind(null, ticket.id)}
+                  className="grid grid-cols-1 gap-4"
+                >
+                  <input
+                    name="title"
+                    defaultValue={ticket.title}
+                    aria-label="Título"
+                    className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  />
+                  {isTechOrAdmin && (
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-muted-foreground">
+                        Prioridade
                       </div>
-                    )}
-                    <RichTextEditor
-                      name="description"
-                      label="Descrição"
-                      placeholder="Atualize a descrição do chamado"
-                      defaultValue={ticket.description || ""}
-                    />
-                    <div className="flex justify-end">
-                      <DialogClose asChild>
-                        <Button type="submit" variant="soft-edit">
-                          <Save className="h-4 w-4" />
-                          Salvar
-                        </Button>
-                      </DialogClose>
+                      <select
+                        name="priority"
+                        defaultValue={String(ticket.priority)}
+                        aria-label="Prioridade"
+                        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                      >
+                        <option value="LOW">Baixa</option>
+                        <option value="MEDIUM">Média</option>
+                        <option value="HIGH">Alta</option>
+                        <option value="CRITICAL">Crítica</option>
+                      </select>
                     </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            )}
-            {isAdmin && (
-              <form action={async () => { await deleteTicket(ticket.id) }} >
-                <Button type="submit" variant="soft-destructive" size="sm">Excluir</Button>
-              </form>
-            )}
-          </div>
+                  )}
+                  <RichTextEditor
+                    name="description"
+                    label="Descrição"
+                    placeholder="Atualize a descrição do chamado"
+                    defaultValue={ticket.description || ''}
+                  />
+                  <div className="flex justify-end">
+                    <DialogClose asChild>
+                      <Button type="submit" variant="soft-edit">
+                        <Save className="h-4 w-4" />
+                        Salvar
+                      </Button>
+                    </DialogClose>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+          {isAdmin && (
+            <form
+              action={async () => {
+                await deleteTicket(ticket.id)
+              }}
+            >
+              <Button type="submit" variant="soft-destructive" size="sm">
+                Excluir
+              </Button>
+            </form>
+          )}
         </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
@@ -171,10 +201,16 @@ export default async function TicketDetailPage({
             <CardTitle>Informações</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-muted-foreground">Cliente: <span className="text-foreground">{ticket.customer?.name}</span></div>
+            <div className="text-muted-foreground">
+              Cliente:{' '}
+              <span className="text-foreground">{ticket.customer?.name}</span>
+            </div>
             <div className="flex items-center justify-between gap-4">
               <div className="text-muted-foreground">
-                Responsável: <span className="text-foreground">{ticket.assignedTo?.name || "-"}</span>
+                Responsável:{' '}
+                <span className="text-foreground">
+                  {ticket.assignedTo?.name || '-'}
+                </span>
               </div>
               {isTechOrAdmin && !ticket.assignedTo && (
                 <form action={assignTicketToMe.bind(null, ticket.id)}>
@@ -185,15 +221,27 @@ export default async function TicketDetailPage({
               )}
             </div>
             <div className="text-muted-foreground">
-              Status atual: <span className="text-foreground">{getStatusLabel(String(ticket.status))}</span>
+              Status atual:{' '}
+              <span className="text-foreground">
+                {getStatusLabel(String(ticket.status))}
+              </span>
             </div>
             <div className="text-muted-foreground">
-              Prioridade: <span className="text-foreground">{getPriorityLabel(String(ticket.priority))}</span>
+              Prioridade:{' '}
+              <span className="text-foreground">
+                {getPriorityLabel(String(ticket.priority))}
+              </span>
             </div>
             <div className="text-muted-foreground">Descrição:</div>
-            <div className="prose prose-invert rounded-md border border-border bg-(--card-surface) p-3" dangerouslySetInnerHTML={{ __html: ticket.description || "" }} />
+            <div
+              className="prose prose-invert rounded-md border border-border bg-(--card-surface) p-3"
+              dangerouslySetInnerHTML={{ __html: ticket.description || '' }}
+            />
             {isTechOrAdmin && (
-              <form action={updateStatus.bind(null, ticket.id)} className="max-w-xs">
+              <form
+                action={updateStatus.bind(null, ticket.id)}
+                className="max-w-xs"
+              >
                 <select
                   name="status"
                   defaultValue={String(ticket.status)}
@@ -206,7 +254,9 @@ export default async function TicketDetailPage({
                   <option value="DONE">Concluído</option>
                   <option value="CANCELLED">Cancelado</option>
                 </select>
-                <Button type="submit" variant="soft-edit" className="mt-2">Atualizar Status</Button>
+                <Button type="submit" variant="soft-edit" className="mt-2">
+                  Atualizar Status
+                </Button>
               </form>
             )}
           </CardContent>
@@ -217,16 +267,23 @@ export default async function TicketDetailPage({
               <CardTitle>Anexos</CardTitle>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button type="button" variant="outline" size="sm"><Paperclip /> Upload de Anexos</Button>
+                  <Button type="button" variant="outline" size="sm">
+                    <Paperclip /> Upload de Anexos
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-primary-foreground sm:max-w-[640px] max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Enviar Anexos</DialogTitle>
                   </DialogHeader>
-                  <form action={addAttachments.bind(null, ticket.id)} className="space-y-3">
+                  <form
+                    action={addAttachments.bind(null, ticket.id)}
+                    className="space-y-3"
+                  >
                     <TicketAttachmentsArea name="commentAttachments" />
                     <div className="flex justify-end">
-                      <Button type="submit" variant="soft-success">Salvar Anexos</Button>
+                      <Button type="submit" variant="soft-success">
+                        Salvar Anexos
+                      </Button>
                     </div>
                   </form>
                 </DialogContent>
@@ -237,19 +294,25 @@ export default async function TicketDetailPage({
             {attachments.length > 0 ? (
               <div className="space-y-2">
                 {attachments.map((a) => {
-                  const url = a.fileUrl || a.content || ""
+                  const url = a.fileUrl || a.content || ''
                   const nameFull = (() => {
                     try {
                       const u = new URL(url)
-                      const parts = u.pathname.split("/")
-                      return decodeURIComponent(parts[parts.length - 1] || "arquivo")
+                      const parts = u.pathname.split('/')
+                      return decodeURIComponent(
+                        parts[parts.length - 1] || 'arquivo'
+                      )
                     } catch {
-                      const parts = url.split("/")
-                      return decodeURIComponent(parts[parts.length - 1] || "arquivo")
+                      const parts = url.split('/')
+                      return decodeURIComponent(
+                        parts[parts.length - 1] || 'arquivo'
+                      )
                     }
                   })()
                   const name =
-                    nameFull.length > 120 ? `${nameFull.slice(0, 120)}...` : nameFull
+                    nameFull.length > 120
+                      ? `${nameFull.slice(0, 120)}...`
+                      : nameFull
                   const dateStr = new Date(a.createdAt).toLocaleString()
                   return (
                     <Dialog key={a.id}>
@@ -261,19 +324,35 @@ export default async function TicketDetailPage({
                           <div className="flex items-center gap-3">
                             <div className="relative h-14 w-14 overflow-hidden rounded-md border border-border bg-muted">
                               {a.fileUrl ? (
-                                <Image src={a.fileUrl} alt={name} fill className="object-contain" />
+                                <Image
+                                  src={a.fileUrl}
+                                  alt={name}
+                                  fill
+                                  className="object-contain"
+                                />
                               ) : (
-                                <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">Sem imagem</div>
+                                <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
+                                  Sem imagem
+                                </div>
                               )}
                             </div>
                             <div className="text-sm">
-                              <div className="font-medium break-all">{name}</div>
-                              <div className="text-xs text-muted-foreground">Tamanho: — • {dateStr}</div>
+                              <div className="font-medium break-all">
+                                {name}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Tamanho: — • {dateStr}
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Button asChild variant="outline" size="icon">
-                              <a href={url} target="_blank" rel="noopener" aria-label="Visualizar anexo">
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener"
+                                aria-label="Visualizar anexo"
+                              >
                                 <Eye className="h-4 w-4" />
                               </a>
                             </Button>
@@ -286,7 +365,7 @@ export default async function TicketDetailPage({
                         </button>
                       </DialogTrigger>
                       <DialogContent className="bg-primary-foreground max-w-3xl">
-                        {a.type === "VIDEO" ? (
+                        {a.type === 'VIDEO' ? (
                           <video
                             controls
                             className="w-full rounded-md border border-border bg-black"
@@ -319,11 +398,8 @@ export default async function TicketDetailPage({
         <CardHeader>
           <CardTitle>Comentários</CardTitle>
         </CardHeader>
-          <CardContent>
-          <form
-            action={addComment.bind(null, ticket.id)}
-            className="space-y-3"
-          >
+        <CardContent>
+          <form action={addComment.bind(null, ticket.id)} className="space-y-3">
             <RichTextEditor
               name="message"
               label="Comentário"
@@ -331,20 +407,30 @@ export default async function TicketDetailPage({
               defaultValue=""
             />
             <div className="flex items-center justify-end">
-              <Button type="submit" variant="soft-success"><Send /> Adicionar Comentário</Button>
+              <Button type="submit" variant="soft-success">
+                <Send /> Adicionar Comentário
+              </Button>
             </div>
           </form>
           <div className="mt-6 space-y-3">
             {messages.map((m) => (
-              <div key={m.id} className="rounded-md border border-border bg-(--card-surface) p-3">
+              <div
+                key={m.id}
+                className="rounded-md border border-border bg-(--card-surface) p-3"
+              >
                 <div className="text-xs text-muted-foreground">
                   {m.user?.name} • {new Date(m.createdAt).toLocaleString()}
                 </div>
-                <div className="mt-2 text-foreground" dangerouslySetInnerHTML={{ __html: m.content }} />
+                <div
+                  className="mt-2 text-foreground"
+                  dangerouslySetInnerHTML={{ __html: m.content }}
+                />
               </div>
             ))}
             {messages.length === 0 && (
-              <div className="text-sm text-muted-foreground">Nenhum comentário ainda.</div>
+              <div className="text-sm text-muted-foreground">
+                Nenhum comentário ainda.
+              </div>
             )}
           </div>
         </CardContent>
@@ -356,16 +442,18 @@ export default async function TicketDetailPage({
         </CardHeader>
         <CardContent className="space-y-3">
           {histories.length === 0 && (
-            <div className="text-sm text-muted-foreground">Nenhum evento de histórico ainda.</div>
+            <div className="text-sm text-muted-foreground">
+              Nenhum evento de histórico ainda.
+            </div>
           )}
           {histories.map((h) => {
-            let description = ""
-            if (h.actionType === "STATUS_CHANGE") {
-              description = `Status: ${h.oldValue ?? "-"} → ${h.newValue ?? "-"}`
-            } else if (h.actionType === "ASSIGNMENT") {
-              description = `Responsável: ${h.oldValue ?? "-"} → ${h.newValue ?? "-"}`
-            } else if (h.actionType === "PRIORITY_CHANGE") {
-              description = `Prioridade: ${h.oldValue ?? "-"} → ${h.newValue ?? "-"}`
+            let description = ''
+            if (h.actionType === 'STATUS_CHANGE') {
+              description = `Status: ${h.oldValue ?? '-'} → ${h.newValue ?? '-'}`
+            } else if (h.actionType === 'ASSIGNMENT') {
+              description = `Responsável: ${h.oldValue ?? '-'} → ${h.newValue ?? '-'}`
+            } else if (h.actionType === 'PRIORITY_CHANGE') {
+              description = `Prioridade: ${h.oldValue ?? '-'} → ${h.newValue ?? '-'}`
             }
             return (
               <div
@@ -386,4 +474,3 @@ export default async function TicketDetailPage({
     </div>
   )
 }
-

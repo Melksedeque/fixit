@@ -3,11 +3,13 @@
 ## Objetivo
 
 Criar um sistema de chamados moderno inspirado em:
+
 - Trello (Kanban visual e intuitivo)
 - Runrun.it (métricas, SLA e controle)
 - Sistemas Helpdesk SaaS
 
 O módulo deve permitir:
+
 - Abertura simples de chamados
 - Organização por status
 - Acompanhamento por responsáveis

@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useEffect, useState } from "react"
-import { useQuill } from "react-quilljs"
-import { cn } from "@/lib/utils"
-import "quill/dist/quill.bubble.css"
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useQuill } from 'react-quilljs'
+import { cn } from '@/lib/utils'
+import 'quill/dist/quill.bubble.css'
 
 interface RichTextEditorProps {
   name: string
@@ -13,23 +13,28 @@ interface RichTextEditorProps {
   placeholder?: string
 }
 
-export function RichTextEditor({ name, defaultValue, label, placeholder }: RichTextEditorProps) {
-  const [value, setValue] = useState(defaultValue || "")
+export function RichTextEditor({
+  name,
+  defaultValue,
+  label,
+  placeholder,
+}: RichTextEditorProps) {
+  const [value, setValue] = useState(defaultValue || '')
 
   const { quill, quillRef } = useQuill({
     placeholder,
-    theme: "bubble",
+    theme: 'bubble',
     modules: {
       toolbar: [
-        ["bold", "italic", "underline"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link"],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
       ],
       clipboard: {
         matchVisual: false,
       },
     },
-    formats: ["bold", "italic", "underline", "list", "link"],
+    formats: ['bold', 'italic', 'underline', 'list', 'link'],
   })
 
   useEffect(() => {
@@ -43,13 +48,13 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
 
     const handleTextChange = () => {
       const html = quill.root.innerHTML
-      setValue(html === "<p><br></p>" ? "" : html)
+      setValue(html === '<p><br></p>' ? '' : html)
     }
 
-    quill.on("text-change", handleTextChange)
+    quill.on('text-change', handleTextChange)
 
     return () => {
-      quill.off("text-change", handleTextChange)
+      quill.off('text-change', handleTextChange)
     }
   }, [quill])
 
@@ -65,39 +70,37 @@ export function RichTextEditor({ name, defaultValue, label, placeholder }: RichT
       const files: File[] = []
       for (let i = 0; i < items.length; i++) {
         const item = items[i]
-        if (item.kind === "file") {
+        if (item.kind === 'file') {
           const file = item.getAsFile()
-          if (file && file.type.startsWith("image/")) {
+          if (file && file.type.startsWith('image/')) {
             files.push(file)
           }
         }
       }
 
-      if (files.length > 0 && typeof window !== "undefined") {
+      if (files.length > 0 && typeof window !== 'undefined') {
         event.preventDefault()
         window.dispatchEvent(
-          new CustomEvent("fixit:ticket-attachments-from-paste", {
+          new CustomEvent('fixit:ticket-attachments-from-paste', {
             detail: { files },
-          }),
+          })
         )
       }
     }
 
-    root.addEventListener("paste", handlePaste as unknown as EventListener)
+    root.addEventListener('paste', handlePaste as unknown as EventListener)
 
     return () => {
-      root.removeEventListener("paste", handlePaste as unknown as EventListener)
+      root.removeEventListener('paste', handlePaste as unknown as EventListener)
     }
   }, [quill])
 
   return (
     <div className="space-y-2">
       {label && (
-        <div className="text-xs font-medium text-muted-foreground">
-          {label}
-        </div>
+        <div className="text-xs font-medium text-muted-foreground">{label}</div>
       )}
-      <div className={cn("rounded-md border border-border bg-background")}>
+      <div className={cn('rounded-md border border-border bg-background')}>
         <div className="relative">
           <div ref={quillRef} className="min-h-32 w-full cursor-text" />
         </div>

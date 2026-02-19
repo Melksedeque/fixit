@@ -37,8 +37,8 @@ Sempre que possível:
 - scripts/ # scripts auxiliares
 - configs/ # configurações (quando fizer sentido)
 
-
 ### Regras
+
 - `src/` contém apenas código de aplicação
 - evitar lógica de negócio espalhada
 - nomes de pastas e arquivos devem ser **autoexplicativos**
@@ -49,6 +49,7 @@ Sempre que possível:
 ## 🔍 Qualidade de Código
 
 Todo código deve:
+
 - ter responsabilidade clara
 - ser fácil de testar
 - evitar efeitos colaterais implícitos
@@ -56,6 +57,7 @@ Todo código deve:
 - não depender de “conhecimento oculto”
 
 Evite:
+
 - funções muito longas
 - classes que fazem “de tudo”
 - lógica duplicada
@@ -112,8 +114,8 @@ Evite:
 - lib/
 - types/
 
-
 ### Boas práticas
+
 - Componentes pequenos e previsíveis
 - Preferir composição a herança
 - Hooks bem definidos e reutilizáveis
@@ -135,8 +137,8 @@ Evite:
 - DTO/
 - tests/
 
-
 ### Boas práticas
+
 - Controllers magros
 - Regras de negócio fora do controller
 - Validação via Form Requests
@@ -156,8 +158,8 @@ Evite:
 - assets/
 - languages/
 
-
 ### Boas práticas
+
 - Código sempre extensível via hooks
 - Segurança: nonces, capabilities, sanitização
 - Evitar lógica pesada em hooks globais

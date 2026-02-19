@@ -20,6 +20,7 @@
 ## Tabela
 
 Colunas:
+
 - Título
 - Status
 - Prioridade

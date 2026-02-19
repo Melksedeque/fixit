@@ -3,6 +3,7 @@
 ## Estrutura
 
 Colunas:
+
 - Abertos
 - Em andamento
 - Aguardando
