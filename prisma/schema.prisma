@@ -36,15 +36,16 @@ enum MessageType {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
-  avatar    String?
-  whatsapp  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  name               String
+  email              String   @unique
+  password           String
+  role               Role     @default(USER)
+  avatar             String?
+  whatsapp           String?
+  mustChangePassword Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   ticketsCreated  Ticket[]  @relation("TicketCustomer")
   ticketsAssigned Ticket[]  @relation("TicketTech")
@@ -60,13 +61,15 @@ model Ticket {
   description String
   status      TicketStatus   @default(OPEN)
   priority    TicketPriority @default(MEDIUM)
-  
+
   deadlineForecast DateTime?
   deliveryDate     DateTime?
   executionTime    Int?      // Minutes
   closedAt         DateTime?
   category         String?
   slaHours         Int?
+  slaReminderOneDaySent   Boolean? @default(false)
+  slaReminderTwoHoursSent Boolean? @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
