@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { put, del } from '@vercel/blob'
+import { sendWelcomeEmail } from '@/lib/notifications/email'
 
 const UserSchema = z.object({
   name: z.string().min(3),
@@ -68,7 +69,7 @@ export async function createUser(_prevState: unknown, formData: FormData) {
   }
 
   try {
-    await prisma.user.create({
+    const created = await prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
@@ -78,6 +79,13 @@ export async function createUser(_prevState: unknown, formData: FormData) {
         avatar: avatarUrl,
       },
     })
+
+    try {
+      await sendWelcomeEmail({
+        name: created.name,
+        email: created.email,
+      })
+    } catch {}
 
     revalidatePath('/users')
     return { success: true }
