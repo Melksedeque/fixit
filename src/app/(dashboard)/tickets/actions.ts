@@ -116,7 +116,7 @@ export async function createTicket(formData: FormData) {
   } else {
     try {
       const techs = await prisma.user.findMany({
-        where: { role: 'TECH', email: { not: null } },
+        where: { role: 'TECH' },
         select: { email: true, name: true },
       })
       const prepared = techs
@@ -582,7 +582,6 @@ export async function sendSlaReminders() {
       title: true,
       deadlineForecast: true,
       slaReminderOneDaySent: true,
-      slaReminderTwoHoursSent: true,
       assignedTo: {
         select: {
           email: true,
@@ -601,7 +600,7 @@ export async function sendSlaReminders() {
     if (
       !ticket.slaReminderOneDaySent &&
       diffHours <= 24 &&
-      diffHours > 2 &&
+      diffHours > 0 &&
       ticket.assignedTo?.email
     ) {
       await sendSlaReminderEmail(
@@ -616,27 +615,6 @@ export async function sendSlaReminders() {
       await prisma.ticket.update({
         where: { id: ticket.id },
         data: { slaReminderOneDaySent: true },
-      })
-    }
-
-    if (
-      !ticket.slaReminderTwoHoursSent &&
-      diffHours <= 2 &&
-      diffHours > 0 &&
-      ticket.assignedTo?.email
-    ) {
-      await sendSlaReminderEmail(
-        { id: ticket.id, title: ticket.title },
-        {
-          name: ticket.assignedTo.name,
-          email: ticket.assignedTo.email,
-        },
-        ticket.deadlineForecast,
-        'TWO_HOURS'
-      )
-      await prisma.ticket.update({
-        where: { id: ticket.id },
-        data: { slaReminderTwoHoursSent: true },
       })
     }
   }
