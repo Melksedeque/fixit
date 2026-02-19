@@ -160,7 +160,7 @@ export function LoginForm() {
                 />
                 {errors.email && (
                   <p
-                    className="text-xs text-destructive"
+                    className="text-xs text-red-400"
                     role="alert"
                     aria-live="polite"
                   >
@@ -215,7 +215,7 @@ export function LoginForm() {
                 </div>
                 {errors.password && (
                   <p
-                    className="text-xs text-destructive"
+                    className="text-xs text-red-400"
                     role="alert"
                     aria-live="polite"
                   >
@@ -238,7 +238,7 @@ export function LoginForm() {
 
               {error && (
                 <div
-                  className="p-3 text-sm text-destructive bg-destructive/10 rounded-md"
+                  className="p-3 text-sm border border-red-400 text-red-400 bg-red-400/15 rounded-md"
                   role="alert"
                   aria-live="assertive"
                 >
