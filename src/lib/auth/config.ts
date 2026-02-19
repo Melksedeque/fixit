@@ -30,16 +30,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.id = token.sub
       session.user.role = token.role as string
 
-      // Busca avatar diretamente do banco para garantir que o header
-      // reflita sempre a foto mais recente, mesmo em sessões antigas.
       const dbUser = await prisma.user.findUnique({
         where: { id: token.sub },
-        select: { avatar: true },
+        select: { avatar: true, mustChangePassword: true },
       })
 
       if (dbUser?.avatar) {
         session.user.image = dbUser.avatar
       }
+
+       if (typeof dbUser?.mustChangePassword === 'boolean') {
+         ;(session.user as any).mustChangePassword = dbUser.mustChangePassword
+       }
 
       return session
     },
