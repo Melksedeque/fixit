@@ -49,7 +49,7 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem className="rounded-none cursor-pointer px-3 py-2 hover:bg-primary/10">
+          <DropdownMenuItem className="rounded-none cursor-pointer px-3 py-2 hover:bg-primary/10 focus:bg-primary/10">
             <Link href="/profile" className="flex items-center justify-center">
               <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
                 <User2 className="h-4 w-4 text-primary" />
@@ -57,7 +57,7 @@ export function UserNav({ user }: UserNavProps) {
               Perfil
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem className="rounded-none cursor-pointer px-3 py-2 hover:bg-primary/10">
+          <DropdownMenuItem className="rounded-none cursor-pointer px-3 py-2 hover:bg-primary/10 focus:bg-primary/10">
             <Link href="/settings" className="flex items-center justify-center">
               <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
                 <Settings2 className="h-4 w-4 text-primary" />
@@ -68,7 +68,7 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="rounded-none cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/15 hover:text-red-300"
+          className="rounded-none cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/15 hover:text-red-300 focus:bg-red-500/15"
           onClick={() => signOut({ callbackUrl: '/login' })}
         >
           <span className="inline-flex items-center justify-center rounded-md bg-red-500/10 border border-red-500/20 p-1 mr-2">
