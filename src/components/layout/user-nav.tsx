@@ -49,16 +49,16 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 hover:bg-muted/40">
-            <Link href="/dashboard/profile" className="flex items-center justify-center">
+          <DropdownMenuItem className="rounded-none cursor-pointer px-3 py-2 hover:bg-primary/10">
+            <Link href="/profile" className="flex items-center justify-center">
               <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
                 <User2 className="h-4 w-4 text-primary" />
               </span>
               Perfil
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 hover:bg-muted/40">
-            <Link href="/dashboard/settings" className="flex items-center justify-center">
+          <DropdownMenuItem className="rounded-none cursor-pointer px-3 py-2 hover:bg-primary/10">
+            <Link href="/settings" className="flex items-center justify-center">
               <span className="inline-flex items-center justify-center rounded-md bg-primary/10 border border-primary/20 p-1 mr-2">
                 <Settings2 className="h-4 w-4 text-primary" />
               </span>
@@ -67,7 +67,7 @@ export function UserNav({ user }: UserNavProps) {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="rounded-md cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={() => signOut({ callbackUrl: '/login' })}>
+        <DropdownMenuItem className="rounded-none cursor-pointer px-3 py-2 text-red-400 hover:bg-red-500/15 hover:text-red-300" onClick={() => signOut({ callbackUrl: '/login' })}>
             <span className="inline-flex items-center justify-center rounded-md bg-red-500/10 border border-red-500/20 p-1 mr-2">
               <LogOut className="h-4 w-4" />
             </span>
