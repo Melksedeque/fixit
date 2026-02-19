@@ -111,6 +111,13 @@ export function TicketKanban({
   }, [router])
 
   const changeStatus = (ticketId: string, targetStatus: TicketStatus) => {
+    if (!isTechOrAdmin) {
+      toast.error(
+        'Somente administradores ou técnicos podem alterar o status pelo quadro'
+      )
+      return
+    }
+
     const current = boardTickets.find((t) => t.id === ticketId)
     if (!current || current.status === targetStatus) return
 
@@ -203,36 +210,38 @@ export function TicketKanban({
               </Badge>
             </div>
 
-            <div
-              className="flex flex-col gap-3 h-full rounded-lg bg-muted/20 p-2 border border-border/50"
-              aria-dropeffect="move"
-            >
+            <div className="flex flex-col gap-3 h-full rounded-lg bg-muted/20 p-2 border border-border/50">
               {columnTickets.length === 0 ? (
                 <div className="h-20 flex items-center justify-center text-xs text-muted-foreground border border-dashed border-border rounded-md">
                   Vazio
                 </div>
               ) : (
                 columnTickets.map((ticket) => (
-                  <Link
-                    key={ticket.id}
-                    href={`/tickets/${ticket.id}`}
-                    className="block"
-                  >
+                  <Link key={ticket.id} href={`/tickets/${ticket.id}`} className="block">
                     <Card
-                      draggable
-                      onDragStart={(event) => {
-                        event.dataTransfer.setData('text/plain', ticket.id)
-                        setDraggedId(ticket.id)
-                      }}
-                      onDragEnd={() =>
-                        setDraggedId((prev) =>
-                          prev === ticket.id ? null : prev
-                        )
+                      draggable={isTechOrAdmin}
+                      onDragStart={
+                        !isTechOrAdmin
+                          ? undefined
+                          : (event) => {
+                              event.dataTransfer.setData('text/plain', ticket.id)
+                              setDraggedId(ticket.id)
+                            }
+                      }
+                      onDragEnd={
+                        !isTechOrAdmin
+                          ? undefined
+                          : () =>
+                              setDraggedId((prev) =>
+                                prev === ticket.id ? null : prev
+                              )
                       }
                       tabIndex={0}
                       onKeyDown={(event) => handleKeyDown(event, ticket)}
                       aria-grabbed={draggedId === ticket.id}
-                      className={`bg-card border-border shadow-sm cursor-move transition-colors border-l-[3px] ${getPriorityBorder(
+                      className={`bg-card border-border shadow-sm ${
+                        isTechOrAdmin ? 'cursor-move' : 'cursor-not-allowed'
+                      } transition-colors border-l-[3px] ${getPriorityBorder(
                         ticket.priority
                       )} ${
                         draggedId === ticket.id ? 'ring-2 ring-primary' : ''
