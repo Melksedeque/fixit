@@ -32,7 +32,9 @@ export async function sendEmail(payload: EmailPayload) {
 
   const resend = new Resend(apiKey)
   const usesUnverifiedDomain = from.includes('vercel.app')
-  const safeFrom = usesUnverifiedDomain ? 'Fixit - Sistema de Chamados <onboarding@resend.dev>' : from
+  const safeFrom = usesUnverifiedDomain
+    ? 'Fixit - Sistema de Chamados <onboarding@resend.dev>'
+    : from
 
   try {
     await resend.emails.send({
