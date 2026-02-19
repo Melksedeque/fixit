@@ -13,7 +13,7 @@ export async function Header() {
       <div className="flex h-16 items-center px-3 md:pr-6">
         <div className="flex items-center gap-2">
           <div className="md:hidden">
-            <MobileSidebar role={role} />
+            <MobileSidebar userRole={role ?? undefined} />
           </div>
           <div className="hidden md:flex">
             <SidebarToggleButton />

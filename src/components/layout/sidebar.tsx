@@ -48,16 +48,16 @@ const baseNavItems = [
 ]
 
 type SidebarProps = React.HTMLAttributes<HTMLDivElement> & {
-  role?: string | null
+  userRole?: string
 }
 
-export function Sidebar({ className, role }: SidebarProps) {
+export function Sidebar({ className, userRole }: SidebarProps) {
   const pathname = usePathname()
   const navItems = useMemo(() => {
-    if (role === 'ADMIN') {
+    if (userRole === 'ADMIN') {
       return baseNavItems
     }
-    if (role === 'TECH') {
+    if (userRole === 'TECH') {
       return baseNavItems.filter(
         (item) =>
           item.href === '/dashboard' ||
@@ -65,7 +65,7 @@ export function Sidebar({ className, role }: SidebarProps) {
           item.href === '/users'
       )
     }
-    if (role === 'USER') {
+    if (userRole === 'USER') {
       return baseNavItems.filter(
         (item) => item.href === '/dashboard' || item.href === '/tickets'
       )
@@ -73,7 +73,7 @@ export function Sidebar({ className, role }: SidebarProps) {
     return baseNavItems.filter(
       (item) => item.href === '/dashboard' || item.href === '/tickets'
     )
-  }, [role])
+  }, [userRole])
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
     try {
@@ -187,16 +187,16 @@ export function Sidebar({ className, role }: SidebarProps) {
 }
 
 type MobileSidebarProps = {
-  role?: string | null
+  userRole?: string
 }
 
-export function MobileSidebar({ role }: MobileSidebarProps) {
+export function MobileSidebar({ userRole }: MobileSidebarProps) {
   const pathname = usePathname()
   const navItems = useMemo(() => {
-    if (role === 'ADMIN') {
+    if (userRole === 'ADMIN') {
       return baseNavItems
     }
-    if (role === 'TECH') {
+    if (userRole === 'TECH') {
       return baseNavItems.filter(
         (item) =>
           item.href === '/dashboard' ||
@@ -204,7 +204,7 @@ export function MobileSidebar({ role }: MobileSidebarProps) {
           item.href === '/users'
       )
     }
-    if (role === 'USER') {
+    if (userRole === 'USER') {
       return baseNavItems.filter(
         (item) => item.href === '/dashboard' || item.href === '/tickets'
       )
@@ -212,7 +212,7 @@ export function MobileSidebar({ role }: MobileSidebarProps) {
     return baseNavItems.filter(
       (item) => item.href === '/dashboard' || item.href === '/tickets'
     )
-  }, [role])
+  }, [userRole])
   const [open, setOpen] = useState(false)
 
   return (

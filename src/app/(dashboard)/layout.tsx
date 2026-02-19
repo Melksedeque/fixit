@@ -12,7 +12,10 @@ export default async function DashboardShellLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar className="hidden md:block shrink-0" role={role} />
+      <Sidebar
+        className="hidden md:block shrink-0"
+        userRole={role ?? undefined}
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
