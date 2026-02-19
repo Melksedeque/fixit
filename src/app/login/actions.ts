@@ -3,7 +3,6 @@
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { sendPasswordResetEmail } from '@/lib/notifications/email'
-import { randomBytes } from 'crypto'
 
 export async function checkEmail(email: string) {
   if (!email) return { exists: false }
@@ -22,9 +21,18 @@ export async function checkEmail(email: string) {
 }
 
 function generateTemporaryPassword() {
-  const raw = randomBytes(12).toString('base64')
-  const cleaned = raw.replace(/[^a-zA-Z0-9]/g, '')
-  return cleaned.slice(0, 10)
+  try {
+    if (globalThis.crypto && 'getRandomValues' in globalThis.crypto) {
+      const bytes = new Uint32Array(8)
+      globalThis.crypto.getRandomValues(bytes)
+      const str = Array.from(bytes)
+        .map((n) => n.toString(36))
+        .join('')
+      return str.replace(/[^a-z0-9]/gi, '').slice(0, 10)
+    }
+  } catch {}
+  const str = Math.random().toString(36) + Math.random().toString(36)
+  return str.replace(/[^a-z0-9]/gi, '').slice(0, 10)
 }
 
 export async function requestPasswordReset(email: string) {
