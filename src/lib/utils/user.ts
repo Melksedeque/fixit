@@ -1,11 +1,10 @@
 export function getUserInitials(name?: string | null) {
-  if (!name) return "U"
+  if (!name) return 'U'
   return name
-    .split(" ")
+    .split(' ')
     .filter(Boolean)
     .map((n) => n[0]!)
     .slice(0, 2)
-    .join("")
+    .join('')
     .toUpperCase()
 }
-

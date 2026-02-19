@@ -5,15 +5,18 @@ Este documento define regras práticas para consistência, performance e manuten
 ---
 
 ## Regra de ouro
+
 - Confirmar versões (React, TS, bundler/framework).
 - Preferir padrões modernos e evitar hacks.
 - Em dúvida sobre API: consultar fonte oficial.
 
 ### Documentação
+
 - Consultar React e TS docs sempre que possível.
 - Preferir `@types/react` e `@types/react-dom` ao `react-scripts` (quando possível).
 
 Fontes oficiais:
+
 - [React Documentation](https://react.dev/)
 - [React Version Notes](https://react.dev/versions)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
@@ -22,6 +25,7 @@ Fontes oficiais:
 ---
 
 ## TypeScript (padrões de time)
+
 - Evitar `any`. Se inevitável, usar como “ponte” e isolar.
 - Preferir:
   - `unknown` + narrowing
@@ -30,6 +34,7 @@ Fontes oficiais:
 - Tipagem deve ajudar o código, não virar “teatro”.
 
 Regras práticas:
+
 - Component props: sempre tipadas, preferir `type` quando simples.
 - Funções: tipar entradas e retornos (principalmente em `services/`).
 - Dados externos (API): validar/parsear antes de usar (não confiar em TS puro).
@@ -37,6 +42,7 @@ Regras práticas:
 ---
 
 ## Componentização e responsabilidades
+
 - Componentes pequenos e previsíveis.
 - Separar:
   - UI (render)
@@ -44,6 +50,7 @@ Regras práticas:
   - integração (API, storage, analytics)
 
 Padrão saudável:
+
 - `components/` = UI reutilizável
 - `features/` = fluxo por domínio
 - `services/` = integração externa
@@ -52,6 +59,7 @@ Padrão saudável:
 ---
 
 ## Hooks (boas práticas)
+
 - `useEffect`: usar com intenção clara (sincronização de efeitos). Evitar virar “event bus”.
 - Dependências: nunca “enganar” deps sem motivo; se precisar, refatorar.
 - Preferir `useMemo`/`useCallback` apenas quando:
@@ -62,6 +70,7 @@ Padrão saudável:
 ---
 
 ## Performance (checklist rápido)
+
 - Listas grandes: virtualização (quando necessário).
 - Evitar criar funções/objetos inline em loops pesados.
 - Memoização: aplicar no gargalo, não no projeto inteiro.
@@ -71,6 +80,7 @@ Padrão saudável:
 ---
 
 ## Estado (decisão rápida)
+
 - Começar com state local.
 - Subir state quando houver compartilhamento real.
 - Context: bom para config e estado simples; cuidado com rerender global.
@@ -79,6 +89,7 @@ Padrão saudável:
 ---
 
 ## Testes (mínimo)
+
 - Unit/Integration: React Testing Library
 - E2E: quando fluxo é crítico
 - Testar comportamento, não implementação

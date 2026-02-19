@@ -1,7 +1,7 @@
-import { Logo } from "@/components/ui/logo";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { Logo } from '@/components/ui/logo'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -23,5 +23,5 @@ export default function Home() {
         </div>
       </main>
     </div>
-  );
+  )
 }

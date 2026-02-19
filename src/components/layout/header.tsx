@@ -1,7 +1,7 @@
-import { MobileSidebar } from "./sidebar"
-import { UserNav } from "./user-nav"
-import { auth } from "@/lib/auth/config"
-import { SidebarToggleButton } from "./sidebar-toggle-button"
+import { MobileSidebar } from './sidebar'
+import { UserNav } from './user-nav'
+import { auth } from '@/lib/auth/config'
+import { SidebarToggleButton } from './sidebar-toggle-button'
 
 export async function Header() {
   const session = await auth()
@@ -20,7 +20,7 @@ export async function Header() {
           </div>
         </div>
         <div className="flex-1" />
-        
+
         <div className="ml-auto flex items-center space-x-4">
           {user && <UserNav user={user} />}
         </div>

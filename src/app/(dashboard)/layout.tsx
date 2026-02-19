@@ -1,6 +1,6 @@
-import { Header } from "@/components/layout/header"
-import { Sidebar } from "@/components/layout/sidebar"
-import { auth } from "@/lib/auth/config"
+import { Header } from '@/components/layout/header'
+import { Sidebar } from '@/components/layout/sidebar'
+import { auth } from '@/lib/auth/config'
 
 export default async function DashboardShellLayout({
   children,
@@ -22,4 +22,3 @@ export default async function DashboardShellLayout({
     </div>
   )
 }
-

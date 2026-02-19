@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @plugin "tailwindcss-animate";
 
@@ -36,25 +36,36 @@
   --ring: #48c9b0;
 
   --radius: 0.5rem;
-  
+
   /* Custom Brand Colors */
   --brand-blue: #1b365d;
   --brand-green: #48c9b0;
 
   /* Sidebar Identity */
   --sidebar-bg: #132442;
-  --sidebar-border: rgba(27,54,93,0.40);
+  --sidebar-border: rgba(27, 54, 93, 0.4);
 
   /* Gradients / Atmosphere */
-  --bg-gradient-azul: linear-gradient(160deg, rgba(27,54,93,0.25) 0%, rgba(14,26,46,0.35) 45%, rgba(9,16,27,0.6) 100%);
-  --bg-gradient-radial: radial-gradient(1200px 600px at 10% 0%, rgba(27,54,93,0.22), transparent 60%);
+  --bg-gradient-azul: linear-gradient(
+    160deg,
+    rgba(27, 54, 93, 0.25) 0%,
+    rgba(14, 26, 46, 0.35) 45%,
+    rgba(9, 16, 27, 0.6) 100%
+  );
+  --bg-gradient-radial: radial-gradient(
+    1200px 600px at 10% 0%,
+    rgba(27, 54, 93, 0.22),
+    transparent 60%
+  );
 
   /* Elevation / Shadows */
-  --shadow-e2-main: 0 8px 24px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.04);
-  --shadow-e3-main: 0 16px 48px rgba(0,0,0,0.40), 0 2px 0 rgba(255,255,255,0.05);
-  --inner-soft: inset 0 1px 0 rgba(255,255,255,0.03);
-  --header-shadow-bottom: 0 6px 16px rgba(0,0,0,0.35);
-  --shadow-glow-brand-soft: 0 0 0 6px rgba(72,201,176,0.14);
+  --shadow-e2-main:
+    0 8px 24px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-e3-main:
+    0 16px 48px rgba(0, 0, 0, 0.4), 0 2px 0 rgba(255, 255, 255, 0.05);
+  --inner-soft: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --header-shadow-bottom: 0 6px 16px rgba(0, 0, 0, 0.35);
+  --shadow-glow-brand-soft: 0 0 0 6px rgba(72, 201, 176, 0.14);
 
   /* Motion Tokens */
   --motion-duration-fast: 120ms;
@@ -98,17 +109,28 @@
   --ring: #48c9b0;
 
   /* Gradients / Atmosphere (dark) */
-  --bg-gradient-azul: linear-gradient(160deg, rgba(27,54,93,0.25) 0%, rgba(14,26,46,0.35) 45%, rgba(9,16,27,0.6) 100%);
-  --bg-gradient-radial: radial-gradient(1200px 600px at 10% 0%, rgba(27,54,93,0.22), transparent 60%);
+  --bg-gradient-azul: linear-gradient(
+    160deg,
+    rgba(27, 54, 93, 0.25) 0%,
+    rgba(14, 26, 46, 0.35) 45%,
+    rgba(9, 16, 27, 0.6) 100%
+  );
+  --bg-gradient-radial: radial-gradient(
+    1200px 600px at 10% 0%,
+    rgba(27, 54, 93, 0.22),
+    transparent 60%
+  );
   --sidebar-bg: #132442;
-  --sidebar-border: rgba(27,54,93,0.40);
+  --sidebar-border: rgba(27, 54, 93, 0.4);
 
   /* Elevation / Shadows (dark) */
-  --shadow-e2-main: 0 8px 24px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.04);
-  --shadow-e3-main: 0 16px 48px rgba(0,0,0,0.40), 0 2px 0 rgba(255,255,255,0.05);
-  --inner-soft: inset 0 1px 0 rgba(255,255,255,0.03);
-  --header-shadow-bottom: 0 6px 16px rgba(0,0,0,0.35);
-  --shadow-glow-brand-soft: 0 0 0 6px rgba(72,201,176,0.14);
+  --shadow-e2-main:
+    0 8px 24px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-e3-main:
+    0 16px 48px rgba(0, 0, 0, 0.4), 0 2px 0 rgba(255, 255, 255, 0.05);
+  --inner-soft: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --header-shadow-bottom: 0 6px 16px rgba(0, 0, 0, 0.35);
+  --shadow-glow-brand-soft: 0 0 0 6px rgba(72, 201, 176, 0.14);
 
   /* Motion Tokens (dark) */
   --motion-duration-fast: 120ms;
@@ -125,26 +147,26 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
+
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

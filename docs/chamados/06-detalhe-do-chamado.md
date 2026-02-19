@@ -5,11 +5,13 @@
 Divisão em duas colunas:
 
 Esquerda:
+
 - Título
 - Descrição
 - Histórico de comentários (estilo chat)
 
 Direita:
+
 - Status (select)
 - Prioridade
 - Responsável

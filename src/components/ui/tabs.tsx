@@ -1,7 +1,7 @@
-import * as React from "react"
-import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { Button } from "./button"
+import * as React from 'react'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
+import { Button } from './button'
 
 export type SegmentedTabsItem = {
   label: string
@@ -22,8 +22,8 @@ export function SegmentedTabs({
   return (
     <div
       className={cn(
-        "inline-flex rounded-md border border-border bg-muted/40 gap-2 p-1",
-        className,
+        'inline-flex rounded-md border border-border bg-muted/40 gap-2 p-1',
+        className
       )}
       role="tablist"
       aria-label="Abas"
@@ -32,7 +32,7 @@ export function SegmentedTabs({
         <Button
           key={item.value}
           asChild
-          variant={item.value === value ? "default" : "ghost"}
+          variant={item.value === value ? 'default' : 'ghost'}
           size="sm"
           aria-selected={item.value === value}
           role="tab"

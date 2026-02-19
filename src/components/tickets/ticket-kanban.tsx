@@ -1,16 +1,22 @@
-"use client"
+'use client'
 
-import { useEffect, useState, useTransition } from "react"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getPriorityVariant } from "./utils"
-import Link from "next/link"
-import { toast } from "sonner"
-import { updateStatus } from "@/app/(dashboard)/tickets/actions"
-import { useRouter } from "next/navigation"
+import { useEffect, useState, useTransition } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getPriorityVariant } from './utils'
+import Link from 'next/link'
+import { toast } from 'sonner'
+import { updateStatus } from '@/app/(dashboard)/tickets/actions'
+import { useRouter } from 'next/navigation'
 
-type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "DONE" | "CLOSED" | "CANCELLED"
+type TicketStatus =
+  | 'OPEN'
+  | 'IN_PROGRESS'
+  | 'WAITING'
+  | 'DONE'
+  | 'CLOSED'
+  | 'CANCELLED'
 
 interface Ticket {
   id: string
@@ -30,45 +36,50 @@ interface TicketKanbanProps {
 }
 
 const columns: { id: TicketStatus; title: string }[] = [
-  { id: "OPEN", title: "Aberto" },
-  { id: "IN_PROGRESS", title: "Em Andamento" },
-  { id: "WAITING", title: "Em Espera" },
-  { id: "DONE", title: "Concluído" },
-  { id: "CLOSED", title: "Fechado" },
-  { id: "CANCELLED", title: "Cancelado" },
+  { id: 'OPEN', title: 'Aberto' },
+  { id: 'IN_PROGRESS', title: 'Em Andamento' },
+  { id: 'WAITING', title: 'Em Espera' },
+  { id: 'DONE', title: 'Concluído' },
+  { id: 'CLOSED', title: 'Fechado' },
+  { id: 'CANCELLED', title: 'Cancelado' },
 ]
 
 const allowedTransitions: Record<TicketStatus, TicketStatus[]> = {
-  OPEN: ["IN_PROGRESS", "WAITING", "CANCELLED"],
-  IN_PROGRESS: ["OPEN", "WAITING", "DONE", "CANCELLED"],
-  WAITING: ["IN_PROGRESS", "CANCELLED"],
-  DONE: ["CLOSED"],
+  OPEN: ['IN_PROGRESS', 'WAITING', 'CANCELLED'],
+  IN_PROGRESS: ['OPEN', 'WAITING', 'DONE', 'CANCELLED'],
+  WAITING: ['IN_PROGRESS', 'CANCELLED'],
+  DONE: ['CLOSED'],
   CLOSED: [],
   CANCELLED: [],
 }
 
-import { assignTicketToMe } from "@/app/(dashboard)/tickets/actions"
+import { assignTicketToMe } from '@/app/(dashboard)/tickets/actions'
 
-export function TicketKanban({ tickets, currentUserRole, currentUserName }: TicketKanbanProps) {
+export function TicketKanban({
+  tickets,
+  currentUserRole,
+  currentUserName,
+}: TicketKanbanProps) {
   const [boardTickets, setBoardTickets] = useState<Ticket[]>(tickets)
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
   const router = useRouter()
-  const isTechOrAdmin = currentUserRole === "ADMIN" || currentUserRole === "TECH"
+  const isTechOrAdmin =
+    currentUserRole === 'ADMIN' || currentUserRole === 'TECH'
 
   const getPriorityBorder = (priority: string) => {
     switch (priority) {
-      case "LOW":
-        return "border-l-emerald-500"
-      case "MEDIUM":
-        return "border-l-sky-500"
-      case "HIGH":
-        return "border-l-amber-500"
-      case "CRITICAL":
-        return "border-l-red-500"
+      case 'LOW':
+        return 'border-l-emerald-500'
+      case 'MEDIUM':
+        return 'border-l-sky-500'
+      case 'HIGH':
+        return 'border-l-amber-500'
+      case 'CRITICAL':
+        return 'border-l-red-500'
       default:
-        return "border-l-muted"
+        return 'border-l-muted'
     }
   }
 
@@ -79,12 +90,12 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
   useEffect(() => {
     let es: EventSource | null = null
     try {
-      es = new EventSource("/api/tickets/stream")
+      es = new EventSource('/api/tickets/stream')
       es.onmessage = (ev) => {
         try {
           const data = JSON.parse(ev.data)
-          if (data?.type === "ping") return
-          if (data?.type && String(data.type).startsWith("ticket:")) {
+          if (data?.type === 'ping') return
+          if (data?.type && String(data.type).startsWith('ticket:')) {
             router.refresh()
           }
         } catch {
@@ -106,46 +117,61 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
     const currentStatus = current.status
     const allowedNext = allowedTransitions[currentStatus] || []
     if (!allowedNext.includes(targetStatus)) {
-      toast.error("Transição de status inválida")
+      toast.error('Transição de status inválida')
       return
     }
 
     setBoardTickets((prev) =>
-      prev.map((t) => (t.id === ticketId ? { ...t, status: targetStatus } : t)),
+      prev.map((t) => (t.id === ticketId ? { ...t, status: targetStatus } : t))
     )
     setPendingId(ticketId)
 
     startTransition(async () => {
       try {
         const formData = new FormData()
-        formData.set("status", targetStatus)
+        formData.set('status', targetStatus)
         await updateStatus(ticketId, formData)
       } catch {
         setBoardTickets((prev) =>
-          prev.map((t) => (t.id === ticketId ? { ...t, status: currentStatus } : t)),
+          prev.map((t) =>
+            t.id === ticketId ? { ...t, status: currentStatus } : t
+          )
         )
-        toast.error("Falha ao atualizar status")
+        toast.error('Falha ao atualizar status')
       } finally {
         setPendingId((prev) => (prev === ticketId ? null : prev))
       }
     })
   }
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>, status: TicketStatus) => {
+  const handleDrop = (
+    event: React.DragEvent<HTMLDivElement>,
+    status: TicketStatus
+  ) => {
     event.preventDefault()
-    const ticketId = event.dataTransfer.getData("text/plain")
+    const ticketId = event.dataTransfer.getData('text/plain')
     if (!ticketId) return
     changeStatus(ticketId, status)
     setDraggedId(null)
   }
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, ticket: Ticket) => {
-    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLDivElement>,
+    ticket: Ticket
+  ) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault()
-      const order: TicketStatus[] = ["OPEN", "IN_PROGRESS", "WAITING", "DONE", "CLOSED", "CANCELLED"]
+      const order: TicketStatus[] = [
+        'OPEN',
+        'IN_PROGRESS',
+        'WAITING',
+        'DONE',
+        'CLOSED',
+        'CANCELLED',
+      ]
       const index = order.indexOf(ticket.status)
       if (index === -1) return
-      const nextIndex = event.key === "ArrowRight" ? index + 1 : index - 1
+      const nextIndex = event.key === 'ArrowRight' ? index + 1 : index - 1
       const targetStatus = order[nextIndex]
       if (!targetStatus) return
       changeStatus(ticket.id, targetStatus)
@@ -166,8 +192,13 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
             aria-label={`Coluna ${column.title}`}
           >
             <div className="flex items-center justify-between px-2">
-              <h3 className="font-medium text-sm text-muted-foreground">{column.title}</h3>
-              <Badge variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted">
+              <h3 className="font-medium text-sm text-muted-foreground">
+                {column.title}
+              </h3>
+              <Badge
+                variant="secondary"
+                className="bg-muted text-muted-foreground hover:bg-muted"
+              >
                 {columnTickets.length}
               </Badge>
             </div>
@@ -182,22 +213,30 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
                 </div>
               ) : (
                 columnTickets.map((ticket) => (
-                  <Link key={ticket.id} href={`/tickets/${ticket.id}`} className="block">
+                  <Link
+                    key={ticket.id}
+                    href={`/tickets/${ticket.id}`}
+                    className="block"
+                  >
                     <Card
                       draggable
                       onDragStart={(event) => {
-                        event.dataTransfer.setData("text/plain", ticket.id)
+                        event.dataTransfer.setData('text/plain', ticket.id)
                         setDraggedId(ticket.id)
                       }}
-                      onDragEnd={() => setDraggedId((prev) => (prev === ticket.id ? null : prev))}
+                      onDragEnd={() =>
+                        setDraggedId((prev) =>
+                          prev === ticket.id ? null : prev
+                        )
+                      }
                       tabIndex={0}
                       onKeyDown={(event) => handleKeyDown(event, ticket)}
                       aria-grabbed={draggedId === ticket.id}
                       className={`bg-card border-border shadow-sm cursor-move transition-colors border-l-[3px] ${getPriorityBorder(
-                        ticket.priority,
+                        ticket.priority
                       )} ${
-                        draggedId === ticket.id ? "ring-2 ring-primary" : ""
-                      } ${pendingId === ticket.id ? "opacity-60" : ""}`}
+                        draggedId === ticket.id ? 'ring-2 ring-primary' : ''
+                      } ${pendingId === ticket.id ? 'opacity-60' : ''}`}
                     >
                       <CardContent className="p-3 space-y-3">
                         <div className="flex justify-between items-start gap-2">
@@ -218,13 +257,17 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
 
                         <div className="flex items-center justify-between mt-2">
                           <div className="text-xs text-muted-foreground truncate max-w-[100px]">
-                            {ticket.customer?.name || "Sem cliente"}
+                            {ticket.customer?.name || 'Sem cliente'}
                           </div>
                           {ticket.assignedTo && (
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={ticket.assignedTo.avatar || undefined} />
+                              <AvatarImage
+                                src={ticket.assignedTo.avatar || undefined}
+                              />
                               <AvatarFallback className="text-[10px] bg-muted">
-                                {ticket.assignedTo.name?.slice(0, 2).toUpperCase() || "??"}
+                                {ticket.assignedTo.name
+                                  ?.slice(0, 2)
+                                  .toUpperCase() || '??'}
                               </AvatarFallback>
                             </Avatar>
                           )}
@@ -242,13 +285,23 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
                                     await assignTicketToMe(id)
                                     setBoardTickets((prev) =>
                                       prev.map((t) =>
-                                        t.id === id ? { ...t, assignedTo: { name: currentUserName || "Você", avatar: null } } : t,
-                                      ),
+                                        t.id === id
+                                          ? {
+                                              ...t,
+                                              assignedTo: {
+                                                name: currentUserName || 'Você',
+                                                avatar: null,
+                                              },
+                                            }
+                                          : t
+                                      )
                                     )
                                   } catch {
-                                    toast.error("Falha ao assumir chamado")
+                                    toast.error('Falha ao assumir chamado')
                                   } finally {
-                                    setPendingId((prev) => (prev === id ? null : prev))
+                                    setPendingId((prev) =>
+                                      prev === id ? null : prev
+                                    )
                                   }
                                 })
                               }}
@@ -265,19 +318,19 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
 
                           let targetHours: number
                           switch (ticket.priority) {
-                            case "LOW":
+                            case 'LOW':
                               // ao longo do mês ~ 30 dias
                               targetHours = 30 * 24
                               break
-                            case "MEDIUM":
+                            case 'MEDIUM':
                               // até o fim da semana ~ 7 dias
                               targetHours = 7 * 24
                               break
-                            case "HIGH":
+                            case 'HIGH':
                               // 2 dias úteis ~ 48h (aproximação)
                               targetHours = 2 * 24
                               break
-                            case "CRITICAL":
+                            case 'CRITICAL':
                               // atenção imediata: qualquer tempo já conta contra
                               targetHours = 0
                               break
@@ -296,21 +349,25 @@ export function TicketKanban({ tickets, currentUserRole, currentUserName }: Tick
                             days > 0
                               ? `${days}d ${hours}h`
                               : hours > 0
-                              ? `${hours}h ${minutes}m`
-                              : `${minutes}m`
+                                ? `${hours}h ${minutes}m`
+                                : `${minutes}m`
 
                           return (
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] text-muted-foreground">SLA</span>
+                              <span className="text-[11px] text-muted-foreground">
+                                SLA
+                              </span>
                               <Badge
-                                variant={overdue ? "soft-destructive" : "soft-info"}
+                                variant={
+                                  overdue ? 'soft-destructive' : 'soft-info'
+                                }
                                 className="text-[10px] px-1.5 py-0 h-5"
                               >
                                 {overdue
                                   ? `Fora do SLA há ${display}`
-                                  : ticket.priority === "CRITICAL"
-                                  ? `Aberto há ${display}`
-                                  : `Faltam ${display}`}
+                                  : ticket.priority === 'CRITICAL'
+                                    ? `Aberto há ${display}`
+                                    : `Faltam ${display}`}
                               </Badge>
                             </div>
                           )

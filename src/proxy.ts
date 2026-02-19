@@ -1,12 +1,17 @@
-import { auth } from "@/lib/auth/config"
- 
+import { auth } from '@/lib/auth/config'
+
 export default auth((req) => {
-  if (!req.auth && req.nextUrl.pathname !== "/login") {
-    const newUrl = new URL("/login", req.nextUrl.origin)
+  if (!req.auth && req.nextUrl.pathname !== '/login') {
+    const newUrl = new URL('/login', req.nextUrl.origin)
     return Response.redirect(newUrl)
   }
 })
- 
+
 export const config = {
-  matcher: ["/dashboard/:path*", "/tickets/:path*", "/users/:path*", "/profile/:path*"],
+  matcher: [
+    '/dashboard/:path*',
+    '/tickets/:path*',
+    '/users/:path*',
+    '/profile/:path*',
+  ],
 }

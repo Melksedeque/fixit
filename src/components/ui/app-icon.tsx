@@ -1,5 +1,5 @@
-import Image from "next/image"
-import { cn } from "@/lib/utils"
+import Image from 'next/image'
+import { cn } from '@/lib/utils'
 
 interface AppIconProps {
   className?: string
@@ -13,7 +13,7 @@ export function AppIcon({ className, size = 32 }: AppIconProps) {
       alt="Fixit Icon"
       width={size}
       height={size}
-      className={cn("h-auto w-auto", className)}
+      className={cn('h-auto w-auto', className)}
     />
   )
 }

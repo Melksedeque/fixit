@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import {
   AlertDialog,
@@ -10,13 +10,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Trash2 } from "lucide-react"
-import { deleteUser } from "@/app/(dashboard)/users/actions"
-import { toast } from "sonner"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Trash2 } from 'lucide-react'
+import { deleteUser } from '@/app/(dashboard)/users/actions'
+import { toast } from 'sonner'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface DeleteUserButtonProps {
   userId: string
@@ -30,7 +30,8 @@ export function DeleteUserButton({ userId, userName }: DeleteUserButtonProps) {
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      const result: { success?: boolean; error?: string } = await deleteUser(userId)
+      const result: { success?: boolean; error?: string } =
+        await deleteUser(userId)
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -38,7 +39,7 @@ export function DeleteUserButton({ userId, userName }: DeleteUserButtonProps) {
         router.refresh()
       }
     } catch {
-      toast.error("Erro ao excluir usuário.")
+      toast.error('Erro ao excluir usuário.')
     } finally {
       setIsDeleting(false)
     }
@@ -55,14 +56,17 @@ export function DeleteUserButton({ userId, userName }: DeleteUserButtonProps) {
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja excluir o usuário <strong>{userName}</strong>?
-            Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir o usuário <strong>{userName}</strong>
+            ? Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            {isDeleting ? "Excluindo..." : "Excluir"}
+          <AlertDialogAction
+            onClick={handleDelete}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isDeleting ? 'Excluindo...' : 'Excluir'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

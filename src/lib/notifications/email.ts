@@ -1,4 +1,4 @@
-import { Resend } from "resend"
+import { Resend } from 'resend'
 
 type EmailPayload = {
   to: string
@@ -13,23 +13,26 @@ export async function sendEmail(payload: EmailPayload) {
   const replyTo = process.env.RESEND_REPLY_TO || from
 
   if (!apiKey || !from) {
-    console.warn("[email] missing RESEND_API_KEY or RESEND_FROM, skipping send", {
-      hasApiKey: Boolean(apiKey),
-      hasFrom: Boolean(from),
-      to: payload.to,
-    })
+    console.warn(
+      '[email] missing RESEND_API_KEY or RESEND_FROM, skipping send',
+      {
+        hasApiKey: Boolean(apiKey),
+        hasFrom: Boolean(from),
+        to: payload.to,
+      }
+    )
     return
   }
 
-  console.log("[email] sendEmail called", {
+  console.log('[email] sendEmail called', {
     to: payload.to,
     subject: payload.subject,
     hasHtml: Boolean(payload.html),
   })
 
   const resend = new Resend(apiKey)
-  const usesUnverifiedDomain = from.includes("vercel.app")
-  const safeFrom = usesUnverifiedDomain ? "Fixit <onboarding@resend.dev>" : from
+  const usesUnverifiedDomain = from.includes('vercel.app')
+  const safeFrom = usesUnverifiedDomain ? 'Fixit <onboarding@resend.dev>' : from
 
   try {
     await resend.emails.send({
@@ -40,19 +43,22 @@ export async function sendEmail(payload: EmailPayload) {
       ...(payload.html ? { html: payload.html } : {}),
       ...(replyTo ? { reply_to: replyTo } : {}),
     })
-    console.log("[email] sendEmail succeeded", {
+    console.log('[email] sendEmail succeeded', {
       to: payload.to,
       subject: payload.subject,
     })
     if (usesUnverifiedDomain) {
-      console.warn("[email] using onboarding@resend.dev as From (domain unverified)", {
-        requestedFrom: from,
-        effectiveFrom: safeFrom,
-        replyTo,
-      })
+      console.warn(
+        '[email] using onboarding@resend.dev as From (domain unverified)',
+        {
+          requestedFrom: from,
+          effectiveFrom: safeFrom,
+          replyTo,
+        }
+      )
     }
   } catch (error) {
-    console.error("[email] send failed", {
+    console.error('[email] send failed', {
       error: String(error),
       to: payload.to,
       subject: payload.subject,
@@ -61,6 +67,7 @@ export async function sendEmail(payload: EmailPayload) {
 }
 
 export function buildTicketLink(ticketId: string) {
-  const baseUrl = process.env.FIXIT_BASE_URL || "https://fixit-chamados.vercel.app"
+  const baseUrl =
+    process.env.FIXIT_BASE_URL || 'https://fixit-chamados.vercel.app'
   return `${baseUrl}/tickets/${ticketId}`
 }

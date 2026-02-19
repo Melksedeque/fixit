@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { useEffect } from "react"
-import { toast } from "sonner"
+import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 interface TicketCreatedToastProps {
   created?: boolean
@@ -10,10 +10,9 @@ interface TicketCreatedToastProps {
 export function TicketCreatedToast({ created }: TicketCreatedToastProps) {
   useEffect(() => {
     if (created) {
-      toast.success("Chamado criado com sucesso")
+      toast.success('Chamado criado com sucesso')
     }
   }, [created])
 
   return null
 }
-

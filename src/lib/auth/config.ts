@@ -1,8 +1,8 @@
-import NextAuth from "next-auth"
-import Credentials from "next-auth/providers/credentials"
-import { z } from "zod"
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import NextAuth from 'next-auth'
+import Credentials from 'next-auth/providers/credentials'
+import { z } from 'zod'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 type LoginAttemptInfo = {
   attempts: number
@@ -52,12 +52,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
         token.sub = dbUser.id
         token.role = dbUser.role
-        if (dbUser.avatar && typeof dbUser.avatar === "string") {
+        if (dbUser.avatar && typeof dbUser.avatar === 'string') {
           token.avatar = dbUser.avatar
         }
       }
       return token
-    }
+    },
   },
   providers: [
     Credentials({
@@ -71,23 +71,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           const existingAttempt = loginAttempts.get(email)
           const now = Date.now()
-          if (existingAttempt && now - existingAttempt.lastAttempt < WINDOW_MS && existingAttempt.attempts >= MAX_ATTEMPTS) {
+          if (
+            existingAttempt &&
+            now - existingAttempt.lastAttempt < WINDOW_MS &&
+            existingAttempt.attempts >= MAX_ATTEMPTS
+          ) {
             console.warn(`Too many login attempts for ${email}`)
             return null
           }
 
           const user = await prisma.user.findUnique({ where: { email } })
           if (!user) return null
-          
+
           const passwordsMatch = await bcrypt.compare(password, user.password)
           if (passwordsMatch) {
             loginAttempts.delete(email)
             return user
           }
 
-          const updated: LoginAttemptInfo = existingAttempt && now - existingAttempt.lastAttempt < WINDOW_MS
-            ? { attempts: existingAttempt.attempts + 1, lastAttempt: now }
-            : { attempts: 1, lastAttempt: now }
+          const updated: LoginAttemptInfo =
+            existingAttempt && now - existingAttempt.lastAttempt < WINDOW_MS
+              ? { attempts: existingAttempt.attempts + 1, lastAttempt: now }
+              : { attempts: 1, lastAttempt: now }
           loginAttempts.set(email, updated)
         }
 

@@ -1,45 +1,43 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import localFont from "next/font/local";
-import { Toaster } from "@/components/ui/sonner"
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
+import { Toaster } from '@/components/ui/sonner'
+import './globals.css'
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
+})
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
+})
 
 const balooPaaji = localFont({
-  src: "../../public/font/BalooPaaji-Regular.ttf",
-  variable: "--font-baloo",
-  display: "swap",
-});
+  src: '../../public/font/BalooPaaji-Regular.ttf',
+  variable: '--font-baloo',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: "Fixit",
-  description: "Sistema de Chamados e Manutenção",
-};
+  title: 'Fixit',
+  description: 'Sistema de Chamados e Manutenção',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="pt-BR" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${balooPaaji.variable} antialiased min-h-screen`}
       >
-        <div className="min-h-screen">
-          {children}
-        </div>
+        <div className="min-h-screen">{children}</div>
         <Toaster />
       </body>
     </html>
-  );
+  )
 }

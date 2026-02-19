@@ -1,5 +1,5 @@
-import Image from "next/image"
-import { cn } from "@/lib/utils"
+import Image from 'next/image'
+import { cn } from '@/lib/utils'
 
 interface LogoProps {
   className?: string
@@ -15,7 +15,7 @@ export function Logo({ className, width = 150, height = 40 }: LogoProps) {
       width={width}
       height={height}
       priority
-      className={cn("h-auto w-auto", className)}
+      className={cn('h-auto w-auto', className)}
     />
   )
 }

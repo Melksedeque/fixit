@@ -9,6 +9,7 @@ Este documento define o **padrão oficial de commits e branches**, baseado em **
 Formato: `Type/Nome-Curto`
 
 Exemplos:
+
 - `Feat/Auth-Login`
 - `Fix/Carrinho-Quantidade`
 - `Refactor/API-Validacao`
@@ -20,8 +21,8 @@ Exemplos:
 
 Formato obrigatório: `Type(Scope): Descrição em português`
 
-
 ### Tipos permitidos
+
 - `Feat` – Nova funcionalidade
 - `Fix` – Correção de bug
 - `Refactor` – Refatoração sem mudar comportamento
@@ -32,6 +33,7 @@ Formato obrigatório: `Type(Scope): Descrição em português`
 - `CI` – Pipeline/Config
 
 ### Regras
+
 - `type` sempre em inglês com a primeira letra maiúscula, mas se for sigla, fica em maiúscula
 - `scope` curto, técnico, em kebab-case com a primeira letra de cada palavra em maiúscula
 - descrição:
@@ -41,12 +43,14 @@ Formato obrigatório: `Type(Scope): Descrição em português`
   - primeira letra e nomes de funções em maiúscula
 
 ### Exemplos corretos
+
 - `Feat(Auth): Adicionar login com link mágico`
 - `Fix(Carrinho): Impedir quantidade negativa`
 - `Refactor(API): Mover validação para requests`
 - `Perf(Lista): Reduzir re-render desnecessário`
 
 ### Exemplos incorretos
+
 - `Update stuff`
 - `Corrigindo bug`
 - `Feat: várias mudanças`
@@ -65,6 +69,7 @@ Formato obrigatório: `Type(Scope): Descrição em português`
 ## 🔐 Segurança em Commits
 
 Nunca versionar:
+
 - `.env`
 - chaves de API
 - tokens
@@ -72,6 +77,7 @@ Nunca versionar:
 - dumps de banco
 
 Se algo sensível for detectado:
+
 - parar
 - remover do histórico
 - avisar

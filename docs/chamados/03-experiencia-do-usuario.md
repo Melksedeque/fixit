@@ -3,6 +3,7 @@
 ## Abertura de Chamado
 
 Fluxo simples:
+
 1. Botão "Novo Chamado"
 2. Modal ou página com:
    - Título
@@ -15,6 +16,7 @@ Fluxo simples:
 ## Ao visualizar um chamado
 
 Usuário deve:
+
 - Ver histórico
 - Adicionar comentário
 - Ver status

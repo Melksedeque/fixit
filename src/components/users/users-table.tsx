@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState } from "react"
+import { useState } from 'react'
 import {
   Table,
   TableBody,
@@ -8,23 +8,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Edit2, Mail, Phone, Eye } from "lucide-react"
-import { DeleteUserButton } from "@/components/users/delete-user-button"
-import { UserForm } from "@/components/users/user-form"
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Plus, Edit2, Mail, Phone, Eye } from 'lucide-react'
+import { DeleteUserButton } from '@/components/users/delete-user-button'
+import { UserForm } from '@/components/users/user-form'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Role } from "@prisma/client"
-import { useRouter } from "next/navigation"
-import { getUserInitials } from "@/lib/utils/user"
+} from '@/components/ui/dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Role } from '@prisma/client'
+import { useRouter } from 'next/navigation'
+import { getUserInitials } from '@/lib/utils/user'
 
 interface User {
   id: string
@@ -48,7 +48,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
   const router = useRouter()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
-  const isAdmin = currentUser?.role === "ADMIN"
+  const isAdmin = currentUser?.role === 'ADMIN'
 
   const handleSuccess = () => {
     setIsCreateOpen(false)
@@ -57,12 +57,12 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
   }
 
   const formatPhone = (phone: string) => {
-    const cleaned = phone.replace(/\D/g, "")
+    const cleaned = phone.replace(/\D/g, '')
     if (cleaned.length === 11) {
-      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
+      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
     }
     if (cleaned.length === 10) {
-      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3")
+      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
     }
     return phone
   }
@@ -99,21 +99,28 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
               <TableHead className="px-5">E-mail</TableHead>
               <TableHead className="px-5">WhatsApp</TableHead>
               <TableHead className="px-5">Função</TableHead>
-              {isAdmin && <TableHead className="text-right px-5">Ações</TableHead>}
+              {isAdmin && (
+                <TableHead className="text-right px-5">Ações</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow 
-                key={user.id} 
-                className="cursor-pointer hover:bg-primary/5 transition-colors duration-200 ease-out even:bg-muted"
+              <TableRow
+                key={user.id}
+                className="cursor-pointer border-b-stone-100 hover:bg-primary/5 transition-colors duration-200 ease-out even:bg-muted"
                 onClick={() => router.push(`/users/${user.id}`)}
               >
                 <TableCell className="p-5">
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarImage src={user.avatar || undefined} alt={user.name} />
-                      <AvatarFallback>{getUserInitials(user.name)}</AvatarFallback>
+                      <AvatarImage
+                        src={user.avatar || undefined}
+                        alt={user.name}
+                      />
+                      <AvatarFallback>
+                        {getUserInitials(user.name)}
+                      </AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{user.name}</span>
                   </div>
@@ -130,47 +137,59 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                   </a>
                 </TableCell>
                 <TableCell className="p-5">
-              {user.whatsapp ? (
-                <a
-                  href={`https://wa.me/55${user.whatsapp.replace(/\D/g, "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label={`Abrir WhatsApp para ${formatPhone(user.whatsapp)}`}
-                  className="flex items-center gap-2 hover:underline hover:text-green-600 w-fit"
-                >
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  {formatPhone(user.whatsapp)}
-                </a>
-              ) : (
-                <span className="text-muted-foreground">-</span>
-              )}
-            </TableCell>
+                  {user.whatsapp ? (
+                    <a
+                      href={`https://wa.me/55${user.whatsapp.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`Abrir WhatsApp para ${formatPhone(user.whatsapp)}`}
+                      className="flex items-center gap-2 hover:underline hover:text-green-600 w-fit"
+                    >
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      {formatPhone(user.whatsapp)}
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
                 <TableCell className="p-5">
-                  {user.role === "ADMIN" ? (
-                    <Badge variant="outline" className="border-purple-400 bg-purple-400/15 text-purple-400">
+                  {user.role === 'ADMIN' ? (
+                    <Badge
+                      variant="outline"
+                      className="border-purple-400 bg-purple-400/15 text-purple-400"
+                    >
                       ADMIN
                     </Badge>
-                  ) : user.role === "TECH" ? (
-                    <Badge variant="outline" className="border-green-400 bg-green-400/15 text-green-400">
+                  ) : user.role === 'TECH' ? (
+                    <Badge
+                      variant="outline"
+                      className="border-green-400 bg-green-400/15 text-green-400"
+                    >
                       TECH
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="border-sky-400 bg-sky-400/15 text-sky-400">
+                    <Badge
+                      variant="outline"
+                      className="border-sky-400 bg-sky-400/15 text-sky-400"
+                    >
                       USER
                     </Badge>
                   )}
                 </TableCell>
                 {isAdmin && (
                   <TableCell className="text-right p-5">
-                    <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex items-center justify-end gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Button
                         variant="soft-success"
                         size="icon"
                         className="h-8 w-8"
                         onClick={() => router.push(`/users/${user.id}`)}
                       >
-                         <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="soft-edit"
@@ -184,7 +203,10 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
                         <Edit2 className="h-4 w-4" />
                       </Button>
                       {user.id !== currentUser.id && (
-                        <DeleteUserButton userId={user.id} userName={user.name} />
+                        <DeleteUserButton
+                          userId={user.id}
+                          userName={user.name}
+                        />
                       )}
                     </div>
                   </TableCell>
@@ -193,7 +215,10 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={isAdmin ? 5 : 4} className="text-center h-24 text-muted-foreground">
+                <TableCell
+                  colSpan={isAdmin ? 5 : 4}
+                  className="text-center h-24 text-muted-foreground"
+                >
                   Nenhum usuário encontrado.
                 </TableCell>
               </TableRow>
@@ -202,7 +227,10 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
         </Table>
       </div>
 
-      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+      <Dialog
+        open={!!editingUser}
+        onOpenChange={(open) => !open && setEditingUser(null)}
+      >
         <DialogContent className="sm:max-w-[600px] bg-primary-foreground">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
