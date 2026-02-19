@@ -3,13 +3,13 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { signIn } from 'next-auth/react'
+import { getSession, signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LogIn, ArrowRight, Eye, EyeOff } from 'lucide-react'
-import { checkEmail } from '@/app/login/actions'
+import { checkEmail, requestPasswordReset } from '@/app/login/actions'
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -37,6 +37,8 @@ export function LoginForm() {
     mode: 'onChange',
   })
 
+  const [resetMessage, setResetMessage] = useState<string | null>(null)
+
   const handleNextStep = async () => {
     const isValid = await trigger('email')
     if (!isValid) {
@@ -45,6 +47,7 @@ export function LoginForm() {
 
     setLoading(true)
     setError(null)
+    setResetMessage(null)
 
     try {
       const email = getValues('email')
@@ -65,6 +68,36 @@ export function LoginForm() {
     }
   }
 
+  const handlePasswordReset = async () => {
+    const isValidEmail = await trigger('email')
+    if (!isValidEmail) {
+      setStep('email')
+      return
+    }
+
+    const email = getValues('email')
+    if (!email) return
+
+    setLoading(true)
+    setError(null)
+    setResetMessage(null)
+
+    try {
+      const result = await requestPasswordReset(email)
+      if (result?.success) {
+        setResetMessage(
+          'Se o e-mail estiver cadastrado, enviamos uma senha temporária.'
+        )
+      } else if (result?.error) {
+        setError(result.error)
+      }
+    } catch {
+      setError('Não foi possível solicitar recuperação de senha.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function onSubmit(data: LoginFormValues) {
     setLoading(true)
     setError(null)
@@ -79,7 +112,12 @@ export function LoginForm() {
       if (result?.error) {
         setError('Senha incorreta.')
       } else {
-        router.push('/dashboard')
+        const session = await getSession()
+        if (session?.user?.mustChangePassword) {
+          router.push('/change-password')
+        } else {
+          router.push('/dashboard')
+        }
         router.refresh()
       }
     } catch {
@@ -185,6 +223,18 @@ export function LoginForm() {
                   </p>
                 )}
               </div>
+
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                disabled={loading}
+                onClick={handlePasswordReset}
+              >
+                Esqueci minha senha
+              </button>
+              {resetMessage && (
+                <p className="text-xs text-muted-foreground">{resetMessage}</p>
+              )}
 
               {error && (
                 <div
