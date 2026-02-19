@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE "users"
+ADD COLUMN "mustChangePassword" BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- AlterTable
+ALTER TABLE "tickets"
+ADD COLUMN "slaReminderOneDaySent" BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN "slaReminderTwoHoursSent" BOOLEAN NOT NULL DEFAULT FALSE;
+

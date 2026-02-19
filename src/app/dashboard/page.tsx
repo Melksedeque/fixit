@@ -18,8 +18,8 @@ export default async function DashboardPage() {
   const ticketScope: Record<string, unknown> = isAdmin
     ? {}
     : isTech
-    ? { assignedToId: user.id }
-    : { customerId: user.id }
+      ? { assignedToId: user.id }
+      : { customerId: user.id }
 
   const [totalTickets, openTickets, doneTickets, activeUsers] =
     await Promise.all([

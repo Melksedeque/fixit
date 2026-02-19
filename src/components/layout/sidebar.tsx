@@ -151,8 +151,8 @@ export function Sidebar({ className, userRole }: SidebarProps) {
                   {userRole === 'ADMIN'
                     ? 'Administrador'
                     : userRole === 'TECH'
-                    ? 'Técnico'
-                    : 'Usuário'}
+                      ? 'Técnico'
+                      : 'Usuário'}
                 </span>
               </div>
             </div>
@@ -260,8 +260,8 @@ export function MobileSidebar({ userRole }: MobileSidebarProps) {
                 {userRole === 'ADMIN'
                   ? 'Administrador'
                   : userRole === 'TECH'
-                  ? 'Técnico'
-                  : 'Usuário'}
+                    ? 'Técnico'
+                    : 'Usuário'}
               </span>
             </p>
           )}

@@ -13,5 +13,6 @@ export const config = {
     '/tickets/:path*',
     '/users/:path*',
     '/profile/:path*',
+    '/change-password/:path*',
   ],
 }
