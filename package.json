@@ -62,10 +62,10 @@
     "@types/react-dom": "^19",
     "@types/vanilla-masker": "^1.2.4",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^10.0.0",
-    "eslint-config-next": "^0.2.4",
+    "eslint": "^9.26.0",
+    "eslint-config-next": "^16.1.6",
     "nodemailer": "^7.0.13",
-    "prisma": "^6.19.2",
+    "prisma": "^7.4.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
