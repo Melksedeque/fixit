@@ -1,4 +1,4 @@
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
 type EmailPayload = {
   to: string
@@ -8,21 +8,22 @@ type EmailPayload = {
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.RESEND_FROM
-  const replyTo = process.env.RESEND_REPLY_TO || from
+  const host = process.env.HOSTINGER_SMTP_HOST
+  const port = Number(process.env.HOSTINGER_SMTP_PORT || 465)
+  const user = process.env.HOSTINGER_SMTP_USER
+  const password = process.env.HOSTINGER_SMTP_PASSWORD
 
-  if (!apiKey) {
-    console.warn(
-      '[email] missing RESEND_API_KEY, skipping send',
-      {
-        hasApiKey: Boolean(apiKey),
-        hasFrom: Boolean(from),
-        to: payload.to,
-      }
-    )
+  if (!host || !user || !password) {
+    console.warn('[email] missing SMTP configuration, skipping send', {
+      hasHost: Boolean(host),
+      hasUser: Boolean(user),
+      hasPassword: Boolean(password),
+      to: payload.to,
+    })
     return false
   }
+
+  const fromAddress = `Fixit - Sistema de Chamados <${user}>`
 
   console.log('[email] sendEmail called', {
     to: payload.to,
@@ -30,39 +31,29 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
     hasHtml: Boolean(payload.html),
   })
 
-  const resend = new Resend(apiKey)
-  const usesUnverifiedDomain =
-    (from && from.includes('vercel.app')) || !from || from.trim() === ''
-  const safeFrom =
-    usesUnverifiedDomain && !from
-      ? 'Fixit - Sistema de Chamados <onboarding@resend.dev>'
-      : usesUnverifiedDomain
-        ? 'Fixit - Sistema de Chamados <onboarding@resend.dev>'
-        : from!
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: {
+      user,
+      pass: password,
+    },
+  })
 
   try {
-    await resend.emails.send({
-      from: safeFrom,
+    const info = await transporter.sendMail({
+      from: fromAddress,
       to: payload.to,
       subject: payload.subject,
       text: payload.text,
       ...(payload.html ? { html: payload.html } : {}),
-      ...(replyTo ? { reply_to: replyTo } : {}),
     })
     console.log('[email] sendEmail succeeded', {
       to: payload.to,
       subject: payload.subject,
+      messageId: info.messageId,
     })
-    if (usesUnverifiedDomain) {
-      console.warn(
-        '[email] using onboarding@resend.dev as From (domain unverified)',
-        {
-          requestedFrom: from,
-          effectiveFrom: safeFrom,
-          replyTo,
-        }
-      )
-    }
     return true
   } catch (error) {
     console.error('[email] send failed', {
