@@ -94,7 +94,7 @@ export default async function UserDetailsPage({
       actions={
         canManageUser ? (
           <div className="flex items-center gap-2">
-            <form action={async () => { await resendWelcomeEmail(user.id) }}>
+            <form action={resendWelcomeEmail.bind(null, user.id)}>
               <Button
                 type="submit"
                 variant="outline"
