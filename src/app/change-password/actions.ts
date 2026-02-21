@@ -13,6 +13,7 @@ export async function changePassword(
   _prevState: ChangePasswordState,
   formData: FormData
 ): Promise<ChangePasswordState> {
+  'use server'
   const session = await auth()
   if (!session?.user) {
     return { error: 'Não autorizado.' }

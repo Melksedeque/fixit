@@ -33,6 +33,7 @@ function requireRole(role: string | undefined | null, allowed: Role[]) {
 }
 
 export async function createTicket(formData: FormData) {
+  'use server'
   const session = await auth()
   if (!session?.user) throw new Error('Unauthorized')
   const userId = session.user.id
@@ -162,6 +163,7 @@ const TicketCommentSchema = z.object({
 })
 
 export async function addComment(ticketId: string, formData: FormData) {
+  'use server'
   const session = await auth()
   if (!session?.user) throw new Error('Unauthorized')
   const userId = session.user.id
@@ -209,6 +211,7 @@ export async function addComment(ticketId: string, formData: FormData) {
 }
 
 export async function addAttachments(ticketId: string, formData: FormData) {
+  'use server'
   const session = await auth()
   if (!session?.user) throw new Error('Unauthorized')
   const userId = session.user.id
@@ -284,6 +287,7 @@ const allowedTransitions: Record<TicketStatus, TicketStatus[]> = {
 }
 
 export async function updateStatus(ticketId: string, formData: FormData) {
+  'use server'
   const session = await auth()
   if (!session?.user) throw new Error('Unauthorized')
   requireRole(session.user.role, ['ADMIN', 'TECH'])
@@ -379,6 +383,7 @@ export async function updateStatus(ticketId: string, formData: FormData) {
 }
 
 export async function deleteTicket(ticketId: string) {
+  'use server'
   const session = await auth()
   if (!session?.user) throw new Error('Unauthorized')
   requireRole(session.user.role, ['ADMIN'])
@@ -399,6 +404,7 @@ const TicketUpdateSchema = z.object({
 })
 
 export async function updateTicket(ticketId: string, formData: FormData) {
+  'use server'
   const session = await auth()
   if (!session?.user) throw new Error('Unauthorized')
 
@@ -526,6 +532,7 @@ export async function updateTicket(ticketId: string, formData: FormData) {
 }
 
 export async function assignTicketToMe(ticketId: string) {
+  'use server'
   const session = await auth()
   if (!session?.user?.id) throw new Error('Unauthorized')
   requireRole(session.user.role, ['ADMIN', 'TECH'])
@@ -569,6 +576,7 @@ export async function assignTicketToMe(ticketId: string) {
 }
 
 export async function sendSlaReminders() {
+  'use server'
   const now = new Date()
 
   const tickets = await prisma.ticket.findMany({

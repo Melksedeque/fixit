@@ -20,6 +20,7 @@ const UserSchema = z.object({
 const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
 
 export async function createUser(_prevState: unknown, formData: FormData) {
+  'use server'
   const session = await auth()
   if (!session?.user || session.user.role !== 'ADMIN') {
     return { error: 'Não autorizado' }
@@ -110,6 +111,7 @@ export async function updateUser(
   _prevState: unknown,
   formData: FormData
 ) {
+  'use server'
   const session = await auth()
   if (!session?.user) {
     return { error: 'Não autorizado' }
@@ -209,6 +211,7 @@ export async function updateUser(
 }
 
 export async function deleteUser(userId: string) {
+  'use server'
   const session = await auth()
   if (!session?.user || session.user.role !== 'ADMIN') {
     return { error: 'Não autorizado' }
