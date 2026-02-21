@@ -182,11 +182,7 @@ export default async function TicketDetailPage({
             </Dialog>
           )}
           {isAdmin && (
-            <form
-              action={async () => {
-                await deleteTicket(ticket.id)
-              }}
-            >
+            <form action={deleteTicket.bind(null, ticket.id)}>
               <Button type="submit" variant="soft-destructive" size="sm">
                 Excluir
               </Button>

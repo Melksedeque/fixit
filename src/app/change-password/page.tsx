@@ -35,10 +35,8 @@ export default function ChangePasswordPage() {
           sistema.
         </p>
         <form
-          action={async (formData) => {
-            setIsSubmitting(true)
-            await formAction(formData)
-          }}
+          action={formAction}
+          onSubmit={() => setIsSubmitting(true)}
           className="space-y-4"
         >
           <div className="space-y-2">

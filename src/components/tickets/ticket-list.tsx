@@ -173,11 +173,7 @@ export function TicketList({
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <form
-                          action={async () => {
-                            await deleteTicket(t.id)
-                          }}
-                        >
+                        <form action={deleteTicket.bind(null, t.id)}>
                           <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                             Excluir
                           </AlertDialogAction>
