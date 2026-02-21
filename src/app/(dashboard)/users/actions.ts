@@ -19,6 +19,15 @@ const UserSchema = z.object({
 
 const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
 
+function generateTemporaryPassword(length = 10) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@$'
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
+}
+
 export async function createUser(_prevState: unknown, formData: FormData) {
   'use server'
   const session = await auth()
@@ -45,7 +54,8 @@ export async function createUser(_prevState: unknown, formData: FormData) {
     return { error: 'Senha é obrigatória para criação de usuário.' }
   }
 
-  const passwordHash = await bcrypt.hash(data.password, 10)
+  const plaintextPassword = data.password
+  const passwordHash = await bcrypt.hash(plaintextPassword, 10)
 
   let avatarUrl: string | null = null
   const avatarFile = formData.get('avatar')
@@ -85,6 +95,7 @@ export async function createUser(_prevState: unknown, formData: FormData) {
       const emailSent = await sendWelcomeEmail({
         name: created.name,
         email: created.email,
+        plaintextPassword,
       })
       if (!emailSent) {
         console.warn('[users] welcome email was not sent', {
@@ -232,5 +243,56 @@ export async function deleteUser(userId: string) {
     return { success: true }
   } catch {
     return { error: 'Erro ao excluir usuário.' }
+  }
+}
+
+export async function resendWelcomeEmail(userId: string) {
+  'use server'
+  const session = await auth()
+  if (!session?.user || session.user.role !== 'ADMIN') {
+    return { error: 'Não autorizado' }
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, email: true },
+  })
+
+  if (!user) {
+    return { error: 'Usuário não encontrado.' }
+  }
+
+  const temporaryPassword = generateTemporaryPassword()
+  const passwordHash = await bcrypt.hash(temporaryPassword, 10)
+
+  try {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: passwordHash,
+        mustChangePassword: true,
+      },
+    })
+
+    try {
+      const emailSent = await sendWelcomeEmail({
+        name: user.name,
+        email: user.email,
+        plaintextPassword: temporaryPassword,
+      })
+
+      if (!emailSent) {
+        console.warn('[users] resend welcome email was not sent', {
+          userId: user.id,
+          email: user.email,
+        })
+      }
+    } catch {
+      console.error('[users] resend welcome email threw unexpectedly')
+    }
+
+    return { success: true }
+  } catch {
+    return { error: 'Erro ao reenviar boas-vindas.' }
   }
 }

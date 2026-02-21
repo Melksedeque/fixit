@@ -1,7 +1,11 @@
 import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
 import { auth } from '@/lib/auth/config'
 import { prisma } from '@/lib/prisma'
 import { UserProfileLayout } from '@/components/users/user-profile-layout'
+import { resendWelcomeEmail } from '../actions'
+import { Button } from '@/components/ui/button'
+import { Pencil, Send } from 'lucide-react'
 
 export default async function UserDetailsPage({
   params,
@@ -33,6 +37,8 @@ export default async function UserDetailsPage({
   if (!user) {
     notFound()
   }
+
+  const canManageUser = session.user.role === 'ADMIN'
 
   const isTechOrAdmin = user.role === 'ADMIN' || user.role === 'TECH'
   const whereCondition = isTechOrAdmin
@@ -85,6 +91,34 @@ export default async function UserDetailsPage({
     <UserProfileLayout
       title="Detalhes do Usuário"
       backHref="/users"
+      actions={
+        canManageUser ? (
+          <div className="flex items-center gap-2">
+            <form action={resendWelcomeEmail.bind(null, user.id)}>
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Send className="h-4 w-4" />
+                <span>Reenviar boas-vindas</span>
+              </Button>
+            </form>
+            <Button
+              asChild
+              variant="soft-edit"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Link href="/users">
+                <Pencil className="h-4 w-4" />
+                <span>Editar</span>
+              </Link>
+            </Button>
+          </div>
+        ) : undefined
+      }
       user={{
         id: user.id,
         name: user.name,

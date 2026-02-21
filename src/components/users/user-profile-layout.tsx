@@ -63,6 +63,7 @@ interface UserProfileLayoutProps {
   isTechOrAdmin: boolean
   isSelf?: boolean
   backHref?: string
+  actions?: React.ReactNode
 }
 
 export function UserProfileLayout({
@@ -78,6 +79,7 @@ export function UserProfileLayout({
   isTechOrAdmin,
   isSelf = false,
   backHref,
+  actions,
 }: UserProfileLayoutProps) {
   const formatPhone = (phone: string) => {
     const cleaned = phone.replace(/\D/g, '')
@@ -95,15 +97,20 @@ export function UserProfileLayout({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        {backHref && (
-          <Link href={backHref}>
-            <Button variant="outline" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          {backHref && (
+            <Link href={backHref}>
+              <Button variant="outline" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
+          <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+        </div>
+        {actions && (
+          <div className="flex items-center gap-2">{actions}</div>
         )}
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">

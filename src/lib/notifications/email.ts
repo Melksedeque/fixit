@@ -81,27 +81,60 @@ type BasicTicket = {
   title: string
 }
 
-export async function sendWelcomeEmail(user: BasicUser): Promise<boolean> {
+export async function sendWelcomeEmail(
+  user: BasicUser & { plaintextPassword?: string | null }
+): Promise<boolean> {
   const shortName = user.name?.split(' ')[0] || ''
   const greeting = shortName ? `Olá ${shortName},` : 'Olá,'
 
+  const baseUrl =
+    process.env.FIXIT_BASE_URL || 'https://fixit-chamados.vercel.app'
+
   const subject = '[Fixit] Bem-vindo(a) à plataforma de chamados'
-  const text = [
+  const textLines = [
     greeting,
     '',
     'Sua conta na Fixit - Sistema de Chamados foi criada com sucesso.',
     'A partir de agora você pode abrir chamados, acompanhar o andamento e interagir com a equipe técnica.',
     '',
-    'Obrigado,',
-    'Fixit - Sistema de Chamados',
-  ].join('\n')
+    `Endereço de acesso: ${baseUrl}`,
+    `E-mail de acesso: ${user.email}`,
+  ]
 
-  const html = [
+  if (user.plaintextPassword) {
+    textLines.push(`Senha de acesso: ${user.plaintextPassword}`)
+  }
+
+  textLines.push(
+    '',
+    'Por segurança, recomendamos alterar a senha após o primeiro acesso.',
+    '',
+    'Obrigado,',
+    'Fixit - Sistema de Chamados'
+  )
+
+  const text = textLines.join('\n')
+
+  const htmlParts = [
     `<p>${greeting}</p>`,
     `<p>Sua conta na <strong>Fixit</strong> foi criada com sucesso.</p>`,
     `<p>A partir de agora você pode abrir chamados, acompanhar o andamento e interagir com a equipe técnica.</p>`,
-    `<p>Obrigado,<br/>Fixit - Sistema de Chamados</p>`,
-  ].join('')
+    `<p><strong>Endereço de acesso:</strong> <a href="${baseUrl}">${baseUrl}</a></p>`,
+    `<p><strong>E-mail de acesso:</strong> <code>${user.email}</code></p>`,
+  ]
+
+  if (user.plaintextPassword) {
+    htmlParts.push(
+      `<p><strong>Senha de acesso:</strong> <code>${user.plaintextPassword}</code></p>`
+    )
+  }
+
+  htmlParts.push(
+    `<p>Por segurança, recomendamos alterar a senha após o primeiro acesso.</p>`,
+    `<p>Obrigado,<br/>Fixit - Sistema de Chamados</p>`
+  )
+
+  const html = htmlParts.join('')
 
   return await sendEmail({
     to: user.email,
