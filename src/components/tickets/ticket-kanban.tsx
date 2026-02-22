@@ -138,13 +138,14 @@ export function TicketKanban({
         const formData = new FormData()
         formData.set('status', targetStatus)
         await updateStatus(ticketId, formData)
+        toast.success('Status do chamado atualizado com sucesso.')
       } catch {
         setBoardTickets((prev) =>
           prev.map((t) =>
             t.id === ticketId ? { ...t, status: currentStatus } : t
           )
         )
-        toast.error('Falha ao atualizar status')
+        toast.error('Erro ao atualizar status do chamado.')
       } finally {
         setPendingId((prev) => (prev === ticketId ? null : prev))
       }
