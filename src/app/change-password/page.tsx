@@ -6,6 +6,7 @@ import { changePassword, type ChangePasswordState } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff } from 'lucide-react'
+import { toast } from 'sonner'
 
 const initialState: ChangePasswordState = {
   error: undefined,
@@ -19,7 +20,11 @@ export default function ChangePasswordPage() {
 
   useEffect(() => {
     if (!isSubmitting) return
-    if (state && state.error) {
+    if (state?.error) {
+      toast.error(state.error)
+      setIsSubmitting(false)
+    } else if (state && !state.error) {
+      toast.success('Senha alterada com sucesso')
       setIsSubmitting(false)
     }
   }, [state, isSubmitting])
@@ -93,11 +98,6 @@ export default function ChangePasswordPage() {
               </button>
             </div>
           </div>
-          {state?.error && (
-            <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-              {state.error}
-            </div>
-          )}
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Salvando...' : 'Salvar nova senha'}
           </Button>

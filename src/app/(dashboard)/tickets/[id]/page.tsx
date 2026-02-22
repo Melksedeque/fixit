@@ -9,7 +9,6 @@ import {
   updateStatus,
   deleteTicket,
   updateTicket,
-  assignTicketToMe,
   addAttachments,
 } from '@/app/(dashboard)/tickets/actions'
 import Image from 'next/image'
@@ -29,6 +28,7 @@ import {
   getStatusLabel,
   getStatusVariant,
 } from '@/components/tickets/utils'
+import { AssignTicketButton } from '@/components/tickets/assign-ticket-button'
 import { Download, Eye, Paperclip, Pencil, Save, Send } from 'lucide-react'
 
 export default async function TicketDetailPage({
@@ -182,7 +182,13 @@ export default async function TicketDetailPage({
             </Dialog>
           )}
           {isAdmin && (
-            <form action={deleteTicket.bind(null, ticket.id)}>
+            <form
+              action={async () => {
+                'use server'
+                await deleteTicket(ticket.id)
+                redirect('/tickets?deleted=1')
+              }}
+            >
               <Button type="submit" variant="soft-destructive" size="sm">
                 Excluir
               </Button>
@@ -209,11 +215,7 @@ export default async function TicketDetailPage({
                 </span>
               </div>
               {isTechOrAdmin && !ticket.assignedTo && (
-                <form action={assignTicketToMe.bind(null, ticket.id)}>
-                  <Button type="submit" variant="soft-success" size="sm">
-                    Assumir Chamado
-                  </Button>
-                </form>
+                <AssignTicketButton ticketId={ticket.id} />
               )}
             </div>
             <div className="text-muted-foreground">

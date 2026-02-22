@@ -46,6 +46,7 @@ type SearchParams = {
   assignedTo?: 'me' | 'any' | 'unassigned'
   view?: 'list' | 'kanban'
   created?: string
+  deleted?: string
   tab?: 'tickets' | 'metrics'
 }
 
@@ -117,6 +118,25 @@ export default async function TicketsPage({
   const pageCount = Math.max(1, Math.ceil(totalCount / take))
   const view = isUser ? 'list' : params.view === 'kanban' ? 'kanban' : 'list'
   const created = params['created'] === '1'
+  const deleted = params['deleted'] === '1'
+  const hasStatusFilter = !!params.status
+  const hasPriorityFilter = !!params.priority
+  const hasSearchFilter = !!params.q
+  const hasAssignedFilter =
+    params.assignedTo &&
+    params.assignedTo !== (isAdmin ? 'any' : isTech ? 'me' : 'me')
+  const hasFilters =
+    hasStatusFilter || hasPriorityFilter || hasSearchFilter || hasAssignedFilter
+  const filtersSummary = hasFilters
+    ? `Filtros aplicados${[
+        hasStatusFilter ? ` Status: ${params.status}` : '',
+        hasPriorityFilter ? ` Prioridade: ${params.priority}` : '',
+        hasSearchFilter ? ' Busca por texto' : '',
+        hasAssignedFilter ? ` Responsável: ${params.assignedTo}` : '',
+      ]
+        .filter(Boolean)
+        .join(' •')}`
+    : undefined
   let metrics: {
     avgResMin: number
     avgByTechDisplay: { name: string; minutes: number }[]
@@ -223,7 +243,11 @@ export default async function TicketsPage({
 
   return (
     <div className="space-y-8">
-      <TicketCreatedToast created={created} />
+      <TicketCreatedToast
+        created={created}
+        deleted={deleted}
+        filtersSummary={filtersSummary}
+      />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">Chamados</h1>
