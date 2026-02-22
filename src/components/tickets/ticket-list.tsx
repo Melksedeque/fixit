@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { Eye, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { getStatusLabel, getStatusVariant, getPriorityVariant } from './utils'
 import {
@@ -27,6 +27,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { deleteTicket } from '@/app/(dashboard)/tickets/actions'
+import { toast } from 'sonner'
 
 interface Ticket {
   id: string
@@ -53,6 +54,7 @@ export function TicketList({
   params,
 }: TicketListProps) {
   const router = useRouter()
+  const [isDeleting, startDeleteTransition] = useTransition()
   useEffect(() => {
     let es: EventSource | null = null
     try {
@@ -173,11 +175,25 @@ export function TicketList({
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <form action={deleteTicket.bind(null, t.id)}>
-                          <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            Excluir
-                          </AlertDialogAction>
-                        </form>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isDeleting}
+                          onClick={() => {
+                            startDeleteTransition(async () => {
+                              try {
+                                await deleteTicket(t.id)
+                                toast.success(
+                                  `Chamado "${t.title}" excluído com sucesso.`
+                                )
+                                router.refresh()
+                              } catch {
+                                toast.error('Erro ao excluir chamado.')
+                              }
+                            })
+                          }}
+                        >
+                          Excluir
+                        </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
