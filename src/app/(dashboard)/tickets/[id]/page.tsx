@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   addComment,
-  updateStatus,
   deleteTicket,
   updateTicket,
   addAttachments,
@@ -29,7 +28,9 @@ import {
   getStatusVariant,
 } from '@/components/tickets/utils'
 import { AssignTicketButton } from '@/components/tickets/assign-ticket-button'
-import { Download, Eye, Paperclip, Pencil, Save, Send } from 'lucide-react'
+import { TicketStatusForm } from '@/components/tickets/ticket-status-form'
+import { Eye, Paperclip, Pencil, Save, Send } from 'lucide-react'
+import { TicketAttachmentDownloadButton } from '@/components/tickets/ticket-attachment-download-button'
 
 export default async function TicketDetailPage({
   params,
@@ -236,26 +237,10 @@ export default async function TicketDetailPage({
               dangerouslySetInnerHTML={{ __html: ticket.description || '' }}
             />
             {isTechOrAdmin && (
-              <form
-                action={updateStatus.bind(null, ticket.id)}
-                className="max-w-xs"
-              >
-                <select
-                  name="status"
-                  defaultValue={String(ticket.status)}
-                  aria-label="Status"
-                  className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-                >
-                  <option value="OPEN">Aberto</option>
-                  <option value="IN_PROGRESS">Em Andamento</option>
-                  <option value="WAITING">Aguardando</option>
-                  <option value="DONE">Concluído</option>
-                  <option value="CANCELLED">Cancelado</option>
-                </select>
-                <Button type="submit" variant="soft-edit" className="mt-2">
-                  Atualizar Status
-                </Button>
-              </form>
+              <TicketStatusForm
+                ticketId={ticket.id}
+                currentStatus={ticket.status as never}
+              />
             )}
           </CardContent>
         </Card>
@@ -354,11 +339,7 @@ export default async function TicketDetailPage({
                                 <Eye className="h-4 w-4" />
                               </a>
                             </Button>
-                            <Button asChild variant="soft-success" size="icon">
-                              <a href={url} download aria-label="Baixar anexo">
-                                <Download className="h-4 w-4" />
-                              </a>
-                            </Button>
+                            <TicketAttachmentDownloadButton url={url} />
                           </div>
                         </button>
                       </DialogTrigger>
