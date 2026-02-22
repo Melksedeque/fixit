@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { auth } from '@/lib/auth/config'
 import { prisma } from '@/lib/prisma'
 import { UserProfileLayout } from '@/components/users/user-profile-layout'
-import { resendWelcomeEmail } from '../actions'
 import { Button } from '@/components/ui/button'
-import { Pencil, Send } from 'lucide-react'
+import { Pencil } from 'lucide-react'
+import { ResendWelcomeButton } from '@/components/users/resend-welcome-button'
 
 export default async function UserDetailsPage({
   params,
@@ -94,17 +94,7 @@ export default async function UserDetailsPage({
       actions={
         canManageUser ? (
           <div className="flex items-center gap-2">
-            <form action={resendWelcomeEmail.bind(null, user.id)}>
-              <Button
-                type="submit"
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Send className="h-4 w-4" />
-                <span>Reenviar boas-vindas</span>
-              </Button>
-            </form>
+            <ResendWelcomeButton userId={user.id} userName={user.name} />
             <Button
               asChild
               variant="soft-edit"
