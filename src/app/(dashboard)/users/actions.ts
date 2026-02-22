@@ -246,11 +246,14 @@ export async function deleteUser(userId: string) {
   }
 }
 
-export async function resendWelcomeEmail(userId: string) {
+export async function resendWelcomeEmail(userId: string, _formData: FormData) {
   'use server'
   const session = await auth()
   if (!session?.user || session.user.role !== 'ADMIN') {
-    return { error: 'Não autorizado' }
+    console.warn('[users] resendWelcomeEmail not authorized', {
+      sessionUserId: session?.user?.id,
+    })
+    return
   }
 
   const user = await prisma.user.findUnique({
@@ -259,7 +262,8 @@ export async function resendWelcomeEmail(userId: string) {
   })
 
   if (!user) {
-    return { error: 'Usuário não encontrado.' }
+    console.warn('[users] resendWelcomeEmail user not found', { userId })
+    return
   }
 
   const temporaryPassword = generateTemporaryPassword()
@@ -290,9 +294,9 @@ export async function resendWelcomeEmail(userId: string) {
     } catch {
       console.error('[users] resend welcome email threw unexpectedly')
     }
-
-    return { success: true }
   } catch {
-    return { error: 'Erro ao reenviar boas-vindas.' }
+    console.error('[users] resendWelcomeEmail failed updating user', {
+      userId: user.id,
+    })
   }
 }
