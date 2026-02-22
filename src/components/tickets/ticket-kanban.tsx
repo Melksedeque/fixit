@@ -313,8 +313,9 @@ export function TicketKanban({
                                           : t
                                       )
                                     )
+                                    toast.success('Chamado assumido com sucesso.')
                                   } catch {
-                                    toast.error('Falha ao assumir chamado')
+                                    toast.error('Erro ao assumir chamado.')
                                   } finally {
                                     setPendingId((prev) =>
                                       prev === id ? null : prev
